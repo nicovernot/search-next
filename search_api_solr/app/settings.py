@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Configuration de l'application chargée depuis les variables d'environnement"""
     
     # Configuration Solr
-    solr_base_url: str = "https://solrslave-sec.labocleo.org/:8983/solr/documents"
+    solr_base_url: str = "https://solrslave-sec.labocleo.org/solr/documents"
     
     # Types de documents nécessitant des parents
     types_needing_parents: List[str] = ["article", "chapter"]
@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     
     # Auth API
     auth_api_url: str = "http://auth.openedition.org/auth_by_url/"
+    
+    # Dev mode
+    dev: bool = False
+    test_ip: str = "193.48.45.2"  # IP de test par défaut
     
     @field_validator('types_needing_parents', 'default_fields', mode='before')
     @classmethod

@@ -190,6 +190,11 @@ class DocsPermissionsClient:
                 user_data = response.json()
                 logger.info(f"Parsed user data: {user_data}")
                 
+                # Si pas de username (shortname), on considère qu'il n'y a pas d'organisation (ex: freemium/anonyme)
+                if not user_data.get('username'):
+                    logger.info("No username found in auth response, returning None")
+                    return None
+
                 organization_data = {
                     'name': user_data.get('name'),
                     'shortname': user_data.get('username'),

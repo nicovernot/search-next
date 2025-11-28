@@ -4,11 +4,11 @@ from typing import Dict, List, Any
 from urllib.parse import urlencode, quote_plus
 
 # Importez vos configurations (simulées ici)
-from app.services.facet_config import COMMON_FACETS_MAPPING, PLATFORM_SPECIFIC_FACETS
+from app.services.facet_config import COMMON_FACETS_MAPPING, PLATFORM_SPECIFIC_FACETS, get_filter_values
 from app.models.search_models import SearchRequest # Le modèle Pydantic de Searchkit
 
 # Constantes Solr
-SOLR_BASE_HANDLER = "/base_search"
+SOLR_BASE_HANDLER = "/select"
 SOLR_QUERY_HANDLER = "/select" # Pour les recherches standard et MLT
 SOLR_SUGGEST_HANDLER = "/suggest" # Pour l'autocomplétion
 
@@ -20,23 +20,35 @@ class SearchBuilder:
 
     # --- A. Construction de la Recherche et des Filtres (q et fq) ---
 
-    def _build_filter_queries(self, filters: List[Dict[str, Any]]) -> List[str]:
+    def _build_filter_queries(self, filters: List[Any]) -> List[str]:
         """ Traduit les filtres Searchkit en paramètres Solr fq """
         fq_list = []
         
         # 1. Filtre Permanent (Exemple de sécurité)
-        fq_list.append("document_statut:ACTIF")
+        # fq_list.append("document_statut:ACTIF") # Champ inexistant
 
         # 2. Filtres Dynamiques de l'utilisateur
         for f in filters:
             # Traduire le nom convivial (ex: 'author') en champ Solr (ex: 'contributeurFacetR_auteur')
-            solr_field = COMMON_FACETS_MAPPING.get(f['identifier'], f['identifier'])
-            value = f['value']
+            # f est un FilterModel, donc on utilise l'accès par attribut
+            identifier = f.identifier if hasattr(f, 'identifier') else f.get('identifier')
+            value = f.value if hasattr(f, 'value') else f.get('value')
             
-            # Simple échappement (doit être plus robuste)
-            escaped_value = quote_plus(value) 
+            solr_field = COMMON_FACETS_MAPPING.get(identifier, identifier)
             
-            fq_list.append(f'{solr_field}:"{escaped_value}"')
+            # Obtenir les valeurs Solr (avec expansion des sous-catégories si applicable)
+            solr_values = get_filter_values(identifier, value)
+            
+            # Construire le filtre
+            if len(solr_values) == 1:
+                # Une seule valeur: simple échappement
+                escaped_value = quote_plus(solr_values[0])
+                fq_list.append(f'{solr_field}:"{escaped_value}"')
+            else:
+                # Plusieurs valeurs: utiliser OR
+                # type:(article OR articlepdf)
+                values_str = ' OR '.join(solr_values)
+                fq_list.append(f'{solr_field}:({values_str})')
             
         return fq_list
 
@@ -50,22 +62,45 @@ class SearchBuilder:
         # mais nous les listons ici pour les facettes dynamiques ou spécifiques
         
         facettes_a_demander = []
+        facettes_query = []
         
         # 1. Ajout des facettes demandées par Searchkit
         for f in request.facets:
-            solr_field = COMMON_FACETS_MAPPING.get(f['identifier'], f['identifier'])
-            facettes_a_demander.append(solr_field)
+            # Vérifier le type de facette (support dict et Pydantic)
+            if isinstance(f, dict):
+                facet_type = f.get('type')
+                identifier = f.get('identifier')
+                value = f.get('value')
+            else:
+                facet_type = getattr(f, 'type', None)
+                identifier = getattr(f, 'identifier', None)
+                value = getattr(f, 'value', None)
+            
+            if facet_type == 'query':
+                # Facette par requête (ex: subscribers:amu)
+                if value:
+                    facettes_query.append(value)
+            else:
+                # Facette standard (champ)
+                solr_field = COMMON_FACETS_MAPPING.get(identifier, identifier)
+                facettes_a_demander.append(solr_field)
             
         # 2. Ajout des facettes spécifiques si un filtre de plateforme est actif
         if active_platform in PLATFORM_SPECIFIC_FACETS:
             facettes_a_demander.extend(PLATFORM_SPECIFIC_FACETS[active_platform])
 
         # Construction des paramètres Solr (peut être plus complexe avec JSON Facet API)
-        if facettes_a_demander:
+        if facettes_a_demander or facettes_query:
             # S'assure qu'on envoie facet=true même si c'est dans solrconfig
             facet_params['facet'] = 'true' 
-            # Solr accepte des paramètres multiples pour facet.field
-            facet_params['facet.field'] = facettes_a_demander 
+            
+            if facettes_a_demander:
+                # Solr accepte des paramètres multiples pour facet.field
+                facet_params['facet.field'] = facettes_a_demander
+            
+            if facettes_query:
+                # Solr accepte des paramètres multiples pour facet.query
+                facet_params['facet.query'] = facettes_query
             
         return facet_params
         
@@ -102,17 +137,22 @@ class SearchBuilder:
         """ Construit l'URL complète pour la recherche, facettes, et highlighting """
         
         # 1. Identifier la plateforme active pour la logique conditionnelle des facettes
+        # f est un FilterModel
         active_platform = next(
-            (f['value'] for f in request.filters if f['identifier'] == 'platform'), 
+            (f.value for f in request.filters if f.identifier == 'platform'), 
             None
         )
         
         # 2. Construction des blocs de la requête
+        # Supporte à la fois le dictionnaire (ancien) et le modèle Pydantic (nouveau)
+        start = request.pagination.get('from', 0) if isinstance(request.pagination, dict) else request.pagination.from_
+        rows = request.pagination.get('size', 10) if isinstance(request.pagination, dict) else request.pagination.size
+
         query_params = {
             'q': request.query.query, # La requête en texte libre (q)
-            'df': 'text_recherche',     # Champ par défaut pour le q
-            'start': request.pagination.get('from', 0),
-            'rows': request.pagination.get('size', 10),
+            'df': 'titre',     # Champ par défaut pour le q (fallback sur titre car text_recherche absent)
+            'start': start,
+            'rows': rows,
             'wt': 'json'
         }
         

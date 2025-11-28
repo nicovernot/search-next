@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: search_api_solr
+    ports:
+      - "8007:8007"
+    env_file:
+      - .env
+    # Volume pour le développement (hot reload)
+    volumes:
+      - .:/app
+    # Commande avec reload pour le développement
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

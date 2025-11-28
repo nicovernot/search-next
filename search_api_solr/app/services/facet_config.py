@@ -15,21 +15,122 @@ def load_facet_configs() -> dict:
 
 FACET_CONFIG = load_facet_configs()
 
+def build_common_facets_mapping() -> dict:
+    """
+    Construit le mapping des facettes à partir de common.json.
+    Utilise le paramètre 'list' qui contient le nom du champ Solr.
+    """
+    mapping = {}
+    common_config = FACET_CONFIG.get('common', {})
+    
+    for facet_name, facet_data in common_config.items():
+        # Récupérer la configuration par défaut (clé vide "")
+        default_config = facet_data.get('', {})
+        if default_config and 'list' in default_config:
+            # Le champ Solr est le premier élément de la liste
+            solr_field = default_config['list'][0]
+            mapping[facet_name] = solr_field
+    
+    return mapping
+
+def build_facet_subcategories() -> dict:
+    """
+    Construit le mapping des sous-catégories de facettes.
+    Par exemple, pour 'type': {'livre': ['livre'], 'article': ['article', 'articlepdf'], ...}
+    """
+    subcategories = {}
+    common_config = FACET_CONFIG.get('common', {})
+    
+    for facet_name, facet_data in common_config.items():
+        default_config = facet_data.get('', {})
+        
+        # Vérifier s'il y a des options (sous-catégories)
+        if default_config and 'options' in default_config:
+            facet_subcats = {}
+            
+            for option_name, option_data in default_config['options'].items():
+                if 'list' in option_data:
+                    # Stocker la liste des valeurs pour cette sous-catégorie
+                    facet_subcats[option_name] = option_data['list']
+            
+            if facet_subcats:
+                subcategories[facet_name] = facet_subcats
+    
+    return subcategories
+
 # Mapping des noms de facettes conviviales vers les champs Solr
-COMMON_FACETS_MAPPING = {
-    'author': 'contributeurFacetR_auteur',
-    'publisher': 'editeurFacetR',
-    'language': 'langueFacetR',
-    'type': 'typeFacetR',
-    'platform': 'platformeFacetR',
-    'collection': 'collectionFacetR',
-    'year': 'anneeFacetR',
-}
+# Chargé dynamiquement depuis common.json
+COMMON_FACETS_MAPPING = build_common_facets_mapping()
+
+# Mapping des sous-catégories de facettes
+# Par exemple: {'type': {'livre': ['livre'], 'article': ['article', 'articlepdf'], ...}}
+FACET_SUBCATEGORIES = build_facet_subcategories()
+
+def get_filter_values(facet_name: str, filter_value: str) -> list:
+    """
+    Retourne les valeurs Solr pour un filtre donné.
+    Si le filtre correspond à une sous-catégorie, retourne toutes les valeurs associées.
+    Sinon, retourne la valeur telle quelle.
+    
+    Exemple:
+        get_filter_values('type', 'article') -> ['article', 'articlepdf']
+        get_filter_values('type', 'livre') -> ['livre']
+        get_filter_values('platform', 'OB') -> ['OB']
+    """
+    # Vérifier si cette facette a des sous-catégories
+    if facet_name in FACET_SUBCATEGORIES:
+        subcats = FACET_SUBCATEGORIES[facet_name]
+        
+        # Vérifier si la valeur correspond à une sous-catégorie
+        if filter_value in subcats:
+            return subcats[filter_value]
+    
+    # Sinon, retourner la valeur telle quelle
+    return [filter_value]
+
+def build_platform_specific_facets() -> dict:
+    """
+    Construit le mapping des facettes spécifiques par plateforme.
+    Extrait les facettes de chaque fichier JSON de plateforme (books, journals, hypotheses, calenda).
+    
+    Returns:
+        Dict avec le mapping platformID -> liste de champs Solr spécifiques
+        Exemple: {'OB': ['site_title'], 'OJ': ['site_title'], ...}
+    """
+    platform_facets = {}
+    
+    # Mapping des noms de fichiers vers les platformID
+    platform_mapping = {
+        'books': 'OB',
+        'journals': 'OJ', 
+        'hypotheses': 'HO',
+        'calenda': 'CO'
+    }
+    
+    for config_name, platform_id in platform_mapping.items():
+        if config_name not in FACET_CONFIG:
+            continue
+            
+        platform_config = FACET_CONFIG[config_name]
+        specific_fields = []
+        
+        # Parcourir toutes les facettes de cette plateforme
+        for facet_name, facet_data in platform_config.items():
+            default_config = facet_data.get('', {})
+            
+            if default_config and 'list' in default_config:
+                solr_field = default_config['list'][0]
+                
+                # Ajouter uniquement les facettes spécifiques à cette plateforme
+                # (celles qui ne sont pas dans common.json)
+                if facet_name not in FACET_CONFIG.get('common', {}):
+                    specific_fields.append(solr_field)
+        
+        if specific_fields:
+            platform_facets[platform_id] = specific_fields
+    
+    return platform_facets
 
 # Facettes spécifiques par plateforme
-PLATFORM_SPECIFIC_FACETS = {
-    'openedition-books': ['editeurFacetR', 'collectionFacetR'],
-    'openedition-journals': ['revueFacetR'],
-    'hypotheses': ['blogFacetR'],
-    'calenda': ['categorieCalendaFacetR'],
-}
+# Chargé dynamiquement depuis books.json, journals.json, hypotheses.json, calenda.json
+PLATFORM_SPECIFIC_FACETS = build_platform_specific_facets()
