@@ -1,0 +1,66 @@
+{
+  "platform": {
+    "": {
+      "name": "platform",
+      "type": "match",
+      "list": ["platformID"]
+    }
+  },
+  "translations": {
+    "": {
+      "name": "translations",
+      "type": "match",
+      "list": ["autodetect_lang"]
+    }
+  },
+  "type": {
+    "": {
+      "name": "type",
+      "type": "select",
+      "list": ["type"],
+      "options": {
+        "appelacontribution": {
+          "list": ["appel a contribution"]
+        },
+        "colloque": {
+          "list": ["colloque"]
+        },
+        "journeedetude": {
+          "list": ["journee d etude"]
+        },
+        "seminaire": {
+          "list": ["seminaire"]
+        },
+        "informationsdiverses": {
+          "list": ["informations diverses"]
+        },
+        "bourseprixetemploi": {
+          "list": ["bourse prix et emploi"]
+        },
+        "cycledeconferences": {
+          "list": ["cycle de conferences"]
+        },
+        "appeldoffres": {
+          "list": ["appel d offres"]
+        },
+        "ecoledete": {
+          "list": ["ecole d ete"]
+        }
+      }
+    }
+  },
+  "date": {
+    "": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"]
+    }
+  },
+  "subscribers": {
+    "": {
+      "name": "subscribers",
+      "type": "match",
+      "list": ["subscribers"]
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "platform": {
+    "": {
+      "name": "platform",
+      "type": "match",
+      "list": ["platformID"]
+    }
+  },
+  "access": {
+    "": {
+      "name": "access",
+      "type": "match",
+      "list": ["accessRights_openAireV3"]
+    }
+  },
+  "translations": {
+    "": {
+      "name": "translations",
+      "type": "match",
+      "list": ["autodetect_lang"]
+    }
+  },
+  "type": {
+    "": {
+      "name": "type",
+      "type": "select",
+      "list": ["type"],
+      "options": {
+        "livre": {
+          "list": ["livre"]
+        },
+        "article": {
+          "list": ["article", "articlepdf"]
+        },
+        "compterendu": {
+          "list": [
+            "compterendu",
+            "notedelecture",
+            "noticebibliolivre",
+            "noticebibliofilm",
+            "noticebiblioarticle",
+            "noticebiblionumero",
+            "noticearcheologique"
+          ]
+        },
+        "chronique": {
+          "list": ["chronique"]
+        },
+        "editorial": {
+          "list": ["editorial"]
+        },
+        "numerorevue": {
+          "list": ["numero"]
+        },
+        "~divers": {
+          "list": [
+            "actualite",
+            "texteannexe",
+            "source",
+            "revuedepresse",
+            "annuairedesites",
+            "ficheauteur",
+            "presentation",
+            "annuairemedias",
+            "documentannexe",
+            "lienfacsimile",
+            "website"
+          ]
+        }
+      }
+    }
+  },
+  "author": {
+    "": {
+      "name": "author",
+      "type": "match",
+      "list": ["contributeurFacetR_auteur"]
+    }
+  },
+  "journals-publication": {
+    "": {
+      "name": "journals-publication",
+      "type": "match",
+      "list": ["site_title"]
+    }
+  },
+  "date": {
+    "": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"],
+      "options": {
+        "format": "Y"
+      }
+    }
+  },
+  "subscribers": {
+    "": {
+      "name": "subscribers",
+      "type": "match",
+      "list": ["subscribers"]
+    }
+  }
+}

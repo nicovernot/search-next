@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "search-api-solr"
+version = "0.1.0"
+description = "api qui permet de rechercher des documents dans solr"
+authors = ["Nicolas Vernot <nicolas.vernot-cortes@openedition.org>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.109.0"
+uvicorn = "^0.27.0"
+pydantic = "^2.6.0"
+pydantic-settings = "^2.1.0"
+httpx = "^0.26.0"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

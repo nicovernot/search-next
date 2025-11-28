@@ -1,0 +1,81 @@
+{
+  "platform": {
+    "": {
+      "name": "platform",
+      "type": "match",
+      "list": ["platformID"]
+    }
+  },
+  "access": {
+    "": {
+      "name": "access",
+      "type": "match",
+      "list": ["accessRights_openAireV3"]
+    }
+  },
+  "translations": {
+    "": {
+      "name": "translations",
+      "type": "match",
+      "list": ["autodetect_lang"]
+    }
+  },
+  "type": {
+    "": {
+      "name": "type",
+      "type": "select",
+      "list": ["type"],
+      "options": {
+        "livre": {
+          "list": ["livre"]
+        },
+        "chapitre": {
+          "list": ["chapitre", "source"]
+        },
+        "~divers": {
+          "list": [
+            "pageliminaire",
+            "actualite",
+            "annexe",
+            "bibliographie",
+            "avantpropos",
+            "ficheauteur",
+            "preface",
+            "postface"
+          ]
+        }
+      }
+    }
+  },
+  "author": {
+    "": {
+      "name": "author",
+      "type": "match",
+      "list": ["contributeurFacetR_auteur"]
+    }
+  },
+  "books-publication": {
+    "": {
+      "name": "books-publication",
+      "type": "match",
+      "list": ["site_title"]
+    }
+  },
+  "date": {
+    "": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"],
+      "options": {
+        "format": "Y"
+      }
+    }
+  },
+  "subscribers": {
+    "": {
+      "name": "subscribers",
+      "type": "match",
+      "list": ["subscribers"]
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "platform": {
+    "": {
+      "name": "platform",
+      "type": "match",
+      "list": ["platformID"]
+    }
+  },
+  "access": {
+    "": {
+      "name": "access",
+      "type": "match",
+      "list": ["accessRights_openAireV3"]
+    }
+  },
+  "translations": {
+    "": {
+      "name": "translations",
+      "type": "match",
+      "list": ["autodetect_lang"]
+    }
+  },
+  "type": {
+    "": {
+      "name": "type",
+      "type": "select",
+      "list": ["type"],
+      "options": {
+        "livre": {
+          "list": ["livre"]
+        },
+        "article": {
+          "list": ["article", "articlepdf"]
+        },
+        "chapitre": {
+          "list": ["chapitre", "source"]
+        },
+        "compterendu": {
+          "list": [
+            "compterendu",
+            "notedelecture",
+            "noticebibliolivre",
+            "noticebibliofilm",
+            "noticebiblioarticle",
+            "noticebiblionumero",
+            "noticearcheologique"
+          ]
+        },
+        "editorial": {
+          "list": ["editorial"]
+        },
+        "numerorevue": {
+          "list": ["numero"]
+        },
+        "evenements": {
+          "list": [
+            "appel a contribution",
+            "colloque",
+            "journee d'etude",
+            "seminaire",
+            "informations diverses",
+            "bourse prix et emploi",
+            "cycle de conferences",
+            "appel d'offres",
+            "ecole d'ete"
+          ]
+        }
+      }
+    },
+    "HO": {
+      "name": "type",
+      "type": "select",
+      "list": ["type"],
+      "options": {
+        "post": {
+          "list": ["post"]
+        }
+      }
+    }
+  },
+  "author": {
+    "": {
+      "name": "author",
+      "type": "match",
+      "list": ["contributeurFacetR_auteur"]
+    }
+  },
+  "date": {
+    "OB": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"],
+      "options": {
+        "format": "Y"
+      }
+    },
+    "OJ": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"],
+      "options": {
+        "format": "Y"
+      }
+    },
+    "HO": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"],
+      "options": {
+        "format": "Y"
+      }
+    },
+    "CO": {
+      "name": "date",
+      "type": "date",
+      "list": ["anneedatepubli"]
+    }
+  },
+  "subscribers": {
+    "": {
+      "name": "subscribers",
+      "type": "match",
+      "list": ["subscribers"]
+    }
+  }
+}
