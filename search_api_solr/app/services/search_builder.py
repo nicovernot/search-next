@@ -5,6 +5,7 @@ from urllib.parse import urlencode, quote_plus
 
 # Importez vos configurations (simulées ici)
 from app.services.facet_config import COMMON_FACETS_MAPPING, PLATFORM_SPECIFIC_FACETS, get_filter_values
+from app.services.field_config import get_default_fields, get_default_search_field, get_highlight_fields
 from app.models.search_models import SearchRequest # Le modèle Pydantic de Searchkit
 
 # Constantes Solr
@@ -150,7 +151,8 @@ class SearchBuilder:
 
         query_params = {
             'q': request.query.query, # La requête en texte libre (q)
-            'df': 'titre',     # Champ par défaut pour le q (fallback sur titre car text_recherche absent)
+            'df': get_default_search_field(),     # Champ par défaut pour le q
+            'fl': get_default_fields(), # Champs à retourner
             'start': start,
             'rows': rows,
             'wt': 'json'
@@ -164,7 +166,7 @@ class SearchBuilder:
         
         highlight_params = {
             'hl': 'true',             # Activation du highlighting
-            'hl.fl': 'titre,resume',  # Champs à surligner
+            'hl.fl': ",".join(get_highlight_fields()),  # Champs à surligner
             'hl.simple.pre': '<b>',
             'hl.simple.post': '</b>',
         }

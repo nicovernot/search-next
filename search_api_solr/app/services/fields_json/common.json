@@ -1,0 +1,18 @@
+{
+    "default": {
+        "fl": [
+            "id",
+            "titre",
+            "resume",
+            "platformID",
+            "anneedatepubli",
+            "type",
+            "author"
+        ],
+        "df": "titre",
+        "hl_fl": [
+            "titre",
+            "resume"
+        ]
+    }
+}
