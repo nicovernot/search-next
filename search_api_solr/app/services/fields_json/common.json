@@ -1,18 +1,63 @@
 {
     "default": {
         "fl": [
-            "id",
             "titre",
-            "resume",
-            "platformID",
-            "anneedatepubli",
+            "naked_soustitre",
+            "url",
             "type",
-            "author"
+            "accessRights_openAireV3",
+            "site_accesspolicy",
+            "ep_diffusion",
+            "platformID",
+            "subscribers",
+            "site_title",
+            "published_at",
+            "dateevenement",
+            "anneedatepubli",
+            "datepublipapier",
+            "contributeurFacetR_auteur",
+            "contributeurFacet_auteur",
+            "contributeurFacetR_editeurscientifique",
+            "contributeurFacetR_directeurdelapublication",
+            "contributeur_contact",
+            "naked_resume",
+            "naked_texte",
+            "naked_introduction",
+            "naked_titre",
+            "ep_isbnprint",
+            "ep_isbnelec",
+            "url",
+            "coverage_depth",
+            "site_title",
+            "anneedatepubli",
+            "datemisenligne",
+            "monograph_volume"
         ],
         "df": "titre",
         "hl_fl": [
             "titre",
             "resume"
-        ]
+        ],
+        "qf": {
+            "naked_titre": 8.0,
+            "parts_titre": 6.0,
+            "contributeur_auteur": 4.0,
+            "naked_soustitre": 2.0,
+            "entity_subtitle_fr": 2.0,
+            "entity_subtitle_en": 2.0,
+            "parts_soustitre": 1.0,
+            "naked_texte": 0.5,
+            "parts_texte": 0.5,
+            "naked_resume": 1.0,
+            "parts_resume": 0.5,
+            "naked_introduction": 0.5,
+            "entity_isbn": 0.5,
+            "ep_isbnelec": 0.5,
+            "ep_isbnprint": 0.5,
+            "DOI": 0.5,
+            "site_title": 0.1,
+            "siteid": 0.1
+        },
+        "extended_params": "fl=titre,naked_soustitre,url,type,accessRights_openAireV3,site_accesspolicy,ep_diffusion,platformID,subscribers,site_title,published_at,dateevenement,anneedatepubli,datepublipapier,contributeurFacetR_auteur,contributeurFacet_auteur,contributeurFacetR_editeurscientifique,contributeurFacetR_directeurdelapublication,contributeur_contact,naked_resume,naked_texte,naked_introduction,naked_titre,ep_isbnprint,ep_isbnelec,url,coverage_depth,site_title,anneedatepubli,datemisenligne,monograph_volume&defType=edismax&stopwords=true&lowercaseOperators=true&preferLocalShards=true"
     }
 }

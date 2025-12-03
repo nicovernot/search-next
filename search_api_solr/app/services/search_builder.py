@@ -5,7 +5,7 @@ from urllib.parse import urlencode, quote_plus
 
 # Importez vos configurations (simulées ici)
 from app.services.facet_config import COMMON_FACETS_MAPPING, PLATFORM_SPECIFIC_FACETS, get_filter_values
-from app.services.field_config import get_default_fields, get_default_search_field, get_highlight_fields
+from app.services.field_config import get_default_fields, get_default_search_field, get_highlight_fields, get_qf_params
 from app.models.search_models import SearchRequest # Le modèle Pydantic de Searchkit
 
 # Constantes Solr
@@ -153,6 +153,7 @@ class SearchBuilder:
             'q': request.query.query, # La requête en texte libre (q)
             'df': get_default_search_field(),     # Champ par défaut pour le q
             'fl': get_default_fields(), # Champs à retourner
+            'qf': get_qf_params(), # Paramètres de boost (Query Fields)
             'start': start,
             'rows': rows,
             'wt': 'json'
