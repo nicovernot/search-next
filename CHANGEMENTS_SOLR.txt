@@ -1,0 +1,63 @@
+╔═══════════════════════════════════════════════════════════╗
+║  ✅ Configuration mise à jour - Solr distant            ║
+╚═══════════════════════════════════════════════════════════╝
+
+## Changement principal
+
+✅ Utilisation de Solr distant au lieu d'une image locale
+   URL : https://solrslave-sec.labocleo.org/solr/documents
+
+## Services Docker (simplifiés)
+
+┌─────────────────────────────────────────────┐
+│  1. API FastAPI        (port 8007)         │
+│  2. Frontend React     (port 3000)         │
+│                                             │
+│  → Solr DISTANT (pas de conteneur local)  │
+└─────────────────────────────────────────────┘
+
+## Fichiers mis à jour
+
+✓ docker-compose.yml           - Suppression service Solr
+✓ docker-compose.dev.yml       - URL Solr distant
+✓ docker-compose.prod.yml      - URL Solr distant
+✓ .env                         - SOLR_BASE_URL + port 8007
+✓ .env.example                 - SOLR_BASE_URL
+✓ Makefile                     - Suppression commandes Solr
+✓ check-config.sh              - Vérification Solr distant
+
+## Démarrage rapide
+
+cd search_api_solr
+./start.sh dev
+
+## URLs
+
+Frontend    : http://localhost:3000
+API         : http://localhost:8007
+API Docs    : http://localhost:8007/docs
+Solr        : https://solrslave-sec.labocleo.org/solr/documents
+
+## Test Solr
+
+✓ Solr distant accessible et fonctionnel !
+  curl https://solrslave-sec.labocleo.org/solr/documents/admin/ping
+
+## Commandes utiles
+
+make dev              # Démarrer en développement
+make logs             # Voir les logs
+make test             # Lancer les tests
+make health           # Vérifier la santé (API + Frontend + Solr distant)
+./check-config.sh     # Vérifier la configuration complète
+
+## Avantages
+
+✅ Plus simple - Pas de Solr local à gérer
+✅ Plus léger - Moins de conteneurs
+✅ Données réelles - Utilise les vraies données
+✅ Démarrage rapide - Moins de ressources
+
+═══════════════════════════════════════════════════════════
+Tout est prêt ! Lancez : cd search_api_solr && ./start.sh dev
+═══════════════════════════════════════════════════════════

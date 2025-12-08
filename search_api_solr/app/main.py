@@ -1,5 +1,6 @@
 # app/main.py
 from fastapi import FastAPI, Depends, Query, Request, APIRouter, HTTPException, Response
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, List
 import httpx
 import logging
@@ -13,6 +14,15 @@ from app.models import DocsPermissionsResponse
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# Configuration CORS pour permettre les requêtes du frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En production, spécifier les domaines autorisés
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 router = APIRouter()
 app.include_router(router)

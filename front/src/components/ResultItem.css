@@ -1,0 +1,79 @@
+.result-item {
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: box-shadow 0.2s;
+}
+
+.result-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.result-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.result-platform,
+.result-type {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.result-platform {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.result-type {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.result-title {
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.result-title a {
+  color: #1976d2;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.result-title a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+.result-authors {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.result-description {
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.result-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+}

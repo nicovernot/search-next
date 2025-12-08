@@ -1,0 +1,17 @@
+.home-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.site-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .site-title {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,36 @@
+.results-list {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-header {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.results-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.results-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading,
+.no-results,
+.no-search {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.loading {
+  color: #007bff;
+}

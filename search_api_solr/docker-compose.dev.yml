@@ -1,0 +1,35 @@
+version: '3.8'
+
+# Configuration pour le développement
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  api:
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload --log-level debug
+    environment:
+      - DEV=true
+      - LOG_LEVEL=DEBUG
+      - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
+
+  frontend-dev:
+    image: node:18-alpine
+    container_name: openedition_frontend_dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../front:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8007
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    command: sh -c "npm install && npm start"
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - openedition_network
