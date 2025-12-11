@@ -1,7 +1,7 @@
 # app/services/search_builder.py (Début du fichier)
 
 from typing import Dict, List, Any
-from urllib.parse import urlencode, quote_plus
+from urllib.parse import urlencode
 
 # Importez vos configurations (simulées ici)
 from app.services.facet_config import (
@@ -31,6 +31,11 @@ class SearchBuilder:
 
     # --- A. Construction de la Recherche et des Filtres (q et fq) ---
 
+    def _escape_solr_value(self, value: str) -> str:
+        """Escape special characters for Solr phrase query (inside quotes)"""
+        # We only need to escape " and \ when the value is inside quotes
+        return value.replace("\\", "\\\\").replace('"', '\\"')
+
     def _build_filter_queries(self, filters: List[Any]) -> List[str]:
         """Traduit les filtres Searchkit en paramètres Solr fq"""
         fq_list = []
@@ -54,14 +59,17 @@ class SearchBuilder:
 
             # Construire le filtre
             if len(solr_values) == 1:
-                # Une seule valeur: simple échappement
-                escaped_value = quote_plus(solr_values[0])
+                # Une seule valeur: échappement Solr standard (pas URL encode)
+                escaped_value = self._escape_solr_value(solr_values[0])
                 fq_list.append(f'{solr_field}:"{escaped_value}"')
             else:
                 # Plusieurs valeurs: utiliser OR
                 # type:(article OR articlepdf)
-                values_str = " OR ".join(solr_values)
-                fq_list.append(f"{solr_field}:({values_str})")
+                # Note: ici on suppose que les sous-catégories sont "safe" ou on les échappe aussi
+                escaped_values = [self._escape_solr_value(v) for v in solr_values]
+                values_str = '" OR "'.join(escaped_values)
+                # On met des guillemets autour de chaque valeur pour être sûr
+                fq_list.append(f'{solr_field}:("{values_str}")')
 
         return fq_list
 
