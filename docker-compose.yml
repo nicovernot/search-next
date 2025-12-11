@@ -4,7 +4,7 @@ services:
   # API Backend FastAPI
   # Utilise Solr distant : https://solrslave-sec.labocleo.org/solr/documents
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: search_api_solr
@@ -16,14 +16,14 @@ services:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
     volumes:
       # Volume pour le développement (hot reload)
-      - .:/app
+      - ./search_api_solr:/app
       # Exclure les répertoires Python cache
       - /app/__pycache__
       - /app/.pytest_cache
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/docs"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8007/docs" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,7 +33,7 @@ services:
   # Frontend React
   frontend:
     build:
-      context: ../front
+      context: ./front
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: http://localhost:8007
@@ -44,13 +44,12 @@ services:
     depends_on:
       - api
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/" ]
       interval: 30s
       timeout: 3s
       retries: 3
     networks:
       - openedition_network
-
   # Frontend en mode développement (optionnel, décommentez pour utiliser)
   # frontend-dev:
   #   image: node:18-alpine
@@ -59,7 +58,7 @@ services:
   #   ports:
   #     - "3000:3000"
   #   volumes:
-  #     - ../front:/app
+  #     - ./front:/app
   #     - /app/node_modules
   #   environment:
   #     - REACT_APP_API_URL=http://localhost:8007

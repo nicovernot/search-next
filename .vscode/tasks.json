@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Dev: Start Environment",
+            "type": "shell",
+            "command": "make dev",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Dev: Stop Environment",
+            "type": "shell",
+            "command": "make dev-down",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: API",
+            "type": "shell",
+            "command": "make test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: Frontend E2E (Headless)",
+            "type": "shell",
+            "command": "make test-front",
+            "group": "test"
+        },
+        {
+            "label": "Test: Frontend E2E (UI)",
+            "type": "shell",
+            "command": "make test-front-ui",
+            "group": "test"
+        },
+        {
+            "label": "Logs: All",
+            "type": "shell",
+            "command": "make logs",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Logs: API",
+            "type": "shell",
+            "command": "make logs-api",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "System: Health Check",
+            "type": "shell",
+            "command": "make health",
+            "problemMatcher": []
+        },
+        {
+            "label": "Install: Initial Setup",
+            "type": "shell",
+            "command": "make install",
+            "problemMatcher": []
+        }
+    ]
+}

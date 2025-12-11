@@ -54,6 +54,13 @@ test: ## Lancer les tests
 test-cov: ## Lancer les tests avec couverture
 	docker-compose exec api pytest --cov=app --cov-report=html
 
+test-front: ## Lancer les tests E2E du frontend (Headless)
+	cd front && npm run test:e2e
+
+test-front-ui: ## Lancer les tests E2E du frontend avec UI
+	cd front && npm run test:e2e:ui
+
+
 # Shell
 shell-api: ## Accéder au shell de l'API
 	docker-compose exec api bash

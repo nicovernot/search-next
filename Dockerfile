@@ -9,13 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copie des fichiers de dépendances
-COPY requirements.txt .
+COPY search_api_solr/requirements.txt .
 
 # Installation des dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copie du code source
-COPY . .
+COPY search_api_solr/ .
 
 # Exposition du port
 EXPOSE 8007

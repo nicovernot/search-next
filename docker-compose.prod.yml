@@ -24,7 +24,7 @@ services:
     # volumes:
     #   - ./certs:/etc/nginx/certs:ro
 
-  # Reverse proxy Nginx (optionnel pour la production)
+    # Reverse proxy Nginx (optionnel pour la production)
   nginx:
     image: nginx:alpine
     container_name: openedition_nginx
@@ -32,8 +32,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./search_api_solr/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./search_api_solr/nginx/conf.d:/etc/nginx/conf.d:ro
       # - ./certs:/etc/nginx/certs:ro
     depends_on:
       - api

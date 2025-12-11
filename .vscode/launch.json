@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8007",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/search_api_solr",
+            "env": {
+                "SOLR_BASE_URL": "https://solrslave-sec.labocleo.org/solr/documents",
+                "DEV": "true",
+                "LOG_LEVEL": "DEBUG"
+            },
+            "jinja": true,
+            "justMyCode": true
+        },
+        {
+            "name": "Debug Frontend (Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/front"
+        }
+    ]
+}

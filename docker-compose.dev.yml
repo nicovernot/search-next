@@ -6,7 +6,7 @@ version: '3.8'
 services:
   api:
     volumes:
-      - .:/app
+      - ./search_api_solr:/app
       - /app/__pycache__
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload --log-level debug
     environment:
@@ -21,7 +21,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../front:/app
+      - ./front:/app
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost:8007
