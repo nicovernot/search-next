@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearch } from '../contexts/SearchContext';
 import './Pagination.css';
 
 function Pagination({ total }) {
+  const { t } = useTranslation();
   const { pagination, setPage } = useSearch();
-  
+
   const currentPage = Math.floor((pagination.from || 0) / (pagination.size || 10)) + 1;
   const pageSize = pagination.size || 10;
   const totalPages = Math.ceil(total / pageSize);
@@ -30,7 +32,7 @@ function Pagination({ total }) {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 7;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -52,7 +54,7 @@ function Pagination({ total }) {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -65,7 +67,7 @@ function Pagination({ total }) {
         onClick={handlePrevious}
         disabled={currentPage === 1}
       >
-        ← Précédent
+        ← {t('previous')}
       </button>
 
       <div className="pagination-numbers">
@@ -91,10 +93,11 @@ function Pagination({ total }) {
         onClick={handleNext}
         disabled={currentPage === totalPages}
       >
-        Suivant →
+        {t('next')} →
       </button>
     </nav>
   );
 }
 
 export default Pagination;
+

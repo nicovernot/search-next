@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './FacetGroup.css';
 
 function FacetGroup({ label, field, buckets, activeFilters, onFilterChange }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
@@ -36,7 +38,7 @@ function FacetGroup({ label, field, buckets, activeFilters, onFilterChange }) {
                   <input
                     type="checkbox"
                     checked={isChecked(bucket.key)}
-                    onChange={(e) => 
+                    onChange={(e) =>
                       onFilterChange(field, bucket.key, e.target.checked)
                     }
                     className="facet-checkbox"
@@ -55,7 +57,7 @@ function FacetGroup({ label, field, buckets, activeFilters, onFilterChange }) {
               className="show-more-button"
               onClick={() => setShowAll(!showAll)}
             >
-              {showAll ? 'Voir moins' : `Voir plus (${buckets.length - maxVisible})`}
+              {showAll ? t('showLess') : t('showMore', { count: buckets.length - maxVisible })}
             </button>
           )}
         </div>
@@ -65,3 +67,4 @@ function FacetGroup({ label, field, buckets, activeFilters, onFilterChange }) {
 }
 
 export default FacetGroup;
+

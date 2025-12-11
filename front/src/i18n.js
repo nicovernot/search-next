@@ -22,11 +22,15 @@ i18n
             escapeValue: false, // not needed for react as it escapes by default
         },
 
-        // keySeparator: false, // we do not use keys in form messages.welcome
+        backend: {
+            loadPath: '/locales/{{lng}}/{{ns}}.json',
+        },
 
-        // react: {
-        //   useSuspense: false // optional
-        // }
+        react: {
+            useSuspense: true,
+            bindI18n: 'languageChanged loaded',
+            bindI18nStore: 'added removed',
+        }
     });
 
 export default i18n;

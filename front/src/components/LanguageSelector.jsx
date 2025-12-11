@@ -10,7 +10,10 @@ const LanguageSelector = () => {
 
     return (
         <div className="language-selector">
-            <select onChange={(e) => changeLanguage(e.target.value)} defaultValue={i18n.language}>
+            <select
+                onChange={(e) => changeLanguage(e.target.value)}
+                value={i18n.language}
+            >
                 <option value="en">English</option>
                 <option value="fr">Français</option>
                 <option value="es">Español</option>
@@ -22,3 +25,4 @@ const LanguageSelector = () => {
 };
 
 export default LanguageSelector;
+

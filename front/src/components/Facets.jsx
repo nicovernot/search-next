@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearch } from '../contexts/SearchContext';
 import FacetGroup from './FacetGroup';
 import './Facets.css';
 
 function Facets() {
+  const { t } = useTranslation();
   const { facets, filters, addFilter, removeFilter, clearFilters } = useSearch();
 
   const handleFilterChange = (field, value, checked) => {
@@ -26,23 +28,23 @@ function Facets() {
 
   // Définir les facettes à afficher
   const facetConfigs = [
-    { key: 'platform', label: 'Plateforme', field: 'platform' },
-    { key: 'type', label: 'Type de document', field: 'type' },
-    { key: 'access', label: 'Accès', field: 'access' },
-    { key: 'translations', label: 'Langue', field: 'translations' }
+    { key: 'platform', label: t('platform'), field: 'platform' },
+    { key: 'type', label: t('documentType'), field: 'type' },
+    { key: 'access', label: t('access'), field: 'access' },
+    { key: 'translations', label: t('languageFilter'), field: 'translations' }
     // TODO: Ajouter 'date' (année) et 'author' (auteur) quand le backend les supportera
   ];
 
   return (
     <div className="facets">
       <div className="facets-header">
-        <h3>Filtres</h3>
+        <h3>{t('filters')}</h3>
         {hasActiveFilters && (
-          <button 
+          <button
             className="clear-filters-button"
             onClick={handleClearAll}
           >
-            Réinitialiser
+            {t('resetFilters')}
           </button>
         )}
       </div>
@@ -87,3 +89,4 @@ function Facets() {
 }
 
 export default Facets;
+

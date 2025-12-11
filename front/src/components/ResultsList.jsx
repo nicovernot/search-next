@@ -1,16 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearch } from '../contexts/SearchContext';
 import ResultItem from './ResultItem';
 import Pagination from './Pagination';
 import './ResultsList.css';
 
 function ResultsList() {
+  const { t } = useTranslation();
   const { results, total, loading, error, query } = useSearch();
 
   if (loading) {
     return (
       <div className="results-list">
-        <div className="loading">Chargement des résultats...</div>
+        <div className="loading">{t('loading')}</div>
       </div>
     );
   }
@@ -19,7 +21,7 @@ function ResultsList() {
     return (
       <div className="results-list">
         <div className="no-results">
-          Erreur lors de la recherche: {error}
+          {t('searchError', { error })}
         </div>
       </div>
     );
@@ -29,7 +31,7 @@ function ResultsList() {
     return (
       <div className="results-list">
         <div className="no-search">
-          Effectuez une recherche pour afficher des résultats
+          {t('noSearch')}
         </div>
       </div>
     );
@@ -39,7 +41,7 @@ function ResultsList() {
     return (
       <div className="results-list">
         <div className="no-results">
-          Aucun résultat trouvé pour votre recherche
+          {t('noResults')}
         </div>
       </div>
     );
@@ -49,7 +51,7 @@ function ResultsList() {
     <div className="results-list">
       <div className="results-header">
         <p className="results-count">
-          <strong>{total.toLocaleString()}</strong> résultat{total > 1 ? 's' : ''} trouvé{total > 1 ? 's' : ''}
+          <strong>{total.toLocaleString()}</strong> {t('resultsCount', { count: total })}
         </p>
       </div>
 
@@ -65,3 +67,4 @@ function ResultsList() {
 }
 
 export default ResultsList;
+
