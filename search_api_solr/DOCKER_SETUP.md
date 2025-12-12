@@ -8,7 +8,7 @@
 Configuration de base avec 3 services :
 - **Solr** : Moteur de recherche (port 8983)
 - **API** : Backend FastAPI (port 8007)
-- **Frontend** : Application React (port 3000 en dev, 80 en prod)
+- **Frontend** : Application React (port 3009 en dev (host), 3000 en conteneur, 80 en prod)
 
 Tous les services sont connectés via le réseau `openedition_network`.
 
@@ -115,7 +115,7 @@ Une fois démarré, vous aurez accès à :
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Frontend | http://localhost:3000 | Application React |
+| Frontend | http://localhost:3009 | Application React |
 | API | http://localhost:8007 | Backend FastAPI |
 | API Docs | http://localhost:8007/docs | Documentation Swagger |
 | Solr Admin | http://localhost:8983/solr | Interface Solr |
@@ -148,7 +148,7 @@ make clean
 │   Navigateur │
 └──────┬──────┘
        │
-       │ Port 3000 (dev) / 80 (prod)
+  │ Port 3009 (dev host) / 80 (prod)
        ▼
 ┌─────────────────┐
 │    Frontend     │

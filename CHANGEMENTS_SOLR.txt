@@ -11,7 +11,7 @@
 
 ┌─────────────────────────────────────────────┐
 │  1. API FastAPI        (port 8007)         │
-│  2. Frontend React     (port 3000)         │
+│  2. Frontend React     (port 3009 on host)         │
 │                                             │
 │  → Solr DISTANT (pas de conteneur local)  │
 └─────────────────────────────────────────────┘
@@ -33,7 +33,7 @@ cd search_api_solr
 
 ## URLs
 
-Frontend    : http://localhost:3000
+Frontend    : http://localhost:3009
 API         : http://localhost:8007
 API Docs    : http://localhost:8007/docs
 Solr        : https://solrslave-sec.labocleo.org/solr/documents

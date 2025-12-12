@@ -19,7 +19,7 @@ services:
     container_name: openedition_frontend_dev
     working_dir: /app
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3009}:3000"
     volumes:
       - ./front:/app
       - /app/node_modules

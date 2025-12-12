@@ -10,7 +10,7 @@
 
 ```
 ┌─────────────┐
-│  Frontend   │  Port 3000 (dev) / 80 (prod)
+│  Frontend   │  Port 3009 (dev host) / 3000 (container) / 80 (prod)
 │   React     │  
 └──────┬──────┘
        │
@@ -35,7 +35,7 @@
 - Se connecte à Solr distant
 - Hot reload en mode dev
 
-### 2. Frontend (Port 3000/80)
+### 2. Frontend (Port 3009 host / 3000 container / 80 prod)
 - React + SearchKit
 - Interface de recherche
 
@@ -59,7 +59,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 ## 🌐 URLs
 
 ### En développement :
-- **Frontend** : http://localhost:3000
+- **Frontend** : http://localhost:3009
 - **API** : http://localhost:8007
 - **API Docs** : http://localhost:8007/docs
 - **Solr** : https://solrslave-sec.labocleo.org/solr/documents (distant)
@@ -145,4 +145,4 @@ cd search_api_solr
 ./start.sh dev
 ```
 
-Puis ouvrez http://localhost:3000 dans votre navigateur !
+Puis ouvrez http://localhost:3009 dans votre navigateur !

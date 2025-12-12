@@ -69,8 +69,8 @@ npm start
 - `GET /suggest` - Autocomplétion
 - `GET /permissions` - Vérification des permissions d'accès
 
-### Frontend (React + SearchKit)
-- **Port Dev** : 3000
+- ### Frontend (React + SearchKit)
+- **Port Dev** : 3009
 - **Port Prod** : 80
 - **Technologie** : React 18, SearchKit, React Router
 
@@ -198,6 +198,8 @@ LOG_LEVEL=DEBUG
 
 ```env
 REACT_APP_API_URL=http://localhost:8007
+# Host port used to expose the frontend on the host machine (defaults to 3009)
+FRONTEND_PORT=3009
 PORT=3000
 ```
 
@@ -239,7 +241,7 @@ make health
 
 # Ou manuellement
 curl http://localhost:8007/docs
-curl http://localhost:3000
+curl http://localhost:3009
 curl http://localhost:8983/solr/openedition/admin/ping
 ```
 

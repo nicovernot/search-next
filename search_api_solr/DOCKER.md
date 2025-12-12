@@ -8,7 +8,7 @@ L'infrastructure Docker comprend 3 services principaux :
 
 - **Solr** : Moteur de recherche (port 8983)
 - **API** : Backend FastAPI (port 8007)
-- **Frontend** : Interface React (port 3000 en dev, 80 en prod)
+- **Frontend** : Interface React (port 3009 en dev (host) / 3000 en conteneur, 80 en prod)
 
 ## 🚀 Démarrage rapide
 
@@ -128,7 +128,7 @@ REACT_APP_API_URL=http://localhost:8007
 - Hot reload activé pour l'API et le frontend
 - Volumes montés pour modification en temps réel
 - Logs détaillés
-- Port 3000 pour le frontend
+- - Port 3009 pour le frontend (host)
 
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
@@ -148,9 +148,9 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ## 🌐 Accès aux services
 
-### Développement
-
-- Frontend : http://localhost:3000
+-### Développement
+-
+- Frontend : http://localhost:3009
 - API : http://localhost:8007
 - API Docs : http://localhost:8007/docs
 - Solr Admin : http://localhost:8983/solr
@@ -195,7 +195,7 @@ docker-compose exec api bash
 curl http://localhost:8007/docs
 
 # Frontend
-curl http://localhost:3000
+curl http://localhost:3009
 
 # Solr
 curl http://localhost:8983/solr/openedition/admin/ping

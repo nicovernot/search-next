@@ -27,7 +27,8 @@
             "name": "Debug Frontend (Chrome)",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:${env:FRONTEND_PORT}",
+            "envFile": "${workspaceFolder}/.env",
             "webRoot": "${workspaceFolder}/front"
         }
     ]

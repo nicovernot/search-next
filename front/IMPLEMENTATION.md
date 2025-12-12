@@ -158,7 +158,7 @@ npm install
 npm start
 ```
 
-Frontend disponible sur http://localhost:3000
+Frontend disponible sur http://localhost:3009 (ou sur le port défini dans FRONTEND_PORT pour le host ; le serveur dev écoute par défaut sur 3000 dans le conteneur)
 
 ## Points techniques importants
 

@@ -14,7 +14,7 @@
 #### Infrastructure :
 ```
 ┌─────────────┐
-│  Frontend   │  Port 3000 (dev) / 80 (prod)
+│  Frontend   │  Port 3009 (dev host) / 3000 (container) / 80 (prod)
 │   React     │  
 └──────┬──────┘
        │
@@ -141,7 +141,7 @@ Une fois démarré, accédez à :
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Frontend** | http://localhost:3000 | Interface React |
+| **Frontend** | http://localhost:3009 | Interface React |
 | **API** | http://localhost:8007 | Backend FastAPI |
 | **Swagger** | http://localhost:8007/docs | Documentation API |
 | **Solr Admin** | http://localhost:8983/solr | Console Solr |
@@ -328,4 +328,4 @@ cd search_api_solr
 ./start.sh dev
 ```
 
-Puis ouvrez http://localhost:3000 dans votre navigateur.
+Puis ouvrez http://localhost:3009 dans votre navigateur.

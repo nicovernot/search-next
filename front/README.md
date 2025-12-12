@@ -29,7 +29,7 @@ cp .env.example .env
 npm start
 ```
 
-L'application sera accessible sur http://localhost:3000
+L'application sera accessible sur http://localhost:3009 (ou sur le port défini dans la variable d'environnement FRONTEND_PORT)
 
 ### Build de production
 
@@ -70,7 +70,7 @@ services:
       args:
         REACT_APP_API_URL: http://localhost:8000
     ports:
-      - "3000:80"
+      - "3009:80"
     depends_on:
       - backend
       
@@ -115,9 +115,11 @@ front/
 
 ### Variables d'environnement
 
-Créez un fichier `.env` à la racine du projet :
+Créez un fichier `.env` à la racine du projet et définissez le port exposé du frontend (par défaut 3009) :
 
 ```env
+# Host port that will forward to the frontend dev server (container listens on 3000)
+FRONTEND_PORT=3009
 REACT_APP_API_URL=http://localhost:8000
 REACT_APP_SEARCHKIT_API_KEY=
 PORT=3000
