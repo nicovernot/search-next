@@ -18,6 +18,23 @@ i18n
         fallbackLng: 'en',
         debug: true,
 
+        // charge uniquement la partie langue (ex: 'fr' au lieu de 'fr-FR')
+        load: 'languageOnly',
+
+        // configuration du détecteur de langue : ordre et caches
+        detection: {
+            // ordre de détection : querystring ?lng=, cookie, localStorage, navigateur, balise html, path, subdomain
+            order: ['querystring', 'cookie', 'localStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
+            // paramètres de lookup
+            lookupQuerystring: 'lng',
+            lookupCookie: 'i18next',
+            lookupLocalStorage: 'i18nextLng',
+            // persister la préférence
+            caches: ['localStorage', 'cookie'],
+            // exclure certains modes du cache
+            excludeCacheFor: ['cimode'],
+        },
+
         interpolation: {
             escapeValue: false, // not needed for react as it escapes by default
         },

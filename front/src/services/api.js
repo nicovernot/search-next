@@ -2,6 +2,8 @@
  * Service API pour communiquer avec le backend FastAPI
  */
 
+import i18n from '../i18n';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 /**
@@ -10,10 +12,12 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
  * @returns {Promise<Object>} - Résultats de la recherche
  */
 export async function search(searchRequest) {
+  const lang = (i18n && i18n.language) ? i18n.language.split('-')[0] : (navigator.language || 'en').split('-')[0];
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept-Language': lang,
     },
     body: JSON.stringify(searchRequest),
   });
@@ -49,7 +53,12 @@ export async function searchGet(params) {
     });
   }
 
-  const response = await fetch(`${API_BASE_URL}/search?${queryParams.toString()}`);
+  const lang = (i18n && i18n.language) ? i18n.language.split('-')[0] : (navigator.language || 'en').split('-')[0];
+  const response = await fetch(`${API_BASE_URL}/search?${queryParams.toString()}`, {
+    headers: {
+      'Accept-Language': lang,
+    }
+  });
 
   if (!response.ok) {
     throw new Error(`Search failed: ${response.statusText}`);
@@ -64,8 +73,14 @@ export async function searchGet(params) {
  * @returns {Promise<Object>} - Suggestions
  */
 export async function suggest(query) {
+  const lang = (i18n && i18n.language) ? i18n.language.split('-')[0] : (navigator.language || 'en').split('-')[0];
   const response = await fetch(
-    `${API_BASE_URL}/suggest?q=${encodeURIComponent(query)}`
+    `${API_BASE_URL}/suggest?q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        'Accept-Language': lang,
+      }
+    }
   );
 
   if (!response.ok) {
@@ -90,7 +105,12 @@ export async function getPermissions(urls, ip = null) {
     queryParams.append('ip', ip);
   }
 
-  const response = await fetch(`${API_BASE_URL}/permissions?${queryParams.toString()}`);
+  const lang = (i18n && i18n.language) ? i18n.language.split('-')[0] : (navigator.language || 'en').split('-')[0];
+  const response = await fetch(`${API_BASE_URL}/permissions?${queryParams.toString()}`, {
+    headers: {
+      'Accept-Language': lang,
+    }
+  });
 
   if (!response.ok) {
     throw new Error(`Permissions check failed: ${response.statusText}`);
