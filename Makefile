@@ -1,29 +1,97 @@
 # Makefile pour gérer l'environnement Docker
 
-.PHONY: help build up down restart logs clean dev prod test
+# Variables pour la gestion des environnements
+ENV ?= development
+FRONTEND_ENV ?= development
+
+.PHONY: help build up down restart logs clean dev prod test configure-env
 
 help: ## Afficher l'aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
+# Configuration des environnements
+configure-env: ## Configurer l'environnement (dev, staging, prod, test)
+	@echo "Configuring environment: $(ENV)"
+	@cd search_api_solr && cp .env.$(ENV) .env
+	@cd front && cp .env.$(FRONTEND_ENV) .env
+	@echo "Environment configured successfully!"
+	@echo "Backend environment: $(ENV)"
+	@echo "Frontend environment: $(FRONTEND_ENV)"
+
 # Développement
 dev: ## Lancer l'environnement de développement
+	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 dev-build: ## Build et lancer l'environnement de développement
+	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 dev-down: ## Arrêter l'environnement de développement
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
 
+# Staging
+staging: ## Lancer l'environnement de staging
+	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+
+staging-build: ## Build et lancer l'environnement de staging
+	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	docker-compose -f docker-compose.yml -f docker-compose.staging.yml up --build
+
+staging-down: ## Arrêter l'environnement de staging
+	docker-compose -f docker-compose.yml -f docker-compose.staging.yml down
+
 # Production
 prod: ## Lancer l'environnement de production
+	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 prod-build: ## Build et lancer l'environnement de production
+	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 prod-down: ## Arrêter l'environnement de production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+# Tests backend
+test: ## Lancer les tests backend (environnement test)
+	@$(MAKE) configure-env ENV=test FRONTEND_ENV=test
+	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+
+test-dev: ## Lancer les tests en environnement de développement
+	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+
+test-staging: ## Lancer les tests en environnement de staging
+	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+
+test-prod: ## Lancer les tests en environnement de production (simulé)
+	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+
+# Commandes avec environnement personnalisé
+run-dev: ## Lancer avec environnement personnalisé (ex: make run-dev ENV=staging)
+	@$(MAKE) configure-env ENV=$(ENV) FRONTEND_ENV=$(FRONTEND_ENV)
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+run-prod: ## Lancer production avec environnement personnalisé
+	@$(MAKE) configure-env ENV=$(ENV) FRONTEND_ENV=$(FRONTEND_ENV)
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Configuration rapide
+set-dev: ## Configurer pour le développement sans lancer
+	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+
+set-staging: ## Configurer pour le staging sans lancer
+	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+
+set-prod: ## Configurer pour la production sans lancer
+	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+
+set-test: ## Configurer pour les tests sans lancer
+	@$(MAKE) configure-env ENV=test FRONTEND_ENV=test
 
 # Commandes générales
 build: ## Build les images Docker
@@ -47,11 +115,7 @@ logs-api: ## Voir les logs de l'API
 logs-frontend: ## Voir les logs du frontend
 	docker-compose logs -f frontend
 
-# Tests
-test: ## Lancer les tests
-	# Run tests in a throwaway container: install test deps then run pytest
-	# This avoids relying on pytest being preinstalled in the long-running api container.
-	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+# Tests CI
 
 test-ci: ## CI-friendly tests: build a test image with dev deps and run pytest inside it
 	# Build image with dev/test deps included
@@ -136,9 +200,19 @@ health: ## Vérifier la santé des services
 install: ## Installation initiale (build + up)
 	@echo "Installation de l'environnement OpenEdition Search..."
 	@echo "Note: Utilise Solr distant (https://solrslave-sec.labocleo.org/solr/documents)"
+	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 	@echo "✓ Installation terminée"
 	@echo "API: http://localhost:8007"
 	@echo "Frontend: http://localhost:${FRONTEND_PORT:-3009}"
+
+install-prod: ## Installation en production
+	@echo "Installation de l'environnement OpenEdition Search en production..."
+	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	@echo "✓ Installation production terminée"
+	@echo "API: http://localhost:8000"
+	@echo "Frontend: http://localhost:80"
 

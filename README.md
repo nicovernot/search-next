@@ -25,14 +25,87 @@ searchv2/
 ### Avec Docker (Recommandé)
 
 ```bash
-cd search_api_solr
+# Utiliser le script de configuration d'environnement
+./configure_env.sh --env development
 
-# Utiliser le script de démarrage
-./start.sh dev
-
-# Ou avec Make
+# Ou avec Make (automatique)
 make dev
 ```
+
+### Sélection de l'environnement
+
+Le projet supporte plusieurs environnements avec des configurations spécifiques :
+
+**Méthode 1 : Utiliser le script de configuration**
+
+```bash
+# Développement local avec hot-reload
+./configure_env.sh --env development
+
+# Environnement de test/pré-production
+./configure_env.sh --env staging
+
+# Environnement de production sécurisé
+./configure_env.sh --env production
+
+# Configuration optimisée pour les tests
+./configure_env.sh --env test
+```
+
+**Méthode 2 : Utiliser Make (recommandé)**
+
+```bash
+# Développement (configure automatiquement l'environnement)
+make dev
+
+# Staging
+make staging
+
+# Production
+make prod
+
+# Tests
+make test
+```
+
+**Méthode 3 : Configuration manuelle**
+
+```bash
+# Développement
+cp search_api_solr/.env.development search_api_solr/.env
+cp front/.env.development front/.env
+
+# Production
+cp search_api_solr/.env.production search_api_solr/.env
+cp front/.env.production front/.env
+```
+
+### Environnements personnalisés
+
+Vous pouvez spécifier des environnements différents pour le backend et le frontend :
+
+```bash
+# Backend en staging, frontend en développement
+./configure_env.sh --env staging --frontend-env development
+
+# Ou avec Make
+make run-dev ENV=staging FRONTEND_ENV=development
+```
+
+### Commandes avancées
+
+```bash
+# Configurer sans lancer (pour inspection)
+make set-dev
+
+# Lancer avec une configuration personnalisée
+make run-dev ENV=staging
+
+# Installation complète en production
+make install-prod
+```
+
+Voir [ENVIRONMENTS.md](search_api_solr/ENVIRONMENTS.md) pour plus de détails sur la gestion des environnements.
 
 ### Sans Docker
 
@@ -70,9 +143,13 @@ npm start
 - `GET /permissions` - Vérification des permissions d'accès
 
 - ### Frontend (React + SearchKit)
-- **Port Dev** : 3009
-- **Port Prod** : 80
-- **Technologie** : React 18, SearchKit, React Router
+- **Port Dev** : 3007 (hot-reload)
+- **Port Prod** : 3009 (nginx)
+- **Technologie** : React 18, i18next, Axios
+
+> **Note** : Deux containers frontend sont disponibles :
+> - `openedition_frontend_dev` (port 3007) : développement avec hot-reload
+> - `openedition_frontend` (port 3009) : production avec nginx
 
 #### Fonctionnalités
 - Barre de recherche avec autocomplétion
@@ -186,21 +263,36 @@ Voir [DOCKER.md](search_api_solr/DOCKER.md) pour plus de détails.
 ### Variables d'environnement Backend
 
 ```env
-SOLR_BASE_URL=http://localhost:8983/solr/openedition
+# Configuration Solr
+SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
+
+# Configuration API
 API_HOST=0.0.0.0
 API_PORT=8007
-API_RELOAD=True
+API_RELOAD=true
+
+# Configuration CORS (développement)
+CORS_ORIGINS=http://localhost:3009,http://localhost:3000,http://localhost:3007,http://127.0.0.1:3009,http://127.0.0.1:3000,http://127.0.0.1:3007,http://0.0.0.0:3009,http://0.0.0.0:3007
+
+# Dev mode
 DEV=true
 LOG_LEVEL=DEBUG
+
+# Types de documents (format CSV)
+types_needing_parents=article,chapter
+default_fields=id,url,title,idparent,container_url
 ```
+
+> **Important** : Les champs de type liste (comme `types_needing_parents`, `CORS_ORIGINS`) doivent être au format CSV (valeurs séparées par des virgules) et non JSON.
 
 ### Variables d'environnement Frontend
 
 ```env
 REACT_APP_API_URL=http://localhost:8007
-# Host port used to expose the frontend on the host machine (defaults to 3009)
-FRONTEND_PORT=3009
-PORT=3000
+
+# Ports Docker
+FRONTEND_PORT=3009          # Port production (nginx)
+FRONTEND_DEV_PORT=3007      # Port développement (hot-reload)
 ```
 
 ## 📝 API Documentation
@@ -270,21 +362,67 @@ docker stats
 
 ### Le frontend ne peut pas contacter l'API
 
-Vérifiez que `REACT_APP_API_URL` dans `front/.env` pointe vers la bonne URL.
+Vérifiez que `REACT_APP_API_URL` dans `front/.env` pointe vers la bonne URL (par défaut `http://localhost:8007`).
+
+### Erreur de CORS
+
+**Symptôme** : `Access to fetch at 'http://localhost:8007/search' from origin 'http://0.0.0.0:3009' has been blocked by CORS policy`
+
+**Solution** : Ajoutez toutes les origines nécessaires dans `CORS_ORIGINS` dans le fichier `.env` du backend :
+
+```bash
+# Développement
+CORS_ORIGINS=http://localhost:3009,http://localhost:3007,http://127.0.0.1:3009,http://127.0.0.1:3007,http://0.0.0.0:3009,http://0.0.0.0:3007
+
+# Production
+CORS_ORIGINS=https://search.openedition.org,https://www.openedition.org
+```
+
+Puis redémarrez l'API : `docker-compose restart api`
+
+### Container frontend "unhealthy"
+
+**Cause** : Le health check utilise `localhost` qui peut se résoudre en IPv6, mais nginx écoute sur IPv4.
+
+**Solution** : Les Dockerfiles ont été mis à jour pour utiliser `127.0.0.1` au lieu de `localhost` dans les health checks.
+
+### Erreur pydantic-settings avec types_needing_parents
+
+**Symptôme** : `SettingsError: error parsing value for field "types_needing_parents"`
+
+**Cause** : Pydantic-settings essaie de parser les valeurs comme du JSON.
+
+**Solution** : Utilisez le format CSV (pas JSON) dans le fichier `.env` :
+```bash
+# ✅ Correct
+types_needing_parents=article,chapter
+
+# ❌ Incorrect
+types_needing_parents=["article", "chapter"]
+```
+
+### Conflit de ports
+
+**Symptôme** : `Bind for 0.0.0.0:3009 failed: port is already allocated`
+
+**Cause** : Deux containers essaient d'utiliser le même port.
+
+**Solution** : Les ports ont été séparés :
+- Frontend dev : port 3007
+- Frontend prod : port 3009
 
 ### Solr ne répond pas
 
 ```bash
 # Vérifier les logs
-docker-compose logs solr
+docker-compose logs api
 
-# Redémarrer Solr
-docker-compose restart solr
+# Redémarrer l'API
+docker-compose restart api
+
+# Vérifier la santé de Solr distant
+curl https://solrslave-sec.labocleo.org/solr/documents/admin/ping
 ```
-
-### Erreur de CORS
-
-Ajoutez l'origine du frontend dans `CORS_ORIGINS` dans le `.env` du backend.
 
 ## 📄 Licence
 

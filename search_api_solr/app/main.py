@@ -1,6 +1,8 @@
 # app/main.py
 from fastapi import FastAPI, Depends, Query, Request, APIRouter, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from typing import Dict, Any, List
 import httpx
 import logging
@@ -8,21 +10,41 @@ import logging
 from app.services.docs_permissions_client import DocsPermissionsClient, SolrClient
 from app.services.search_builder import SearchBuilder
 from app.models.search_models import SearchRequest
-from app.settings import SOLR_CONFIG
+from app.settings import settings, SOLR_CONFIG
 from app.models import DocsPermissionsResponse
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Configuration CORS pour permettre les requêtes du frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifier les domaines autorisés
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configuration CORS sécurisée basée sur l'environnement
+if settings.cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=settings.cors_allow_credentials,
+        allow_methods=settings.cors_allow_methods,
+        allow_headers=settings.cors_allow_headers,
+        expose_headers=settings.cors_expose_headers,
+        max_age=settings.cors_max_age,
+    )
+    
+    logger.info(f"CORS configured for environment '{settings.environment}': {settings.cors_origins}")
+else:
+    logger.warning("No CORS origins configured. CORS middleware not added.")
+
+# Redirection HTTPS en production
+if settings.enable_https_redirect:
+    app.add_middleware(HTTPSRedirectMiddleware)
+    logger.info("HTTPS redirect middleware enabled")
+
+# Protection contre les attaques DNS rebinding
+if settings.trusted_hosts:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.trusted_hosts
+    )
+    logger.info(f"Trusted hosts configured: {settings.trusted_hosts}")
 
 router = APIRouter()
 app.include_router(router)
