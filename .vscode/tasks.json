@@ -16,13 +16,46 @@
             "problemMatcher": []
         },
         {
+            "label": "Dev: Build and Start",
+            "type": "shell",
+            "command": "make dev-build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Dev: Stop Environment",
             "type": "shell",
             "command": "make dev-down",
             "problemMatcher": []
         },
         {
-            "label": "Test: API",
+            "label": "Staging: Start Environment",
+            "type": "shell",
+            "command": "make staging",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Production: Start Environment",
+            "type": "shell",
+            "command": "make prod",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: Backend (API)",
             "type": "shell",
             "command": "make test",
             "group": {
@@ -35,46 +68,76 @@
             }
         },
         {
+            "label": "Test: Backend CI",
+            "type": "shell",
+            "command": "make test-ci",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: Backend with Coverage",
+            "type": "shell",
+            "command": "make test-cov",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
             "label": "Test: Frontend E2E (Headless)",
             "type": "shell",
             "command": "make test-front",
-            "group": "test"
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
         },
         {
             "label": "Test: Frontend E2E (UI)",
             "type": "shell",
             "command": "make test-front-ui",
-            "group": "test"
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
         },
         {
-            "label": "Test: Frontend E2E (CI container headless)",
+            "label": "Test: Frontend E2E (CI Headless)",
             "type": "shell",
             "command": "make test-front-ci",
             "group": "test",
-            "presentation": { "reveal": "always", "panel": "dedicated" }
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: Frontend E2E (CI UI)",
+            "type": "shell",
+            "command": "make test-front-ci-ui",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
         },
         {
             "label": "Build: Playwright Image",
             "type": "shell",
             "command": "make build-playwright-image",
-            "presentation": { "reveal": "always", "panel": "dedicated" }
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
         },
         {
-            "label": "Test: Frontend E2E (CI image headless)",
-            "type": "shell",
-            "command": "make test-front-ci-image",
-            "group": "test",
-            "presentation": { "reveal": "always", "panel": "dedicated" }
-        },
-        {
-            "label": "Test: Frontend E2E (CI image UI)",
-            "type": "shell",
-            "command": "make test-front-ci-ui-image",
-            "group": "test",
-            "presentation": { "reveal": "always", "panel": "dedicated" }
-        },
-        {
-            "label": "Logs: All",
+            "label": "Logs: All Services",
             "type": "shell",
             "command": "make logs",
             "presentation": {
@@ -83,9 +146,18 @@
             }
         },
         {
-            "label": "Logs: API",
+            "label": "Logs: API Only",
             "type": "shell",
             "command": "make logs-api",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Logs: Frontend Only",
+            "type": "shell",
+            "command": "make logs-frontend",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated"
@@ -98,9 +170,88 @@
             "problemMatcher": []
         },
         {
+            "label": "System: Environment Verification",
+            "type": "shell",
+            "command": "./check_env.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "System: Docker Stats",
+            "type": "shell",
+            "command": "make stats",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "System: Container Status",
+            "type": "shell",
+            "command": "make ps",
+            "problemMatcher": []
+        },
+        {
             "label": "Install: Initial Setup",
             "type": "shell",
             "command": "make install",
+            "problemMatcher": []
+        },
+        {
+            "label": "Install: Production Setup",
+            "type": "shell",
+            "command": "make install-prod",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean: Remove Containers",
+            "type": "shell",
+            "command": "make clean",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean: Full Cleanup",
+            "type": "shell",
+            "command": "make clean-all",
+            "problemMatcher": []
+        },
+        {
+            "label": "Shell: Access API Container",
+            "type": "shell",
+            "command": "make shell-api",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Shell: Access Frontend Container",
+            "type": "shell",
+            "command": "make shell-frontend",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Open: API Documentation",
+            "type": "shell",
+            "command": "xdg-open http://localhost:8007/docs || open http://localhost:8007/docs",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open: Frontend Production",
+            "type": "shell",
+            "command": "xdg-open http://localhost:3009 || open http://localhost:3009",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open: Frontend Dev",
+            "type": "shell",
+            "command": "xdg-open http://localhost:3007 || open http://localhost:3007",
             "problemMatcher": []
         }
     ]
