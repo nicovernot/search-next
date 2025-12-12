@@ -1,0 +1,18 @@
+FROM mcr.microsoft.com/playwright:latest
+
+WORKDIR /src
+
+# Copy frontend sources into the image (build context is repo root)
+COPY front/package*.json ./
+RUN npm ci --silent
+
+# Copy the rest of the frontend code
+COPY front/ ./
+
+# Ensure Playwright browsers and deps are installed
+RUN npx playwright install --with-deps
+
+# Xvfb is sometimes required to run headed browsers in containers
+RUN apt-get update && apt-get install -y xvfb && rm -rf /var/lib/apt/lists/*
+
+CMD ["bash"]

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # API Backend FastAPI
   # Utilise Solr distant : https://solrslave-sec.labocleo.org/solr/documents

@@ -47,6 +47,33 @@
             "group": "test"
         },
         {
+            "label": "Test: Frontend E2E (CI container headless)",
+            "type": "shell",
+            "command": "make test-front-ci",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Build: Playwright Image",
+            "type": "shell",
+            "command": "make build-playwright-image",
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Test: Frontend E2E (CI image headless)",
+            "type": "shell",
+            "command": "make test-front-ci-image",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Test: Frontend E2E (CI image UI)",
+            "type": "shell",
+            "command": "make test-front-ci-ui-image",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
             "label": "Logs: All",
             "type": "shell",
             "command": "make logs",

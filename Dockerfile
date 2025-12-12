@@ -10,9 +10,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copie des fichiers de dépendances
 COPY search_api_solr/requirements.txt .
+COPY search_api_solr/requirements-dev.txt .
+
+# Build argument to optionally install development/test dependencies (useful for CI)
+ARG INSTALL_DEV=false
 
 # Installation des dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
+# Installer les dépendances de développement si demandé
+RUN if [ "$INSTALL_DEV" = "true" ]; then pip install --no-cache-dir -r requirements-dev.txt; fi
 
 # Copie du code source
 COPY search_api_solr/ .

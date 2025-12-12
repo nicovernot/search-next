@@ -49,16 +49,56 @@ logs-frontend: ## Voir les logs du frontend
 
 # Tests
 test: ## Lancer les tests
-	docker-compose exec api pytest
+	# Run tests in a throwaway container: install test deps then run pytest
+	# This avoids relying on pytest being preinstalled in the long-running api container.
+	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+
+test-ci: ## CI-friendly tests: build a test image with dev deps and run pytest inside it
+	# Build image with dev/test deps included
+	docker build --build-arg INSTALL_DEV=true -t search_api_solr:test .
+	# Run pytest inside the built image (overrides default CMD)
+	docker run --rm search_api_solr:test pytest
 
 test-cov: ## Lancer les tests avec couverture
 	docker-compose exec api pytest --cov=app --cov-report=html
 
 test-front: ## Lancer les tests E2E du frontend (Headless)
-	cd front && npm run test:e2e
+	# Ensure node modules and playwright browsers are installed, then run headless tests
+	cd front && npm ci && npx playwright install --with-deps && npm run test:e2e
 
 test-front-ui: ## Lancer les tests E2E du frontend avec UI
-	cd front && npm run test:e2e:ui
+	# Ensure node modules and playwright browsers are installed, then run UI test runner
+	cd front && npm ci && npx playwright install --with-deps && npm run test:e2e:ui
+
+test-front-ci: ## CI-friendly: run frontend E2E inside Playwright Docker image (headless)
+	# Build static frontend, serve it and run Playwright tests; we set CI empty so Playwright will reuse the existing server
+	docker run --rm -v ${PWD}/front:/src -w /src mcr.microsoft.com/playwright:latest bash -lc "npm ci && npm run build && npx http-server build -p 3000 & CI= npx playwright test"
+
+test-front-ci-ui: ## CI-friendly: run Playwright UI (note: running UI inside container may need additional setup)
+	# This attempts to start the Playwright UI; containers have no X server by default.
+	# We install xvfb and run the UI under a virtual framebuffer so browsers can start.
+	# Note: UI mode still requires forwarding the UI port (9323) to the host.
+	docker run --rm -v ${PWD}/front:/src -w /src -p 9323:9323 mcr.microsoft.com/playwright:latest bash -lc \
+		"npm ci && npx playwright install --with-deps && apt-get update && apt-get install -y xvfb && \
+		xvfb-run -s '-screen 0 1920x1080x24' npx playwright test --ui --project=chromium --reporter=list"
+
+test-front-ci-ui-debug: ## Diagnostic: run Playwright container interactively to inspect failures
+	# Starts a container and drops you into a shell inside /src so you can run commands interactively
+	docker run --rm -it -v ${PWD}/front:/src -w /src mcr.microsoft.com/playwright:latest bash
+
+build-playwright-image: ## Build a dedicated Playwright image with the frontend preinstalled
+	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
+
+test-front-ci-image: ## Run headless Playwright tests inside the prebuilt Playwright image
+	# Build image (if needed), build static frontend, serve it and execute headless tests
+	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
+	docker run --rm openedition_playwright:local bash -lc "npm run build && npx http-server build -p 3000 & CI= npx playwright test"
+
+test-front-ci-ui-image: ## Run Playwright UI inside prebuilt Playwright image (exposes 9323)
+	# Builds an image that contains node_modules and browsers so playback is fast
+	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
+	# Run UI under Xvfb inside the container, build static site and expose port 9323 to host
+	docker run --rm -p 9323:9323 openedition_playwright:local bash -lc "npm run build && npx http-server build -p 3000 & xvfb-run -s '-screen 0 1920x1080x24' npx playwright test --ui --project=chromium --reporter=list"
 
 
 # Shell

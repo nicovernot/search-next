@@ -221,3 +221,9 @@ Ce projet fait partie de l'écosystème OpenEdition.
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! Veuillez suivre les conventions de code existantes.
+
+## 🧭 Playwright / CI image (optionnel)
+
+Pour les tests E2E reproductibles en CI, une image Docker dédiée contenant Playwright, les navigateurs et Xvfb est fournie dans le dépôt (`front/Dockerfile.playwright`). Elle permet de lancer les tests rapidement sans réinstaller les dépendances à chaque exécution.
+
+Consultez `front/README.playwright.md` pour les commandes détaillées et les exemples d'intégration CI (Makefile : `build-playwright-image`, `test-front-ci-image`, `test-front-ci-ui-image`, ...).
