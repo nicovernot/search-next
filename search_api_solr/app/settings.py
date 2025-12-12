@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     log_level: str = os.getenv("LOG_LEVEL", "INFO" if environment == "production" else "DEBUG")
     
     # Configuration de sécurité
-    enable_https_redirect: bool = environment == "production"
+    enable_https_redirect: bool = False  # Sera ajusté par le validator
     trusted_hosts: Union[str, List[str]] = []
     
     @field_validator('types_needing_parents', 'default_fields', 'cors_origins', 'cors_allow_methods', 'cors_allow_headers', 'cors_expose_headers', 'trusted_hosts', mode='before')
@@ -96,6 +96,13 @@ class Settings(BaseSettings):
         if v not in valid_envs:
             raise ValueError(f"ENVIRONMENT must be one of: {', '.join(valid_envs)}")
         return v
+    
+    @field_validator('enable_https_redirect')
+    @classmethod
+    def set_https_redirect_by_environment(cls, v: bool, info) -> bool:
+        """Active la redirection HTTPS uniquement en production"""
+        environment = info.data.get('environment', 'development')
+        return environment == "production"
     
     @field_validator('cors_max_age')
     @classmethod
