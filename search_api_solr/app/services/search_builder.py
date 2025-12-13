@@ -2,6 +2,7 @@
 
 from typing import Dict, List, Any
 from urllib.parse import urlencode
+from app.services.interfaces import ISearchBuilder
 
 # Importez vos configurations (simulées ici)
 from app.services.facet_config import (
@@ -25,7 +26,7 @@ SOLR_SUGGEST_HANDLER = "/suggest"  # Pour l'autocomplétion
 # app/services/search_builder.py (Suite)
 
 
-class SearchBuilder:
+class SearchBuilder(ISearchBuilder):
     def __init__(self, solr_base_url: str):
         self.solr_base_url = solr_base_url
 
@@ -216,3 +217,35 @@ class SearchBuilder:
     # (Dépend de la classe SolrConnector)
     # async def execute_query_and_format(self, url: str) -> Dict[str, Any]:
     #   ...
+    
+    # --- Implémentation de l'interface ISearchBuilder ---
+    
+    def build_search_url(self, request: Dict[str, Any]) -> str:
+        """Construire une URL de recherche Solr à partir d'une requête"""
+        # Convertir le dictionnaire en objet SearchRequest si nécessaire
+        if isinstance(request, dict):
+            from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
+            search_request = SearchRequest(
+                query=QueryModel(query=request.get('query', '')),
+                filters=[FilterModel(identifier=f.get('identifier', ''), value=f.get('value', '')) for f in request.get('filters', [])],
+                pagination=PaginationModel(from_=request.get('pagination', {}).get('from', 0), size=request.get('pagination', {}).get('size', 10)),
+                facets=[FacetModel(identifier=f.get('identifier', ''), type=f.get('type', 'list')) for f in request.get('facets', [])]
+            )
+        else:
+            search_request = request
+        
+        # Utiliser la méthode existante build_search_url
+        return self.build_search_url_from_request(search_request)
+    
+    def build_suggest_url(self, query: str) -> str:
+        """Construire une URL de suggestion Solr"""
+        return self.build_suggest_url_from_query(query)
+    
+    def build_search_url_from_request(self, request: SearchRequest) -> str:
+        """Méthode existante pour construire l'URL de recherche"""
+        # Appeler la méthode existante build_search_url
+        return self.build_search_url(request)
+    
+    def build_suggest_url_from_query(self, query: str) -> str:
+        """Méthode existante pour construire l'URL de suggestion"""
+        return f"{self.solr_base_url}{SOLR_SUGGEST_HANDLER}?q={query}"

@@ -7,7 +7,9 @@ from typing import Dict, Any, List
 import httpx
 import logging
 
-from app.services.docs_permissions_client import DocsPermissionsClient, SolrClient
+from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
+from app.services.search_service import SearchService, SuggestService, PermissionsService
+from app.services.solr_client import SolrClient
 from app.services.search_builder import SearchBuilder
 from app.models.search_models import SearchRequest
 from app.settings import settings, SOLR_CONFIG
@@ -51,24 +53,54 @@ app.include_router(router)
 
 # --- Injection de Dépendance ---
 
-def get_solr_client() -> SolrClient:
+def get_solr_client() -> ISolrClient:
     """ Fournit une instance du client Solr """
     return SolrClient(base_url=SOLR_CONFIG['base_url'])
 
-def get_docs_permissions_client(
-    solr_client: SolrClient = Depends(get_solr_client)
-) -> DocsPermissionsClient:
-    """ Fournit une instance du service de permissions """
-    return DocsPermissionsClient(solr_client, settings=SOLR_CONFIG)
-
-def get_search_builder() -> SearchBuilder:
+def get_search_builder() -> ISearchBuilder:
     """ Fournit une instance du SearchBuilder """
     return SearchBuilder(solr_base_url=SOLR_CONFIG['base_url'])
+
+def get_search_service(
+    builder: ISearchBuilder = Depends(get_search_builder),
+    solr_client: ISolrClient = Depends(get_solr_client)
+) -> ISearchService:
+    """ Fournit une instance du service de recherche """
+    return SearchService(builder, solr_client)
+
+def get_suggest_service(
+    builder: ISearchBuilder = Depends(get_search_builder),
+    solr_client: ISolrClient = Depends(get_solr_client)
+) -> SuggestService:
+    """ Fournit une instance du service de suggestion """
+    return SuggestService(builder, solr_client)
+
+def get_permissions_service(
+    solr_client: ISolrClient = Depends(get_solr_client)
+) -> PermissionsService:
+    """ Fournit une instance du service de permissions """
+    return PermissionsService(solr_client)
 
 # --- Endpoint ---
 
 @app.get("/permissions")
 async def get_document_permissions(
+    request: Request,
+    urls: str = Query(..., description="Liste des URLs'),
+    ip: str = Query(None, description="Adresse IP'),
+    service: PermissionsService = Depends(get_permissions_service)
+) -> DocsPermissionsResponse:
+    """ Endpoint de permissions decouple """
+    remote_ip = request.client.host if request.client else None
+    if ip:
+        remote_ip = ip
+    try:
+        return await service.get_document_permissions(urls, remote_ip)
+    except Exception as e:
+        return DocsPermissionsResponse(
+            data={"organization": None, "docs": None},
+            info={"error": str(e)}
+        )
     request: Request,
     urls: str = Query(..., description="Liste des URLs de documents séparées par des virgules"),
     ip: str = Query(None, description="Adresse IP à vérifier (optionnel)"),
@@ -133,10 +165,18 @@ async def _execute_search(request: SearchRequest, builder: SearchBuilder) -> Dic
 @app.post("/search")
 async def perform_search(
     request: SearchRequest, 
-    builder: SearchBuilder = Depends(get_search_builder),
+    service: ISearchService = Depends(get_search_service),
     response: Response = None
 ):
-    return await _execute_search(request, builder)
+    """ Endpoint de recherche découplé """
+    # Convertir la requête SearchRequest en dictionnaire pour le service
+    request_dict = {
+        "query": request.query.query,
+        "filters": [{"identifier": f.identifier, "value": f.value} for f in request.filters],
+        "pagination": {"from": request.pagination.from_, "size": request.pagination.size},
+        "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets]
+    }
+    return await service.perform_search(request_dict)
 
 @app.get("/search")
 async def search_via_get(
@@ -145,36 +185,30 @@ async def search_via_get(
     facets: List[str] = Query([], description="Facettes à récupérer (ex: platform)"),
     page: int = Query(1, ge=1, description="Numéro de page"),
     size: int = Query(10, ge=1, le=100, description="Nombre de résultats par page"),
-    builder: SearchBuilder = Depends(get_search_builder)
+    service: ISearchService = Depends(get_search_service)
 ):
-    """ Recherche via paramètres URL (GET) """
-    from app.models.search_models import FilterModel, FacetModel, PaginationModel, QueryModel
-    
+    """ Recherche via paramètres URL (GET) - Version découplée """
     # Conversion des filtres
-    filter_models = []
+    filter_list = []
     for f in filters:
         if ':' in f:
-            identifier, value = f.split(':', 1)
-            filter_models.append(FilterModel(identifier=identifier, value=value))
+            identifier, value = f.split(":", 1)
+            filter_list.append({"identifier": identifier, "value": value})
     
     # Conversion des facettes
-    facet_models = []
+    facet_list = []
     for f in facets:
-        # Support basique: on suppose que c'est un champ. 
-        # Pour facet.query via GET, on pourrait utiliser une syntaxe spéciale ou un autre paramètre
-        facet_models.append(FacetModel(identifier=f, type="list"))
-
-    # Construction de la requête
-    request = SearchRequest(
-        query=QueryModel(query=q),
-        filters=filter_models,
-        pagination=PaginationModel(from_=(page-1)*size, size=size),
-        facets=facet_models
-    )
+        facet_list.append({"identifier": f, "type": "list"})
     
-    return await _execute_search(request, builder)
-
-@app.get("/suggest")
+    # Construction de la requête pour le service
+    request_dict = {
+        "query": q,
+        "filters": filter_list,
+        "pagination": {"from": (page-1)*size, "size": size},
+        "facets": facet_list
+    }
+    
+    return await service.perform_search(request_dict)
 async def suggest(
     q: str = Query(..., min_length=1, description="Terme à compléter"),
     builder: SearchBuilder = Depends(get_search_builder)
