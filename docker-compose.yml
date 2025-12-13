@@ -18,6 +18,7 @@ services:
       # Exclure les répertoires Python cache
       - /app/__pycache__
       - /app/.pytest_cache
+      - ./search_api_solr/.env:/app/.env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
     restart: unless-stopped
     healthcheck:
@@ -71,3 +72,4 @@ services:
 networks:
   openedition_network:
     driver: bridge
+

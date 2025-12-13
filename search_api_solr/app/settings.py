@@ -24,9 +24,9 @@ def get_cors_origins(environment: str) -> List[str]:
     elif environment == "staging":
         return ["https://staging.search.openedition.org", "https://search.openedition.org"]
     elif environment == "test":
-        return ["http://localhost:8007"]
+        return ["http://localhost:8007", "http://localhost:3009", "http://127.0.0.1:3009", "http://127.0.0.1:8007"]
     else:  # development
-        return ["http://localhost:3009", "http://localhost:3000", "http://127.0.0.1:3009"]
+        return ["http://localhost:3009", "http://localhost:3000", "http://127.0.0.1:3009", "http://127.0.0.1:3000", "http://0.0.0.0:3007", "http://0.0.0.0:3009", "http://localhost:3007"]
 
 
 class Settings(BaseSettings):
