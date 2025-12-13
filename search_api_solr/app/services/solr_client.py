@@ -7,7 +7,9 @@ import httpx
 from typing import Dict, Any
 import logging
 
-logger = logging.getLogger(__name__)
+from app.core.logging import get_logger
+
+# logger = logging.getLogger(__name__)
 
 class SolrClient(ISolrClient):
     """Client dédié pour les requêtes Solr"""

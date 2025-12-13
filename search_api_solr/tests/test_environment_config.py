@@ -135,9 +135,10 @@ class TestEnvironmentSpecificSettings:
         return Settings(environment="production", _env_file=None)
     
     @pytest.fixture
-    def test_settings(self):
+    def test_settings(self, monkeypatch):
         """Fixture pour les settings de test"""
-        return Settings(environment="test")
+        monkeypatch.delenv("CORS_ORIGINS", raising=False)
+        return Settings(environment="test", _env_file=None)
     
     def test_development_settings(self, dev_settings):
         """Test les settings spécifiques au développement"""

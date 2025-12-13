@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     test_ip: str = "193.48.45.2"  # IP de test par défaut
     
     # Configuration CORS
-    cors_origins: Union[str, List[str]] = get_cors_origins(environment)
+    cors_origins: Optional[Union[str, List[str]]] = None
     cors_allow_credentials: bool = True
     cors_allow_methods: Union[str, List[str]] = "GET,POST,PUT,DELETE,OPTIONS"
     cors_allow_headers: Union[str, List[str]] = "Accept,Authorization,Content-Type,X-Requested-With,X-CSRF-Token"
@@ -74,14 +74,23 @@ class Settings(BaseSettings):
             self.log_level = "INFO" if self.environment == "production" else "DEBUG"
         return self
     
+    @model_validator(mode='after')
+    def set_default_cors_origins(self):
+        """Définit les origines CORS par défaut selon l'environnement si non spécifié"""
+        if self.cors_origins is None:
+            self.cors_origins = get_cors_origins(self.environment)
+        return self
+    
     # Configuration de sécurité
     enable_https_redirect: bool = False  # Sera ajusté par le validator
     trusted_hosts: Union[str, List[str]] = []
     
     @field_validator('types_needing_parents', 'default_fields', 'cors_origins', 'cors_allow_methods', 'cors_allow_headers', 'cors_expose_headers', 'trusted_hosts', mode='before')
     @classmethod
-    def parse_list_from_string(cls, v: Union[str, List[str]]) -> List[str]:
+    def parse_list_from_string(cls, v: Union[str, List[str], None]) -> Union[List[str], None]:
         """Parse une liste depuis une string CSV ou JSON, ou retourne la liste telle quelle"""
+        if v is None:
+            return None
         if isinstance(v, str):
             # Essayer de parser comme JSON d'abord
             v = v.strip()

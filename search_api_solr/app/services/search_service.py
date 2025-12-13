@@ -7,7 +7,9 @@ from app.models.search_models import SearchRequest
 from typing import Dict, Any
 import logging
 
-logger = logging.getLogger(__name__)
+from app.core.logging import get_logger
+
+# logger = logging.getLogger(__name__)
 
 class SearchService(ISearchService):
     """Service de recherche implémentant ISearchService"""
@@ -73,22 +75,23 @@ class SuggestService:
     def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
         self.builder = builder
         self.solr_client = solr_client
+        self.logger = get_logger(__name__)
     
     async def suggest(self, query: str) -> Dict[str, Any]:
         """Effectue une suggestion"""
         try:
             # Construire l'URL de suggestion
             suggest_url = self.builder.build_suggest_url(query)
-            logger.debug(f"Suggest URL: {suggest_url}")
+            self.logger.debug(f"Suggest URL: {suggest_url}")
             
             # Exécuter la suggestion via le client Solr
             result = await self.solr_client.search(suggest_url)
             
-            logger.info(f"Suggest completed for query: {query}")
+            self.logger.info(f"Suggest completed for query: {query}")
             return result
             
         except Exception as e:
-            logger.error(f"Suggest failed: {e}")
+            self.logger.error(f"Suggest failed: {e}")
             # Retourner une réponse vide en cas d'erreur pour ne pas bloquer l'UI
             return {"suggest": {"default": {query: {"numFound": 0, "suggestions": []}}}}
 
@@ -97,6 +100,7 @@ class PermissionsService:
     
     def __init__(self, solr_client: ISolrClient):
         self.solr_client = solr_client
+        self.logger = get_logger(__name__)
     
     async def get_document_permissions(self, urls: str, ip: str) -> Dict[str, Any]:
         """Récupère les permissions pour des documents"""
@@ -105,5 +109,5 @@ class PermissionsService:
             # (À implémenter selon la logique existante)
             return {"data": {"organization": None, "docs": None}, "info": {"status": "ok"}}
         except Exception as e:
-            logger.error(f"Permissions check failed: {e}")
+            self.logger.error(f"Permissions check failed: {e}")
             return {"data": {"organization": None, "docs": None}, "info": {"error": str(e)}}
