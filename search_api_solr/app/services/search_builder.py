@@ -1,6 +1,6 @@
 # app/services/search_builder.py (Début du fichier)
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 from urllib.parse import urlencode
 from app.services.interfaces import ISearchBuilder
 
@@ -157,8 +157,20 @@ class SearchBuilder(ISearchBuilder):
 
     # --- E. La Requête de Recherche Principale ---
 
-    def build_search_url(self, request: SearchRequest) -> str:
+    def build_search_url(self, request: Union[SearchRequest, Dict[str, Any]]) -> str:
         """Construit l'URL complète pour la recherche, facettes, et highlighting"""
+        
+        # 0. Conversion (si dict => SearchRequest)
+        if isinstance(request, dict):
+            from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
+            search_request = SearchRequest(
+                query=QueryModel(query=request.get('query', '')),
+                filters=[FilterModel(identifier=f.get('identifier', ''), value=f.get('value', '')) for f in request.get('filters', [])],
+                pagination=PaginationModel(from_=request.get('pagination', {}).get('from', 0), size=request.get('pagination', {}).get('size', 10)),
+                facets=[FacetModel(identifier=f.get('identifier', ''), type=f.get('type', 'list')) for f in request.get('facets', [])]
+            )
+            # Mise à jour de la référence pour la suite de la méthode
+            request = search_request
 
         # 1. Identifier la plateforme active pour la logique conditionnelle des facettes
         # f est un FilterModel
@@ -218,34 +230,4 @@ class SearchBuilder(ISearchBuilder):
     # async def execute_query_and_format(self, url: str) -> Dict[str, Any]:
     #   ...
     
-    # --- Implémentation de l'interface ISearchBuilder ---
-    
-    def build_search_url(self, request: Dict[str, Any]) -> str:
-        """Construire une URL de recherche Solr à partir d'une requête"""
-        # Convertir le dictionnaire en objet SearchRequest si nécessaire
-        if isinstance(request, dict):
-            from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
-            search_request = SearchRequest(
-                query=QueryModel(query=request.get('query', '')),
-                filters=[FilterModel(identifier=f.get('identifier', ''), value=f.get('value', '')) for f in request.get('filters', [])],
-                pagination=PaginationModel(from_=request.get('pagination', {}).get('from', 0), size=request.get('pagination', {}).get('size', 10)),
-                facets=[FacetModel(identifier=f.get('identifier', ''), type=f.get('type', 'list')) for f in request.get('facets', [])]
-            )
-        else:
-            search_request = request
-        
-        # Utiliser la méthode existante build_search_url
-        return self.build_search_url_from_request(search_request)
-    
-    def build_suggest_url(self, query: str) -> str:
-        """Construire une URL de suggestion Solr"""
-        return self.build_suggest_url_from_query(query)
-    
-    def build_search_url_from_request(self, request: SearchRequest) -> str:
-        """Méthode existante pour construire l'URL de recherche"""
-        # Appeler la méthode existante build_search_url
-        return self.build_search_url(request)
-    
-    def build_suggest_url_from_query(self, query: str) -> str:
-        """Méthode existante pour construire l'URL de suggestion"""
-        return f"{self.solr_base_url}{SOLR_SUGGEST_HANDLER}?q={query}"
+

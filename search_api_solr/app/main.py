@@ -48,8 +48,8 @@ if settings.trusted_hosts:
     )
     logger.info(f"Trusted hosts configured: {settings.trusted_hosts}")
 
-router = APIRouter()
-app.include_router(router)
+# router = APIRouter()
+# app.include_router(router)
 
 # --- Injection de Dépendance ---
 
@@ -86,8 +86,8 @@ def get_permissions_service(
 @app.get("/permissions")
 async def get_document_permissions(
     request: Request,
-    urls: str = Query(..., description="Liste des URLs'),
-    ip: str = Query(None, description="Adresse IP'),
+    urls: str = Query(..., description="Liste des URLs de documents séparées par des virgules"),
+    ip: str = Query(None, description="Adresse IP à vérifier (optionnel)"),
     service: PermissionsService = Depends(get_permissions_service)
 ) -> DocsPermissionsResponse:
     """ Endpoint de permissions decouple """
@@ -101,34 +101,13 @@ async def get_document_permissions(
             data={"organization": None, "docs": None},
             info={"error": str(e)}
         )
-    request: Request,
-    urls: str = Query(..., description="Liste des URLs de documents séparées par des virgules"),
-    ip: str = Query(None, description="Adresse IP à vérifier (optionnel)"),
-    client: DocsPermissionsClient = Depends(get_docs_permissions_client)
-) -> DocsPermissionsResponse:
-    
-    # Récupérer l'adresse IP distante du client (méthode standard dans FastAPI)
-    remote_ip = request.client.host if request.client else None
-    
-    # Si une IP est fournie explicitement, elle est prioritaire
-    if ip:
-        remote_ip = ip
-    else:
-        # En mode DEV, utiliser TEST_IP au lieu de l'IP réelle
-        from app.settings import settings
-        if settings.dev and settings.test_ip:
-            remote_ip = settings.test_ip
-            logger.info(f"DEV mode: using TEST_IP {remote_ip}")
-    
     try:
-        return await client.handle_query(urls, remote_ip)
+        return await service.get_document_permissions(urls, remote_ip)
     except Exception as e:
         logger.error(f"Error in permissions endpoint: {e}")
-        # En cas d'erreur critique, on peut retourner une 500 ou une réponse vide sécurisée
-        # Ici on choisit de retourner une réponse vide pour ne pas bloquer le client
         return DocsPermissionsResponse(
-            data={'organization': None, 'docs': None},
-            info={'error': str(e)}
+            data={"organization": None, "docs": None},
+            info={"error": str(e)}
         )
 
 
@@ -169,14 +148,24 @@ async def perform_search(
     response: Response = None
 ):
     """ Endpoint de recherche découplé """
-    # Convertir la requête SearchRequest en dictionnaire pour le service
-    request_dict = {
-        "query": request.query.query,
-        "filters": [{"identifier": f.identifier, "value": f.value} for f in request.filters],
-        "pagination": {"from": request.pagination.from_, "size": request.pagination.size},
-        "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets]
-    }
-    return await service.perform_search(request_dict)
+    try:
+        # Convertir la requête SearchRequest en dictionnaire pour le service
+        request_dict = {
+            "query": request.query.query,
+            "filters": [{"identifier": f.identifier, "value": f.value} for f in request.filters],
+            "pagination": {"from": request.pagination.from_, "size": request.pagination.size},
+            "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets]
+        }
+        return await service.perform_search(request_dict)
+    except Exception as e:
+        logger.error(f"Search failed: {e}")
+        error_msg = str(e)
+        if "timeout" in error_msg.lower():
+             raise HTTPException(status_code=503, detail="Search service unavailable (timeout)")
+        elif "invalid search query" in error_msg.lower() or "bad request" in error_msg.lower():
+             raise HTTPException(status_code=400, detail="Invalid search query")
+        else:
+             raise HTTPException(status_code=503, detail="Search service unavailable")
 
 @app.get("/search")
 async def search_via_get(
@@ -188,27 +177,38 @@ async def search_via_get(
     service: ISearchService = Depends(get_search_service)
 ):
     """ Recherche via paramètres URL (GET) - Version découplée """
-    # Conversion des filtres
-    filter_list = []
-    for f in filters:
-        if ':' in f:
-            identifier, value = f.split(":", 1)
-            filter_list.append({"identifier": identifier, "value": value})
-    
-    # Conversion des facettes
-    facet_list = []
-    for f in facets:
-        facet_list.append({"identifier": f, "type": "list"})
-    
-    # Construction de la requête pour le service
-    request_dict = {
-        "query": q,
-        "filters": filter_list,
-        "pagination": {"from": (page-1)*size, "size": size},
-        "facets": facet_list
-    }
-    
-    return await service.perform_search(request_dict)
+    try:
+        # Conversion des filtres
+        filter_list = []
+        for f in filters:
+            if ':' in f:
+                identifier, value = f.split(":", 1)
+                filter_list.append({"identifier": identifier, "value": value})
+        
+        # Conversion des facettes
+        facet_list = []
+        for f in facets:
+            facet_list.append({"identifier": f, "type": "list"})
+        
+        # Construction de la requête pour le service
+        request_dict = {
+            "query": q,
+            "filters": filter_list,
+            "pagination": {"from": (page-1)*size, "size": size},
+            "facets": facet_list
+        }
+        
+        return await service.perform_search(request_dict)
+    except Exception as e:
+        logger.error(f"Search via GET failed: {e}")
+        error_msg = str(e)
+        if "timeout" in error_msg.lower():
+             raise HTTPException(status_code=503, detail="Search service unavailable (timeout)")
+        elif "invalid search query" in error_msg.lower() or "bad request" in error_msg.lower():
+             raise HTTPException(status_code=400, detail="Invalid search query")
+        else:
+             raise HTTPException(status_code=503, detail="Search service unavailable")
+@app.get("/suggest")
 async def suggest(
     q: str = Query(..., min_length=1, description="Terme à compléter"),
     builder: SearchBuilder = Depends(get_search_builder)

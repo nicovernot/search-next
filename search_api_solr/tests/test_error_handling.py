@@ -69,8 +69,8 @@ class TestPermissionsErrorHandling:
     
     def test_permissions_exception(self):
         """Vérifie qu'une exception non gérée retourne une réponse vide avec info d'erreur"""
-        # On mocke handle_query pour lever une exception générique
-        with patch("app.services.docs_permissions_client.DocsPermissionsClient.handle_query", side_effect=Exception("Erreur inattendue")):
+        # On mocke get_document_permissions pour lever une exception générique
+        with patch("app.services.search_service.PermissionsService.get_document_permissions", side_effect=Exception("Erreur inattendue")):
             response = client.get("/permissions?urls=http://test.com")
             
             assert response.status_code == 200 # On ne veut pas casser le front
