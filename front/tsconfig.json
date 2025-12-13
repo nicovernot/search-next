@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "target": "es2016",
+        "lib": [
+            "es2016",
+            "dom",
+            "dom.iterable"
+        ],
+        "module": "commonjs",
+        "rootDir": "./",
+        "moduleResolution": "node",
+        "types": [
+            "node",
+            "playwright",
+            "@playwright/test"
+        ],
+        "allowJs": true,
+        "checkJs": false,
+        "strict": false,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true
+    },
+    "include": [
+        "playwright.config.ts",
+        "tests/**/*.ts"
+    ]
+}
