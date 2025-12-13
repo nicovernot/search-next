@@ -9,7 +9,7 @@ services:
     ports:
       - "8007:8007"
     env_file:
-      - .env
+      - search_api_solr/.env
     environment:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
     volumes:
@@ -72,4 +72,3 @@ services:
 networks:
   openedition_network:
     driver: bridge
-

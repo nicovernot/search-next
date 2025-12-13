@@ -57,7 +57,7 @@ prod-down: ## Arrêter l'environnement de production
 # Tests backend
 test: ## Lancer les tests backend (environnement test)
 	@$(MAKE) configure-env ENV=test FRONTEND_ENV=test
-	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+	docker-compose -f docker-compose.yml run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
 
 test-dev: ## Lancer les tests en environnement de développement
 	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development

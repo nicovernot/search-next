@@ -1,0 +1,43 @@
+version: '3.8'
+
+# Configuration pour le staging
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+
+services:
+  api:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --workers 2
+    environment:
+      - DEV=false
+      - LOG_LEVEL=DEBUG
+      - SOLR_BASE_URL=https://solr-staging.openedition.org/solr/documents
+    ports:
+      - "8000:8007"
+    # Monter le volume en staging pour debug si nécessaire, sinon commenter
+    volumes:
+      - ./search_api_solr:/app
+      - /app/__pycache__
+
+  frontend:
+    ports:
+      - "8080:80"
+    environment:
+      - REACT_APP_API_URL=http://staging.search.openedition.org/api
+    # En staging, on peut vouloir utiliser l'image de prod ou une build spécifique.
+    # Ici on suppose qu'on utilise la configuration par défaut (Dockerfile de prod)
+    # mais on surcharge les ports.
+
+    # Optionnel: Nginx pour le staging si on veut tester la config nginx
+  nginx:
+    image: nginx:alpine
+    container_name: openedition_nginx_staging
+    ports:
+      - "8081:80"
+    volumes:
+      - ./search_api_solr/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./search_api_solr/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - api
+      - frontend
+    restart: unless-stopped
+    networks:
+      - openedition_network

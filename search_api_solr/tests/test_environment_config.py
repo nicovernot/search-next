@@ -58,7 +58,10 @@ class TestCORSOrigins:
         """Test les origines CORS par défaut pour les tests"""
         monkeypatch.delenv("CORS_ORIGINS", raising=False)
         origins = get_cors_origins("test")
-        assert origins == ["http://localhost:8007"]
+        assert "http://localhost:8007" in origins
+        assert "http://localhost:3009" in origins
+        assert "http://127.0.0.1:3009" in origins
+        assert "http://127.0.0.1:8007" in origins
 
 
 class TestSettingsValidation:
@@ -118,14 +121,18 @@ class TestEnvironmentSpecificSettings:
     """Tests pour les settings spécifiques à chaque environnement"""
     
     @pytest.fixture
-    def dev_settings(self):
+    def dev_settings(self, monkeypatch):
         """Fixture pour les settings de développement"""
-        return Settings(environment="development")
+        monkeypatch.delenv("LOG_LEVEL", raising=False)
+        monkeypatch.delenv("CORS_ORIGINS", raising=False)
+        return Settings(environment="development", _env_file=None)
     
     @pytest.fixture
-    def prod_settings(self):
+    def prod_settings(self, monkeypatch):
         """Fixture pour les settings de production"""
-        return Settings(environment="production")
+        monkeypatch.delenv("LOG_LEVEL", raising=False)
+        monkeypatch.delenv("CORS_ORIGINS", raising=False)
+        return Settings(environment="production", _env_file=None)
     
     @pytest.fixture
     def test_settings(self):
@@ -161,8 +168,14 @@ class TestEnvironmentSpecificSettings:
 class TestEnvironmentIntegration:
     """Tests d'intégration pour la configuration d'environnement"""
     
-    def test_settings_from_env_file(self, tmp_path):
+    def test_settings_from_env_file(self, tmp_path, monkeypatch):
         """Test le chargement des settings depuis un fichier .env"""
+        # S'assurer que les variables d'environnement n'interfèrent pas
+        monkeypatch.delenv("ENVIRONMENT", raising=False)
+        monkeypatch.delenv("API_PORT", raising=False)
+        monkeypatch.delenv("CORS_ORIGINS", raising=False)
+        monkeypatch.delenv("LOG_LEVEL", raising=False)
+        
         env_file = tmp_path / ".env.test"
         env_file.write_text("""
 ENVIRONMENT=test

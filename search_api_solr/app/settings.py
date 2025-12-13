@@ -1,6 +1,6 @@
 # app/settings.py
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from typing import List, Union, Optional
 import os
 
@@ -65,7 +65,14 @@ class Settings(BaseSettings):
     cors_max_age: int = 86400  # 24 heures en développement, sera ajusté par environnement
     
     # Configuration de logging
-    log_level: str = os.getenv("LOG_LEVEL", "INFO" if environment == "production" else "DEBUG")
+    log_level: Optional[str] = None
+    
+    @model_validator(mode='after')
+    def set_default_log_level(self):
+        """Définit le niveau de log par défaut selon l'environnement"""
+        if self.log_level is None:
+            self.log_level = "INFO" if self.environment == "production" else "DEBUG"
+        return self
     
     # Configuration de sécurité
     enable_https_redirect: bool = False  # Sera ajusté par le validator
