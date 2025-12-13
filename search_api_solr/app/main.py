@@ -7,6 +7,7 @@ from typing import Dict, Any, List
 import httpx
 import logging
 
+from app.core.logging import get_logger
 from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
 from app.services.search_service import SearchService, SuggestService, PermissionsService
 from app.services.solr_client import SolrClient
@@ -15,7 +16,8 @@ from app.models.search_models import SearchRequest
 from app.settings import settings, SOLR_CONFIG
 from app.models import DocsPermissionsResponse
 
-logger = logging.getLogger(__name__)
+# Configuration du logging structuré
+logger = get_logger(__name__)
 
 app = FastAPI()
 

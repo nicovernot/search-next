@@ -15,22 +15,56 @@ class SearchService(ISearchService):
     def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
         self.builder = builder
         self.solr_client = solr_client
+        self.logger = get_logger(__name__)
     
     async def perform_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Effectue une recherche complète"""
         try:
             # Construire l'URL de recherche
             search_url = self.builder.build_search_url(request)
-            logger.debug(f"Search URL: {search_url}")
+            
+            # Logging structuré avec contexte
+            self.logger.info(
+                "Starting search request",
+                extra={
+                    "context": {
+                        "query": request.get("query"),
+                        "filters": [f["identifier"] for f in request.get("filters", [])],
+                        "pagination": request.get("pagination")
+                    }
+                }
+            )
             
             # Exécuter la recherche via le client Solr
             result = await self.solr_client.search(search_url)
             
-            logger.info(f"Search completed: {result.get('response', {}).get('numFound', 0)} results")
+            # Logging structuré des résultats
+            self.logger.info(
+                "Search completed successfully",
+                extra={
+                    "context": {
+                        "query": request.get("query"),
+                        "num_found": result.get('response', {}).get('numFound', 0),
+                        "processing_time": result.get('responseHeader', {}).get('QTime', 0)
+                    }
+                }
+            )
+            
             return result
             
         except Exception as e:
-            logger.error(f"Search failed: {e}")
+            # Logging structuré des erreurs
+            self.logger.error(
+                "Search failed",
+                extra={
+                    "context": {
+                        "query": request.get("query"),
+                        "error": str(e),
+                        "error_type": type(e).__name__
+                    }
+                },
+                exc_info=True
+            )
             raise
 
 class SuggestService:
