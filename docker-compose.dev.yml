@@ -3,6 +3,11 @@
 
 services:
   api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_DEV: "true"
     volumes:
       - ./search_api_solr:/app
       - /app/__pycache__

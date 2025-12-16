@@ -25,6 +25,10 @@ poetry.lock
 .env.*.local
 *.env
 
+# Generated environment files (do not edit manually)
+front/.env.local
+search_api_solr/.env.local
+
 # Node.js / React
 node_modules/
 npm-debug.log*

@@ -9,7 +9,7 @@ services:
     ports:
       - "8007:8007"
     env_file:
-      - search_api_solr/.env
+      - search_api_solr/.env.local
     environment:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
     volumes:
@@ -36,6 +36,10 @@ services:
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: http://localhost:8007
+    env_file:
+      - .env.shared
+      - .env.development
+      - front/.env.local
     container_name: openedition_frontend
     ports:
       - "3009:80"

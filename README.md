@@ -13,11 +13,67 @@ searchv2/
 │   ├── Dockerfile          # Image Docker de l'API
 │   └── Makefile            # Commandes simplifiées
 │
-└── front/                  # Frontend React + SearchKit
-    ├── public/             # Fichiers statiques
-    ├── src/                # Code source React
-    ├── Dockerfile          # Image Docker du frontend
-    └── package.json        # Dépendances npm
+├── front/                  # Frontend React + SearchKit
+│   ├── public/             # Fichiers statiques
+│   ├── src/                # Code source React
+│   ├── Dockerfile          # Image Docker du frontend
+│   └── package.json        # Dépendances npm
+│
+└── .env.shared            # Variables d'environnement communes
+└── .env.development       # Variables spécifiques développement
+└── .env.production        # Variables spécifiques production
+└── .env.staging           # Variables spécifiques staging
+└── .env.test              # Variables spécifiques tests
+└── scripts/               # Scripts d'automatisation
+```
+
+## 🚀 Premiers Pas
+
+### Installation
+
+```bash
+# Cloner le projet
+git clone https://github.com/your-repo/searchv2.git
+cd searchv2
+
+# Vérifier la configuration
+./scripts/check_env_setup.sh
+
+# Synchroniser l'environnement de développement
+./scripts/sync_env.sh development
+```
+
+### Démarrage
+
+```bash
+# Démarrer tous les services
+docker-compose up
+
+# Accéder aux services
+# - Frontend: http://localhost:3009
+# - Backend API: http://localhost:8007
+# - Documentation API: http://localhost:8007/docs
+```
+
+### Développement
+
+```bash
+# Démarrer en mode développement (hot-reload)
+make dev
+
+# Le frontend sera disponible sur http://localhost:3007
+# Le backend sur http://localhost:8007
+```
+
+### Tests
+
+```bash
+# Exécuter tous les tests
+./scripts/run_tests.sh
+
+# Exécuter des tests spécifiques
+cd search_api_solr
+python -m pytest tests/test_search_builder.py -v
 ```
 
 ## 🚀 Démarrage rapide
@@ -25,60 +81,64 @@ searchv2/
 ### Avec Docker (Recommandé)
 
 ```bash
-# Utiliser le script de configuration d'environnement
-./configure_env.sh --env development
+# 1. Synchroniser la configuration d'environnement
+./scripts/sync_env.sh development
 
-# Ou avec Make (automatique)
+# 2. Démarrer les services
 make dev
+
+# Ou en une seule commande
+docker-compose up
 ```
 
-### Sélection de l'environnement
+### Gestion Centralisée des Environnements
 
-Le projet supporte plusieurs environnements avec des configurations spécifiques :
+Le projet utilise maintenant une approche centralisée pour la gestion des environnements :
 
-**Méthode 1 : Utiliser le script de configuration**
+**Nouvelle Méthode (Recommandée)**
 
 ```bash
-# Développement local avec hot-reload
-./configure_env.sh --env development
+# Synchroniser l'environnement souhaité
+./scripts/sync_env.sh development  # Développement
+./scripts/sync_env.sh staging      # Staging
+./scripts/sync_env.sh production   # Production
+./scripts/sync_env.sh test         # Tests
 
-# Environnement de test/pré-production
-./configure_env.sh --env staging
-
-# Environnement de production sécurisé
-./configure_env.sh --env production
-
-# Configuration optimisée pour les tests
-./configure_env.sh --env test
+# Puis démarrer les services
+docker-compose up
 ```
 
-**Méthode 2 : Utiliser Make (recommandé)**
+**Avec Make**
 
 ```bash
-# Développement (configure automatiquement l'environnement)
+# Développement (synchronise et démarre)
 make dev
 
 # Staging
 make staging
 
-# Production
+# Production  
 make prod
 
-# Tests
+# Tests (avec validation)
 make test
 ```
 
-**Méthode 3 : Configuration manuelle**
+**Fichiers de Configuration**
 
-```bash
-# Développement
-cp search_api_solr/.env.development search_api_solr/.env
-cp front/.env.development front/.env
-
-# Production
-cp search_api_solr/.env.production search_api_solr/.env
-cp front/.env.production front/.env
 ```
+.env.shared      # Variables communes à tous les environnements
+.env.development # Variables spécifiques au développement
+.env.production  # Variables spécifiques à la production
+.env.staging     # Variables spécifiques au staging
+.env.test        # Variables spécifiques aux tests
+```
+
+**Avantages**
+- Pas de duplication des variables communes
+- Validation automatique des environnements
+- Sécurité améliorée (secrets non versionnés)
+- Maintenance simplifiée
 
 ### Environnements personnalisés
 
@@ -105,7 +165,7 @@ make run-dev ENV=staging
 make install-prod
 ```
 
-Voir [ENVIRONMENTS.md](search_api_solr/ENVIRONMENTS.md) pour plus de détails sur la gestion des environnements.
+Voir [ENVIRONMENTS.md](./ENVIRONMENTS.md) pour plus de détails sur la gestion des environnements.
 
 ### Sans Docker
 
@@ -208,6 +268,19 @@ front/src/
 
 ## 🧪 Tests
 
+### Avec la Nouvelle Configuration
+
+```bash
+# Synchroniser l'environnement de test
+./scripts/sync_env.sh test
+
+# Exécuter tous les tests (backend + frontend)
+./scripts/run_tests.sh
+
+# Ou exécuter des tests spécifiques
+cd search_api_solr && python -m pytest tests/test_search_builder.py -v
+```
+
 ### Backend
 
 ```bash
@@ -258,48 +331,88 @@ make clean
 
 Voir [DOCKER.md](search_api_solr/DOCKER.md) pour plus de détails.
 
-## 🔧 Configuration
+## 🔧 Configuration Centralisée
 
-### Variables d'environnement Backend
+Le projet utilise maintenant une gestion centralisée des environnements avec validation automatique.
 
-```env
-# Configuration Solr
-SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
+### Structure des Fichiers
 
-# Configuration API
-API_HOST=0.0.0.0
-API_PORT=8007
-API_RELOAD=true
-
-# Configuration CORS (développement)
-# Important: inclure toutes les variantes d'origine (localhost, 127.0.0.1, 0.0.0.0)
-CORS_ORIGINS=http://localhost:3009,http://localhost:3000,http://127.0.0.1:3009,http://127.0.0.1:3000,http://127.0.0.1:3007,http://0.0.0.0:3007,http://0.0.0.0:3009,http://localhost:3007
-CORS_ALLOW_CREDENTIALS=true
-CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
-CORS_ALLOW_HEADERS=Accept,Accept-Language,Authorization,Content-Language,Content-Type,X-Requested-With,X-CSRF-Token
-CORS_EXPOSE_HEADERS=X-Total-Count,X-Pagination
-CORS_MAX_AGE=86400
-
-# Dev mode
-DEV=true
-LOG_LEVEL=DEBUG
-
-# Types de documents (format CSV)
-types_needing_parents=article,chapter
-default_fields=id,url,title,idparent,container_url
+```
+.env.shared          # Variables communes à tous les environnements
+.env.development     # Variables spécifiques au développement
+.env.production      # Variables spécifiques à la production
+.env.staging         # Variables spécifiques au staging
+.env.test            # Variables spécifiques aux tests
+.env.example         # Template avec toutes les variables
 ```
 
-> **Important** : Les champs de type liste (comme `types_needing_parents`, `CORS_ORIGINS`) doivent être au format CSV (valeurs séparées par des virgules) et non JSON.
+### Variables Principales
 
-### Variables d'environnement Frontend
+**Backend (FastAPI)** :
+- `SOLR_URL` : URL du serveur Solr
+- `SOLR_COLLECTION` : Collection Solr à utiliser
+- `API_BASE_URL` : URL base de l'API
+- `DEBUG` : Mode debug
+- `JWT_SECRET` : Secret pour les tokens JWT (production)
 
+**Frontend (React)** :
+- `REACT_APP_API_URL` : URL de l'API backend
+- `REACT_APP_DEBUG` : Mode debug
+- `REACT_APP_MOCK_API` : Utilisation de l'API mock
+
+**Communes** :
+- `NODE_ENV` : Environnement (development, production, test)
+- `LOG_LEVEL` : Niveau de logging
+- `CORS_ALLOWED_ORIGINS` : Origines autorisées pour CORS
+
+### Validation Automatique
+
+Le backend et le frontend valident leurs environnements au démarrage :
+
+**Backend** : `search_api_solr/app/core/env_validation.py`
+- Validation des URLs Solr
+- Validation des secrets
+- Validation des niveaux de log
+
+**Frontend** : `front/src/utils/envValidation.js`
+- Validation des URLs API
+- Validation des booléens
+- Avertissements pour les configurations non optimales
+
+### Exemple de Configuration
+
+**`.env.development`** :
 ```env
-REACT_APP_API_URL=http://localhost:8007
+# Développement frontend
+REACT_APP_API_URL=http://localhost:8000
+REACT_APP_DEBUG=true
+REACT_APP_MOCK_API=false
 
-# Ports Docker
-FRONTEND_PORT=3009          # Port production (nginx)
-FRONTEND_DEV_PORT=3007      # Port développement (hot-reload)
+# Développement backend
+DEBUG=true
+AUTO_RELOAD=true
+
+# Configuration Solr pour dev
+SOLR_URL=http://localhost:8983/solr
+SOLR_COLLECTION=searchv2_dev
 ```
+
+**`.env.production`** :
+```env
+# Production frontend
+REACT_APP_API_URL=https://api.searchv2.com
+REACT_APP_DEBUG=false
+
+# Production backend
+DEBUG=false
+AUTO_RELOAD=false
+
+# Sécurité
+JWT_SECRET=votre_secret_jwt_secure
+SESSION_SECRET=votre_secret_session_secure
+```
+
+Voir [ENVIRONMENTS.md](./ENVIRONMENTS.md) pour la documentation complète.
 
 ## 📝 API Documentation
 
@@ -328,6 +441,45 @@ Un reverse proxy Nginx est inclus pour la production. Configuration dans `search
 - Sanitization des requêtes Solr
 - Headers de sécurité configurés
 - CORS configuré pour les origines autorisées
+
+## 🌐 Gestion des Environnements
+
+Le projet utilise une approche centralisée pour la gestion des environnements avec validation automatique.
+
+### Scripts Disponibles
+
+```bash
+# Vérifier la configuration
+./scripts/check_env_setup.sh
+
+# Synchroniser un environnement
+./scripts/sync_env.sh development  # dev
+./scripts/sync_env.sh staging      # staging
+./scripts/sync_env.sh production   # prod
+./scripts/sync_env.sh test         # tests
+
+# Exécuter les tests avec la bonne configuration
+./scripts/run_tests.sh
+```
+
+### Validation des Environnements
+
+**Backend** : Validation Pydantic au démarrage
+- Vérifie les URLs Solr
+- Valide les secrets et configurations
+- Affiche des erreurs claires en cas de problème
+
+**Frontend** : Validation JavaScript au démarrage
+- Vérifie les URLs API
+- Valide les configurations
+- Affiche un message utilisateur en cas d'erreur
+
+### Bonnes Pratiques
+
+1. **Ne jamais éditer** les fichiers `.env.local` générés
+2. **Toujours utiliser** `.env.example` comme template
+3. **Valider** avant de démarrer les services
+4. **Documenter** les nouvelles variables dans `.env.example`
 
 ## 📊 Monitoring
 
@@ -363,6 +515,8 @@ docker stats
 - [Documentation Frontend](front/README.md)
 - [Guide Docker](search_api_solr/DOCKER.md)
 - [Guide de tests](search_api_solr/TESTING.md)
+- [Gestion des Environnements](./ENVIRONMENTS.md) - **Nouveau!**
+- [Résumé de la Configuration](./ENVIRONMENT_MANAGEMENT_SUMMARY.md)
 
 ## 🐛 Résolution de problèmes
 

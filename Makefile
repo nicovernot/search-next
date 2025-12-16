@@ -4,13 +4,25 @@
 ENV ?= development
 FRONTEND_ENV ?= development
 
-.PHONY: help build up down restart logs clean dev prod test configure-env
+.PHONY: help build up down restart logs clean dev prod test configure-env sync-env check-env
 
 help: ## Afficher l'aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-# Configuration des environnements
-configure-env: ## Configurer l'environnement (dev, staging, prod, test)
+# Configuration des environnements avec la nouvelle approche centralisée
+sync-env: ## Synchroniser l'environnement (dev, staging, prod, test)
+	@echo "Synchronizing environment: $(ENV)"
+	@./scripts/sync_env.sh $(ENV)
+	@echo "Environment synchronized successfully!"
+	@echo "Backend: search_api_solr/.env.local"
+	@echo "Frontend: front/.env.local"
+
+check-env: ## Vérifier la configuration d'environnement
+	@./scripts/check_env_setup.sh
+
+# Configuration des environnements (ancienne méthode - dépréciée)
+configure-env: ## Configurer l'environnement (dev, staging, prod, test) - DEPRECATED
+	@echo "WARNING: This method is deprecated. Use 'make sync-env' instead."
 	@echo "Configuring environment: $(ENV)"
 	@cd search_api_solr && cp .env.$(ENV) .env
 	@cd front && cp .env.$(FRONTEND_ENV) .env
@@ -20,11 +32,11 @@ configure-env: ## Configurer l'environnement (dev, staging, prod, test)
 
 # Développement
 dev: ## Lancer l'environnement de développement
-	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+	@$(MAKE) sync-env ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 dev-build: ## Build et lancer l'environnement de développement
-	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+	@$(MAKE) sync-env ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 dev-down: ## Arrêter l'environnement de développement
@@ -32,11 +44,11 @@ dev-down: ## Arrêter l'environnement de développement
 
 # Staging
 staging: ## Lancer l'environnement de staging
-	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	@$(MAKE) sync-env ENV=staging
 	docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
 
 staging-build: ## Build et lancer l'environnement de staging
-	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	@$(MAKE) sync-env ENV=staging
 	docker-compose -f docker-compose.yml -f docker-compose.staging.yml up --build
 
 staging-down: ## Arrêter l'environnement de staging
@@ -44,54 +56,97 @@ staging-down: ## Arrêter l'environnement de staging
 
 # Production
 prod: ## Lancer l'environnement de production
-	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	@$(MAKE) sync-env ENV=production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 prod-build: ## Build et lancer l'environnement de production
-	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	@$(MAKE) sync-env ENV=production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 prod-down: ## Arrêter l'environnement de production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 # Tests backend
-test: ## Lancer les tests backend (environnement test)
-	@$(MAKE) configure-env ENV=test FRONTEND_ENV=test
-	docker-compose -f docker-compose.yml run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+test: ## Lancer les tests backend dans le container (recommandé)
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml run --rm api pytest -v
 
-test-dev: ## Lancer les tests en environnement de développement
-	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
-	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+test-cov: ## Lancer les tests avec couverture dans le container
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml run --rm api pytest --cov=app --cov-report=html --cov-report=term -v
 
-test-staging: ## Lancer les tests en environnement de staging
-	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
-	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
+test-local: ## Lancer les tests en local (nécessite les dépendances installées)
+	@$(MAKE) sync-env ENV=test
+	cd search_api_solr && python -m pytest -v
+
+test-ci: ## Lancer les tests pour CI/CD (dans container, sortie XML)
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml run --rm api pytest --junitxml=test-results.xml -v
+
+# Tests Frontend
+test-front: ## Lancer les tests E2E Playwright (headless)
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	@sleep 5
+	cd front && npx playwright test --reporter=list
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+test-front-ui: ## Lancer les tests E2E Playwright avec UI
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	@sleep 5
+	cd front && npx playwright test --ui
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+test-front-unit: ## Lancer les tests unitaires Jest du frontend (si présents)
+	docker run --rm -v $(PWD)/front:/app -w /app node:18-alpine sh -c "npm install && npm test -- --watchAll=false --ci --passWithNoTests"
+
+test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containerisé
+	@$(MAKE) sync-env ENV=test
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	@echo "Waiting for services to be ready..."
+	@sleep 8
+	docker run --rm --network searchv2_openedition_network \
+		-v $(PWD)/front:/app -w /app \
+		-e BASE_URL=http://openedition_frontend \
+		-e CI=true \
+		mcr.microsoft.com/playwright:v1.57.0-noble \
+		sh -c "npm ci --silent && npx playwright test --reporter=list --project=chromium"
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+# Tests complets
+test-all: ## Lancer tous les tests (backend + frontend)
+	@echo "=== Tests Backend ==="
+	@$(MAKE) test
+	@echo ""
+	@echo "=== Tests Frontend E2E ==="
+	@$(MAKE) test-front
 
 test-prod: ## Lancer les tests en environnement de production (simulé)
-	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	@$(MAKE) sync-env ENV=production
 	docker-compose run --rm api sh -c "pip install --no-cache-dir -r requirements-dev.txt && pytest"
 
 # Commandes avec environnement personnalisé
 run-dev: ## Lancer avec environnement personnalisé (ex: make run-dev ENV=staging)
-	@$(MAKE) configure-env ENV=$(ENV) FRONTEND_ENV=$(FRONTEND_ENV)
+	@$(MAKE) sync-env ENV=$(ENV)
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 run-prod: ## Lancer production avec environnement personnalisé
-	@$(MAKE) configure-env ENV=$(ENV) FRONTEND_ENV=$(FRONTEND_ENV)
+	@$(MAKE) sync-env ENV=$(ENV)
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Configuration rapide
 set-dev: ## Configurer pour le développement sans lancer
-	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+	@$(MAKE) sync-env ENV=development
 
 set-staging: ## Configurer pour le staging sans lancer
-	@$(MAKE) configure-env ENV=staging FRONTEND_ENV=staging
+	@$(MAKE) sync-env ENV=staging
 
 set-prod: ## Configurer pour la production sans lancer
-	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	@$(MAKE) sync-env ENV=production
 
 set-test: ## Configurer pour les tests sans lancer
-	@$(MAKE) configure-env ENV=test FRONTEND_ENV=test
+	@$(MAKE) sync-env ENV=test
 
 # Commandes générales
 build: ## Build les images Docker
@@ -115,40 +170,17 @@ logs-api: ## Voir les logs de l'API
 logs-frontend: ## Voir les logs du frontend
 	docker-compose logs -f frontend
 
-# Tests CI
+# Gestion des environnements (nouvelle approche)
 
-test-ci: ## CI-friendly tests: build a test image with dev deps and run pytest inside it
-	# Build image with dev/test deps included
-	docker build --build-arg INSTALL_DEV=true -t search_api_solr:test .
-	# Run pytest inside the built image (overrides default CMD)
-	docker run --rm search_api_solr:test pytest
+env-check: ## Vérifier la configuration d'environnement
+	@$(MAKE) check-env
 
-test-cov: ## Lancer les tests avec couverture
-	docker-compose exec api pytest --cov=app --cov-report=html
+env-sync: ## Synchroniser l'environnement courant
+	@$(MAKE) sync-env ENV=$(ENV)
 
-test-front: ## Lancer les tests E2E du frontend (Headless)
-	# Ensure node modules and playwright browsers are installed, then run headless tests
-	cd front && npm ci && npx playwright install --with-deps && npm run test:e2e
-
-test-front-ui: ## Lancer les tests E2E du frontend avec UI
-	# Ensure node modules and playwright browsers are installed, then run UI test runner
-	cd front && npm ci && npx playwright install --with-deps && npm run test:e2e:ui
-
-test-front-ci: ## CI-friendly: run frontend E2E inside Playwright Docker image (headless)
-	# Build static frontend, serve it and run Playwright tests; we set CI empty so Playwright will reuse the existing server
-	docker run --rm -v ${PWD}/front:/src -w /src mcr.microsoft.com/playwright:latest bash -lc "npm ci && npm run build && npx http-server build -p 3000 & CI= npx playwright test"
-
-test-front-ci-ui: ## CI-friendly: run Playwright UI (note: running UI inside container may need additional setup)
-	# This attempts to start the Playwright UI; containers have no X server by default.
-	# We install xvfb and run the UI under a virtual framebuffer so browsers can start.
-	# Note: UI mode still requires forwarding the UI port (9323) to the host.
-	docker run --rm -v ${PWD}/front:/src -w /src -p 9323:9323 mcr.microsoft.com/playwright:latest bash -lc \
-		"npm ci && npx playwright install --with-deps && apt-get update && apt-get install -y xvfb && \
-		xvfb-run -s '-screen 0 1920x1080x24' npx playwright test --ui --project=chromium --reporter=list"
-
-test-front-ci-ui-debug: ## Diagnostic: run Playwright container interactively to inspect failures
-	# Starts a container and drops you into a shell inside /src so you can run commands interactively
-	docker run --rm -it -v ${PWD}/front:/src -w /src mcr.microsoft.com/playwright:latest bash
+env-list: ## Lister les fichiers d'environnement disponibles
+	@echo "Available environment files:"
+	@ls -1 .env.* 2>/dev/null | grep -v "\.local" | sed 's/^\.env\./  /'
 
 build-playwright-image: ## Build a dedicated Playwright image with the frontend preinstalled
 	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
@@ -200,7 +232,7 @@ health: ## Vérifier la santé des services
 install: ## Installation initiale (build + up)
 	@echo "Installation de l'environnement OpenEdition Search..."
 	@echo "Note: Utilise Solr distant (https://solrslave-sec.labocleo.org/solr/documents)"
-	@$(MAKE) configure-env ENV=development FRONTEND_ENV=development
+	@$(MAKE) sync-env ENV=development
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 	@echo "✓ Installation terminée"
@@ -209,7 +241,7 @@ install: ## Installation initiale (build + up)
 
 install-prod: ## Installation en production
 	@echo "Installation de l'environnement OpenEdition Search en production..."
-	@$(MAKE) configure-env ENV=production FRONTEND_ENV=production
+	@$(MAKE) sync-env ENV=production
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 	@echo "✓ Installation production terminée"

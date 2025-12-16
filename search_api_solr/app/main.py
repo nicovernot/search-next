@@ -9,6 +9,7 @@ import logging
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.logging import get_logger
+from app.core.env_validation import validate_environment
 from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
 from app.services.search_service import SearchService, SuggestService, PermissionsService
 from app.services.solr_client import SolrClient
@@ -19,6 +20,14 @@ from app.models import DocsPermissionsResponse
 
 # Configuration du logging structuré
 logger = get_logger(__name__)
+
+# Validation de l'environnement au démarrage
+try:
+    env_config = validate_environment()
+    logger.info("Environment validation completed successfully")
+except Exception as e:
+    logger.critical(f"Environment validation failed: {e}")
+    raise
 
 app = FastAPI()
 
