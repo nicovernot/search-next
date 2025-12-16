@@ -26,7 +26,7 @@ def get_cors_origins(environment: str) -> List[str]:
     elif environment == "test":
         return ["http://localhost:8007", "http://localhost:3009", "http://127.0.0.1:3009", "http://127.0.0.1:8007"]
     else:  # development
-        return ["http://localhost:3009", "http://localhost:3000", "http://127.0.0.1:3009", "http://127.0.0.1:3000", "http://0.0.0.0:3007", "http://0.0.0.0:3009", "http://localhost:3007"]
+        return ["http://localhost:3009", "http://localhost:3000", "http://127.0.0.1:3009", "http://127.0.0.1:3000", "http://0.0.0.0:3007", "http://0.0.0.0:3009", "http://localhost:3007", "http://127.0.0.1:3007"]
 
 
 class Settings(BaseSettings):
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     cors_origins: Optional[Union[str, List[str]]] = None
     cors_allow_credentials: bool = True
     cors_allow_methods: Union[str, List[str]] = "GET,POST,PUT,DELETE,OPTIONS"
-    cors_allow_headers: Union[str, List[str]] = "Accept,Authorization,Content-Type,X-Requested-With,X-CSRF-Token"
+    cors_allow_headers: Union[str, List[str]] = "Accept,Accept-Language,Authorization,Content-Language,Content-Type,X-Requested-With,X-CSRF-Token"
     cors_expose_headers: Union[str, List[str]] = "X-Total-Count,X-Pagination"
     cors_max_age: int = 86400  # 24 heures en développement, sera ajusté par environnement
     

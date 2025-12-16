@@ -272,7 +272,13 @@ API_PORT=8007
 API_RELOAD=true
 
 # Configuration CORS (développement)
-CORS_ORIGINS=http://localhost:3009,http://localhost:3000,http://localhost:3007,http://127.0.0.1:3009,http://127.0.0.1:3000,http://127.0.0.1:3007,http://0.0.0.0:3009,http://0.0.0.0:3007
+# Important: inclure toutes les variantes d'origine (localhost, 127.0.0.1, 0.0.0.0)
+CORS_ORIGINS=http://localhost:3009,http://localhost:3000,http://127.0.0.1:3009,http://127.0.0.1:3000,http://127.0.0.1:3007,http://0.0.0.0:3007,http://0.0.0.0:3009,http://localhost:3007
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
+CORS_ALLOW_HEADERS=Accept,Accept-Language,Authorization,Content-Language,Content-Type,X-Requested-With,X-CSRF-Token
+CORS_EXPOSE_HEADERS=X-Total-Count,X-Pagination
+CORS_MAX_AGE=86400
 
 # Dev mode
 DEV=true
@@ -366,19 +372,29 @@ Vérifiez que `REACT_APP_API_URL` dans `front/.env` pointe vers la bonne URL (pa
 
 ### Erreur de CORS
 
-**Symptôme** : `Access to fetch at 'http://localhost:8007/search' from origin 'http://0.0.0.0:3009' has been blocked by CORS policy`
+**Symptôme** : `Access to fetch at 'http://localhost:8007/search' from origin 'http://0.0.0.0:3009' has been blocked by CORS policy` ou `CORS Missing Allow Origin`
 
-**Solution** : Ajoutez toutes les origines nécessaires dans `CORS_ORIGINS` dans le fichier `.env` du backend :
+**Causes possibles** :
+1. L'origine du frontend n'est pas dans la liste `CORS_ORIGINS`
+2. Le header `Accept-Language` n'est pas autorisé dans `CORS_ALLOW_HEADERS`
+
+**Solution** : Ajoutez toutes les origines et headers nécessaires dans le fichier `.env` du backend :
 
 ```bash
-# Développement
-CORS_ORIGINS=http://localhost:3009,http://localhost:3007,http://127.0.0.1:3009,http://127.0.0.1:3007,http://0.0.0.0:3009,http://0.0.0.0:3007
+# Développement - inclure TOUTES les variantes d'origine possibles
+CORS_ORIGINS=http://localhost:3009,http://localhost:3000,http://127.0.0.1:3009,http://127.0.0.1:3000,http://127.0.0.1:3007,http://0.0.0.0:3007,http://0.0.0.0:3009,http://localhost:3007
+CORS_ALLOW_HEADERS=Accept,Accept-Language,Authorization,Content-Language,Content-Type,X-Requested-With,X-CSRF-Token
 
 # Production
 CORS_ORIGINS=https://search.openedition.org,https://www.openedition.org
 ```
 
-Puis redémarrez l'API : `docker-compose restart api`
+Puis recréez le conteneur API pour charger les nouvelles variables :
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api --force-recreate
+```
+
+**Note Firefox** : Firefox peut mettre en cache les réponses CORS. Videz le cache (Ctrl+Shift+Suppr) ou testez en navigation privée.
 
 ### Container frontend "unhealthy"
 
