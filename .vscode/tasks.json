@@ -1,6 +1,9 @@
 {
     "version": "2.0.0",
     "tasks": [
+        // ============================================
+        // DÉVELOPPEMENT
+        // ============================================
         {
             "label": "Dev: Start Environment",
             "type": "shell",
@@ -32,6 +35,9 @@
             "command": "make dev-down",
             "problemMatcher": []
         },
+        // ============================================
+        // STAGING
+        // ============================================
         {
             "label": "Staging: Start Environment",
             "type": "shell",
@@ -44,6 +50,26 @@
             "problemMatcher": []
         },
         {
+            "label": "Staging: Build and Start",
+            "type": "shell",
+            "command": "make staging-build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Staging: Stop Environment",
+            "type": "shell",
+            "command": "make staging-down",
+            "problemMatcher": []
+        },
+        // ============================================
+        // PRODUCTION
+        // ============================================
+        {
             "label": "Production: Start Environment",
             "type": "shell",
             "command": "make prod",
@@ -55,6 +81,26 @@
             "problemMatcher": []
         },
         {
+            "label": "Production: Build and Start",
+            "type": "shell",
+            "command": "make prod-build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Production: Stop Environment",
+            "type": "shell",
+            "command": "make prod-down",
+            "problemMatcher": []
+        },
+        // ============================================
+        // TESTS BACKEND
+        // ============================================
+        {
             "label": "Test: Backend (API)",
             "type": "shell",
             "command": "make test",
@@ -62,6 +108,26 @@
                 "kind": "test",
                 "isDefault": true
             },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: Backend with Coverage",
+            "type": "shell",
+            "command": "make test-cov",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: Backend Local",
+            "type": "shell",
+            "command": "make test-local",
+            "group": "test",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated"
@@ -78,15 +144,18 @@
             }
         },
         {
-            "label": "Test: Backend with Coverage",
+            "label": "Test: Backend Production",
             "type": "shell",
-            "command": "make test-cov",
+            "command": "make test-prod",
             "group": "test",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated"
             }
         },
+        // ============================================
+        // TESTS FRONTEND
+        // ============================================
         {
             "label": "Test: Frontend E2E (Headless)",
             "type": "shell",
@@ -108,6 +177,16 @@
             }
         },
         {
+            "label": "Test: Frontend Unit (Jest)",
+            "type": "shell",
+            "command": "make test-front-unit",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
             "label": "Test: Frontend E2E (CI Headless)",
             "type": "shell",
             "command": "make test-front-ci",
@@ -118,14 +197,93 @@
             }
         },
         {
-            "label": "Test: Frontend E2E (CI UI)",
+            "label": "Test: Frontend CI (Image)",
             "type": "shell",
-            "command": "make test-front-ci-ui",
+            "command": "make test-front-ci-image",
             "group": "test",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated"
             }
+        },
+        {
+            "label": "Test: Frontend CI UI (Image)",
+            "type": "shell",
+            "command": "make test-front-ci-ui-image",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Test: All (Backend + Frontend)",
+            "type": "shell",
+            "command": "make test-all",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        // ============================================
+        // GESTION DES ENVIRONNEMENTS
+        // ============================================
+        {
+            "label": "Env: Sync Environment",
+            "type": "shell",
+            "command": "make sync-env",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: Check Configuration",
+            "type": "shell",
+            "command": "make check-env",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: List Available",
+            "type": "shell",
+            "command": "make env-list",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: Set Development",
+            "type": "shell",
+            "command": "make set-dev",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: Set Staging",
+            "type": "shell",
+            "command": "make set-staging",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: Set Production",
+            "type": "shell",
+            "command": "make set-prod",
+            "problemMatcher": []
+        },
+        {
+            "label": "Env: Set Test",
+            "type": "shell",
+            "command": "make set-test",
+            "problemMatcher": []
+        },
+        // ============================================
+        // BUILD
+        // ============================================
+        {
+            "label": "Build: Docker Images",
+            "type": "shell",
+            "command": "make build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
         },
         {
             "label": "Build: Playwright Image",
@@ -136,6 +294,9 @@
                 "panel": "dedicated"
             }
         },
+        // ============================================
+        // LOGS
+        // ============================================
         {
             "label": "Logs: All Services",
             "type": "shell",
@@ -163,20 +324,13 @@
                 "panel": "dedicated"
             }
         },
+        // ============================================
+        // SYSTÈME
+        // ============================================
         {
             "label": "System: Health Check",
             "type": "shell",
             "command": "make health",
-            "problemMatcher": []
-        },
-        {
-            "label": "System: Environment Verification",
-            "type": "shell",
-            "command": "./check_env.sh",
-            "presentation": {
-                "reveal": "always",
-                "panel": "dedicated"
-            },
             "problemMatcher": []
         },
         {
@@ -195,7 +349,22 @@
             "problemMatcher": []
         },
         {
-            "label": "Install: Initial Setup",
+            "label": "System: Restart Containers",
+            "type": "shell",
+            "command": "make restart",
+            "problemMatcher": []
+        },
+        {
+            "label": "System: Show Help",
+            "type": "shell",
+            "command": "make help",
+            "problemMatcher": []
+        },
+        // ============================================
+        // INSTALLATION
+        // ============================================
+        {
+            "label": "Install: Initial Setup (Dev)",
             "type": "shell",
             "command": "make install",
             "problemMatcher": []
@@ -206,6 +375,9 @@
             "command": "make install-prod",
             "problemMatcher": []
         },
+        // ============================================
+        // NETTOYAGE
+        // ============================================
         {
             "label": "Clean: Remove Containers",
             "type": "shell",
@@ -213,11 +385,14 @@
             "problemMatcher": []
         },
         {
-            "label": "Clean: Full Cleanup",
+            "label": "Clean: Full Cleanup (+ Images)",
             "type": "shell",
             "command": "make clean-all",
             "problemMatcher": []
         },
+        // ============================================
+        // SHELL
+        // ============================================
         {
             "label": "Shell: Access API Container",
             "type": "shell",
@@ -236,6 +411,24 @@
                 "panel": "dedicated"
             }
         },
+        // ============================================
+        // COMMANDES GÉNÉRALES
+        // ============================================
+        {
+            "label": "Docker: Up",
+            "type": "shell",
+            "command": "make up",
+            "problemMatcher": []
+        },
+        {
+            "label": "Docker: Down",
+            "type": "shell",
+            "command": "make down",
+            "problemMatcher": []
+        },
+        // ============================================
+        // RACCOURCIS NAVIGATEUR
+        // ============================================
         {
             "label": "Open: API Documentation",
             "type": "shell",
