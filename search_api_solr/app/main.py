@@ -6,6 +6,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from typing import Dict, Any, List
 import httpx
 import logging
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.logging import get_logger
 from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
@@ -20,6 +21,19 @@ from app.models import DocsPermissionsResponse
 logger = get_logger(__name__)
 
 app = FastAPI()
+
+# Instrumentation Prometheus pour les métriques
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_respect_env_var=False,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/health"],
+    inprogress_name="http_requests_inprogress",
+    inprogress_labels=True,
+)
+instrumentator.instrument(app).expose(app, endpoint="/metrics")
+logger.info("Prometheus metrics enabled at /metrics")
 
 # Configuration CORS sécurisée basée sur l'environnement
 if settings.cors_origins:
