@@ -44,16 +44,21 @@ class TestCacheService:
         assert service.redis is None
         assert service.enabled is True  # Par défaut
     
-    async def test_connect_success(self, mock_redis):
+    async def test_connect_success(self):
         """Test la connexion réussie à Redis"""
-        mock_redis.ping.return_value = "PONG"
-        
-        service = CacheService()
-        await service.connect()
-        
-        assert service.redis is not None
-        assert service.enabled is True
-        mock_redis.ping.assert_called_once()
+        with patch('aioredis.from_url', new_callable=AsyncMock) as mock_from_url:
+            mock_redis = AsyncMock()
+            # Configurer ping comme une coroutine qui retourne "PONG"
+            mock_redis.ping = AsyncMock(return_value="PONG")
+            # from_url est awaitable et retourne le mock redis
+            mock_from_url.return_value = mock_redis
+            
+            service = CacheService()
+            await service.connect()
+            
+            assert service.redis is not None
+            assert service.enabled is True
+            mock_redis.ping.assert_called_once()
     
     async def test_connect_failure(self, mock_redis):
         """Test l'échec de connexion à Redis"""
@@ -240,71 +245,68 @@ class TestCacheService:
 class TestCacheIntegration:
     """Tests d'intégration pour le cache avec les services"""
     
-    @pytest.fixture
-    async def mock_cache_service(self):
-        """Mock du service de cache pour les tests d'intégration"""
-        with patch('app.services.search_service.cache_service') as mock_cache:
-            mock_cache.get_search_cache = AsyncMock(return_value=None)
-            mock_cache.set_search_cache = AsyncMock(return_value=True)
-            mock_cache.get_suggest_cache = AsyncMock(return_value=None)
-            mock_cache.set_suggest_cache = AsyncMock(return_value=True)
-            mock_cache.get_permissions_cache = AsyncMock(return_value=None)
-            mock_cache.set_permissions_cache = AsyncMock(return_value=True)
-            yield mock_cache
-    
-    async def test_search_service_with_cache(self, mock_cache_service):
+    async def test_search_service_with_cache(self):
         """Test que SearchService utilise correctement le cache"""
         from app.services.search_service import SearchService
         from unittest.mock import Mock
         
-        # Mock des dépendances
-        mock_builder = Mock()
-        mock_builder.build_search_url.return_value = "http://solr/search?q=test"
-        
-        mock_solr_client = AsyncMock()
-        mock_solr_client.search.return_value = {"response": {"docs": [], "numFound": 0}}
-        
-        service = SearchService(mock_builder, mock_solr_client)
-        request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
-        
-        # Première recherche - pas de cache
-        result = await service.perform_search(request)
-        
-        # Vérifier que le cache a été consulté et mis à jour
-        mock_cache_service.get_search_cache.assert_called_once_with(request)
-        mock_cache_service.set_search_cache.assert_called_once()
-        
-        # Vérifier que Solr a été appelé
-        mock_solr_client.search.assert_called_once()
-        
-        assert result == {"response": {"docs": [], "numFound": 0}}
+        # Patcher le cache_service au bon endroit (import local dans la fonction)
+        with patch('app.services.cache_service.cache_service') as mock_cache:
+            mock_cache.get_search_cache = AsyncMock(return_value=None)
+            mock_cache.set_search_cache = AsyncMock(return_value=True)
+            
+            # Mock des dépendances
+            mock_builder = Mock()
+            mock_builder.build_search_url.return_value = "http://solr/search?q=test"
+            
+            mock_solr_client = AsyncMock()
+            mock_solr_client.search.return_value = {"response": {"docs": [], "numFound": 0}}
+            
+            service = SearchService(mock_builder, mock_solr_client)
+            request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
+            
+            # Première recherche - pas de cache
+            result = await service.perform_search(request)
+            
+            # Vérifier que le cache a été consulté et mis à jour
+            mock_cache.get_search_cache.assert_called_once_with(request)
+            mock_cache.set_search_cache.assert_called_once()
+            
+            # Vérifier que Solr a été appelé
+            mock_solr_client.search.assert_called_once()
+            
+            assert result == {"response": {"docs": [], "numFound": 0}}
     
-    async def test_search_service_cache_hit(self, mock_cache_service):
+    async def test_search_service_cache_hit(self):
         """Test que SearchService retourne les résultats du cache quand disponibles"""
         from app.services.search_service import SearchService
         from unittest.mock import Mock
         
         # Configurer le cache pour retourner des données
         cached_result = {"response": {"docs": [{"id": "1", "title": "Cached"}], "numFound": 1}}
-        mock_cache_service.get_search_cache.return_value = cached_result
         
-        # Mock des dépendances
-        mock_builder = Mock()
-        mock_solr_client = AsyncMock()
-        
-        service = SearchService(mock_builder, mock_solr_client)
-        request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
-        
-        # Recherche avec cache hit
-        result = await service.perform_search(request)
-        
-        # Vérifier que le cache a été consulté
-        mock_cache_service.get_search_cache.assert_called_once_with(request)
-        
-        # Vérifier que Solr n'a PAS été appelé
-        mock_solr_client.search.assert_not_called()
-        
-        # Vérifier que le cache n'a PAS été mis à jour
-        mock_cache_service.set_search_cache.assert_not_called()
-        
-        assert result == cached_result
+        # Patcher le cache_service au bon endroit
+        with patch('app.services.cache_service.cache_service') as mock_cache:
+            mock_cache.get_search_cache = AsyncMock(return_value=cached_result)
+            mock_cache.set_search_cache = AsyncMock(return_value=True)
+            
+            # Mock des dépendances
+            mock_builder = Mock()
+            mock_solr_client = AsyncMock()
+            
+            service = SearchService(mock_builder, mock_solr_client)
+            request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
+            
+            # Recherche avec cache hit
+            result = await service.perform_search(request)
+            
+            # Vérifier que le cache a été consulté
+            mock_cache.get_search_cache.assert_called_once_with(request)
+            
+            # Vérifier que Solr n'a PAS été appelé
+            mock_solr_client.search.assert_not_called()
+            
+            # Vérifier que le cache n'a PAS été mis à jour
+            mock_cache.set_search_cache.assert_not_called()
+            
+            assert result == cached_result
