@@ -12,6 +12,7 @@ services:
       - search_api_solr/.env.local
     environment:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       # Volume pour le développement (hot reload)
       - ./search_api_solr:/app
@@ -21,10 +22,30 @@ services:
       - ./search_api_solr/.env:/app/.env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
     restart: unless-stopped
+    depends_on:
+      - redis
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8007/docs" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8007/health" ]
       interval: 30s
       timeout: 10s
+      retries: 3
+    networks:
+      - openedition_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: openedition_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 3s
       retries: 3
     networks:
       - openedition_network
@@ -46,6 +67,7 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+      - redis
     healthcheck:
       test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/" ]
       interval: 30s
@@ -72,6 +94,10 @@ services:
   #     - api
   #   networks:
   #     - openedition_network
+
+volumes:
+  redis_data:
+    driver: local
 
 networks:
   openedition_network:

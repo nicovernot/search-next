@@ -14,6 +14,7 @@ from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
 from app.services.search_service import SearchService, SuggestService, PermissionsService
 from app.services.solr_client import SolrClient
 from app.services.search_builder import SearchBuilder
+from app.services.cache_service import cache_service
 from app.models.search_models import SearchRequest
 from app.settings import settings, SOLR_CONFIG
 from app.models import DocsPermissionsResponse
@@ -30,6 +31,19 @@ except Exception as e:
     raise
 
 app = FastAPI()
+
+# Événements de démarrage et arrêt
+@app.on_event("startup")
+async def startup_event():
+    """Initialisation au démarrage de l'application"""
+    await cache_service.connect()
+    logger.info("Application startup completed")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Nettoyage à l'arrêt de l'application"""
+    await cache_service.disconnect()
+    logger.info("Application shutdown completed")
 
 # Instrumentation Prometheus pour les métriques
 instrumentator = Instrumentator(
@@ -238,16 +252,27 @@ async def suggest(
     q: str = Query(..., min_length=1, description="Terme à compléter"),
     builder: SearchBuilder = Depends(get_search_builder)
 ):
-    """ Endpoint d'autocomplétion """
-    # 1. Construction de l'URL
+    """ Endpoint d'autocomplétion avec cache """
+    # 1. Vérifier le cache d'abord
+    cached_result = await cache_service.get_suggest_cache(q)
+    if cached_result:
+        logger.debug(f"Returning cached suggestions for query: {q}")
+        return cached_result
+    
+    # 2. Construction de l'URL
     solr_suggest_url = builder.build_suggest_url(q)
     
-    # 2. Exécution avec gestion d'erreurs
+    # 3. Exécution avec gestion d'erreurs
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(solr_suggest_url, timeout=2.0) # Timeout court pour l'autocomplétion
             response.raise_for_status()
-            return response.json()
+            result = response.json()
+            
+            # 4. Mettre en cache le résultat
+            await cache_service.set_suggest_cache(q, result)
+            
+            return result
         except httpx.ReadTimeout:
             logger.warning(f"Solr suggest timeout for query: {q}")
             # Retourner une structure vide ou une erreur gérée
@@ -255,6 +280,51 @@ async def suggest(
         except httpx.HTTPError as e:
             logger.error(f"Solr suggest error: {e}")
             return {"suggest": {"default": {q: {"numFound": 0, "suggestions": []}}}}
+
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """ Endpoint pour récupérer les statistiques du cache Redis """
+    return await cache_service.get_stats()
+
+@app.delete("/cache/clear")
+async def clear_cache(
+    pattern: str = Query("*", description="Pattern des clés à supprimer (ex: search:*, suggest:*)")
+):
+    """ Endpoint pour vider le cache (utile pour le développement) """
+    deleted_count = await cache_service.clear_pattern(pattern)
+    return {
+        "message": f"Cache cleared for pattern: {pattern}",
+        "deleted_keys": deleted_count
+    }
+
+@app.get("/health")
+async def health_check():
+    """ Endpoint de santé incluant le statut Redis """
+    health_status = {
+        "status": "healthy",
+        "timestamp": "2024-01-01T00:00:00Z",  # À remplacer par datetime.utcnow().isoformat()
+        "services": {
+            "api": "healthy",
+            "cache": "unknown"
+        }
+    }
+    
+    # Vérifier le statut du cache Redis
+    try:
+        cache_stats = await cache_service.get_stats()
+        if cache_stats.get("enabled", False) and "error" not in cache_stats:
+            health_status["services"]["cache"] = "healthy"
+        elif not cache_stats.get("enabled", False):
+            health_status["services"]["cache"] = "disabled"
+        else:
+            health_status["services"]["cache"] = "unhealthy"
+            health_status["status"] = "degraded"
+    except Exception as e:
+        health_status["services"]["cache"] = "unhealthy"
+        health_status["status"] = "degraded"
+        logger.error(f"Health check failed for cache: {e}")
+    
+    return health_status
 
 # --- Initialisation ---
 

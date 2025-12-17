@@ -1,6 +1,6 @@
 # app/services/search_service.py
 """
-Service de recherche - Encapsulation de la logique métier
+Service de recherche - Encapsulation de la logique métier avec cache Redis
 """
 from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
 from app.models.search_models import SearchRequest
@@ -9,10 +9,8 @@ import logging
 
 from app.core.logging import get_logger
 
-# logger = logging.getLogger(__name__)
-
 class SearchService(ISearchService):
-    """Service de recherche implémentant ISearchService"""
+    """Service de recherche implémentant ISearchService avec cache Redis"""
     
     def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
         self.builder = builder
@@ -20,9 +18,21 @@ class SearchService(ISearchService):
         self.logger = get_logger(__name__)
     
     async def perform_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Effectue une recherche complète"""
+        """Effectue une recherche complète avec cache"""
         try:
-            # Construire l'URL de recherche
+            # Import local pour éviter les imports circulaires
+            from app.services.cache_service import cache_service
+            
+            # 1. Vérifier le cache d'abord
+            cached_result = await cache_service.get_search_cache(request)
+            if cached_result:
+                self.logger.debug(
+                    "Returning cached search results",
+                    extra={"context": {"query": request.get("query")}}
+                )
+                return cached_result
+            
+            # 2. Construire l'URL de recherche
             search_url = self.builder.build_search_url(request)
             
             # Logging structuré avec contexte
@@ -37,8 +47,11 @@ class SearchService(ISearchService):
                 }
             )
             
-            # Exécuter la recherche via le client Solr
+            # 3. Exécuter la recherche via le client Solr
             result = await self.solr_client.search(search_url)
+            
+            # 4. Mettre en cache le résultat
+            await cache_service.set_search_cache(request, result)
             
             # Logging structuré des résultats
             self.logger.info(
@@ -96,18 +109,33 @@ class SuggestService:
             return {"suggest": {"default": {query: {"numFound": 0, "suggestions": []}}}}
 
 class PermissionsService:
-    """Service de permissions"""
+    """Service de permissions avec cache"""
     
     def __init__(self, solr_client: ISolrClient):
         self.solr_client = solr_client
         self.logger = get_logger(__name__)
     
     async def get_document_permissions(self, urls: str, ip: str) -> Dict[str, Any]:
-        """Récupère les permissions pour des documents"""
+        """Récupère les permissions pour des documents avec cache"""
         try:
-            # Logique pour récupérer les permissions
+            # Import local pour éviter les imports circulaires
+            from app.services.cache_service import cache_service
+            
+            # 1. Vérifier le cache d'abord
+            cached_result = await cache_service.get_permissions_cache(urls, ip)
+            if cached_result:
+                self.logger.debug(f"Returning cached permissions for URLs: {urls}")
+                return cached_result
+            
+            # 2. Logique pour récupérer les permissions
             # (À implémenter selon la logique existante)
-            return {"data": {"organization": None, "docs": None}, "info": {"status": "ok"}}
+            result = {"data": {"organization": None, "docs": None}, "info": {"status": "ok"}}
+            
+            # 3. Mettre en cache le résultat
+            await cache_service.set_permissions_cache(urls, result, ip)
+            
+            return result
+            
         except Exception as e:
             self.logger.error(f"Permissions check failed: {e}")
             return {"data": {"organization": None, "docs": None}, "info": {"error": str(e)}}

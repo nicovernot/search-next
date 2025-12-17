@@ -67,6 +67,13 @@ class Settings(BaseSettings):
     # Configuration de logging
     log_level: Optional[str] = None
     
+    # Configuration Redis
+    redis_url: str = "redis://redis:6379/0"
+    redis_enabled: bool = True
+    redis_ttl_search: int = 300  # 5 minutes pour les recherches
+    redis_ttl_suggest: int = 3600  # 1 heure pour les suggestions
+    redis_ttl_permissions: int = 1800  # 30 minutes pour les permissions
+    
     @model_validator(mode='after')
     def set_default_log_level(self):
         """Définit le niveau de log par défaut selon l'environnement"""
@@ -162,6 +169,25 @@ class Settings(BaseSettings):
                 return ["staging.search.openedition.org"]
         
         return v
+    
+    @field_validator('redis_ttl_search', 'redis_ttl_suggest', 'redis_ttl_permissions')
+    @classmethod
+    def adjust_redis_ttl_by_environment(cls, v: int, info) -> int:
+        """Ajuste les TTL Redis selon l'environnement"""
+        environment = info.data.get('environment', 'development')
+        
+        if environment == "test":
+            return 60  # TTL courts en test (1 minute)
+        elif environment == "production":
+            # TTL plus longs en production
+            if info.field_name == "redis_ttl_search":
+                return 600  # 10 minutes pour les recherches
+            elif info.field_name == "redis_ttl_suggest":
+                return 7200  # 2 heures pour les suggestions
+            elif info.field_name == "redis_ttl_permissions":
+                return 3600  # 1 heure pour les permissions
+        
+        return v  # Valeurs par défaut pour development/staging
     
     model_config = SettingsConfigDict(
         env_file=".env",
