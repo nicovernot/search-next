@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator, model_validator
 from typing import List, Union, Optional
 import os
+import json
 
 
 def get_environment() -> str:
@@ -74,6 +75,27 @@ class Settings(BaseSettings):
     redis_ttl_suggest: int = 3600  # 1 heure pour les suggestions
     redis_ttl_permissions: int = 1800  # 30 minutes pour les permissions
     
+    # Configuration Rate Limiting
+    rate_limit_enabled: bool = True
+    rate_limit_default_requests: int = 100
+    rate_limit_default_window: int = 60
+    rate_limit_burst_multiplier: float = 1.0
+    
+    # Endpoint-specific limits (JSON format)
+    rate_limit_endpoints: str = ""
+    
+    # Client type limits
+    rate_limit_authenticated_multiplier: float = 2.0
+    rate_limit_ip_whitelist: Union[str, List[str]] = ""
+    
+    # Backend configuration
+    rate_limit_backend: str = "redis"
+    rate_limit_redis_key_prefix: str = "rate_limit:"
+    
+    # Monitoring
+    rate_limit_log_violations: bool = True
+    rate_limit_metrics_enabled: bool = True
+    
     @model_validator(mode='after')
     def set_default_log_level(self):
         """Définit le niveau de log par défaut selon l'environnement"""
@@ -92,7 +114,7 @@ class Settings(BaseSettings):
     enable_https_redirect: bool = False  # Sera ajusté par le validator
     trusted_hosts: Union[str, List[str]] = []
     
-    @field_validator('types_needing_parents', 'default_fields', 'cors_origins', 'cors_allow_methods', 'cors_allow_headers', 'cors_expose_headers', 'trusted_hosts', mode='before')
+    @field_validator('types_needing_parents', 'default_fields', 'cors_origins', 'cors_allow_methods', 'cors_allow_headers', 'cors_expose_headers', 'trusted_hosts', 'rate_limit_ip_whitelist', mode='before')
     @classmethod
     def parse_list_from_string(cls, v: Union[str, List[str], None]) -> Union[List[str], None]:
         """Parse une liste depuis une string CSV ou JSON, ou retourne la liste telle quelle"""
@@ -103,7 +125,6 @@ class Settings(BaseSettings):
             v = v.strip()
             if v.startswith('[') and v.endswith(']'):
                 try:
-                    import json
                     return json.loads(v)
                 except:
                     pass
@@ -189,6 +210,120 @@ class Settings(BaseSettings):
         
         return v  # Valeurs par défaut pour development/staging
     
+    @field_validator('rate_limit_default_requests')
+    @classmethod
+    def set_rate_limit_requests_by_environment(cls, v: int, info) -> int:
+        """Ajuste les limites de requêtes selon l'environnement si non spécifié"""
+        # Si la valeur a été explicitement définie via env var, la conserver
+        if os.getenv('RATE_LIMIT_DEFAULT_REQUESTS'):
+            return v
+            
+        environment = info.data.get('environment', 'development')
+        
+        if environment == "test":
+            return 10  # Limite basse pour les tests
+        elif environment == "production":
+            return 100  # Limite de production
+        elif environment == "development":
+            return 1000  # Limite élevée pour le développement
+        else:  # staging
+            return 200  # Limite intermédiaire pour staging
+        
+        return v
+    
+    @field_validator('rate_limit_endpoints')
+    @classmethod
+    def set_default_endpoint_limits_by_environment(cls, v: str, info) -> str:
+        """Définit les limites par endpoint selon l'environnement si non spécifié"""
+        # Si explicitement configuré via env var, conserver la valeur
+        if v.strip() or os.getenv('RATE_LIMIT_ENDPOINTS'):
+            return v
+            
+        environment = info.data.get('environment', 'development')
+        
+        if environment == "production":
+            return json.dumps({
+                "search": {"requests": 50, "window": 60},
+                "suggest": {"requests": 200, "window": 60}
+            })
+        elif environment == "test":
+            return json.dumps({
+                "search": {"requests": 5, "window": 60},
+                "suggest": {"requests": 20, "window": 60}
+            })
+        elif environment == "development":
+            return json.dumps({
+                "search": {"requests": 500, "window": 60},
+                "suggest": {"requests": 2000, "window": 60}
+            })
+        else:  # staging
+            return json.dumps({
+                "search": {"requests": 100, "window": 60},
+                "suggest": {"requests": 400, "window": 60}
+            })
+    
+    @field_validator('rate_limit_backend')
+    @classmethod
+    def validate_rate_limit_backend(cls, v: str) -> str:
+        """Valide le backend de rate limiting"""
+        if v not in ['redis', 'memory']:
+            raise ValueError("rate_limit_backend must be 'redis' or 'memory'")
+        return v
+    
+    @field_validator('rate_limit_default_requests', 'rate_limit_default_window')
+    @classmethod
+    def validate_positive_rate_limit_values(cls, v: int) -> int:
+        """Valide que les valeurs de rate limiting sont positives"""
+        if v <= 0:
+            raise ValueError("Rate limit values must be positive")
+        return v
+    
+    @field_validator('rate_limit_burst_multiplier', 'rate_limit_authenticated_multiplier')
+    @classmethod
+    def validate_rate_limit_multipliers(cls, v: float) -> float:
+        """Valide que les multiplicateurs sont >= 1.0"""
+        if v < 1.0:
+            raise ValueError("Rate limit multipliers must be >= 1.0")
+        return v
+    
+    def get_rate_limit_config(self):
+        """Crée une configuration de rate limiting à partir des settings"""
+        from .models.rate_limit_models import RateLimitConfig
+        
+        # Parse endpoint configuration
+        endpoints = {}
+        if self.rate_limit_endpoints.strip():
+            try:
+                endpoints_data = json.loads(self.rate_limit_endpoints)
+                from .models.rate_limit_models import RateLimit
+                
+                for endpoint, config in endpoints_data.items():
+                    endpoints[endpoint] = RateLimit(
+                        requests=config['requests'],
+                        window_seconds=config['window'],
+                        burst_multiplier=config.get('burst_multiplier', 1.0)
+                    )
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                # Log error but continue with empty endpoints
+                print(f"Warning: Invalid rate limit endpoints configuration: {e}")
+        
+        # Parse IP whitelist
+        ip_whitelist = self.rate_limit_ip_whitelist if isinstance(self.rate_limit_ip_whitelist, list) else []
+        
+        return RateLimitConfig(
+            enabled=self.rate_limit_enabled,
+            default_requests=self.rate_limit_default_requests,
+            default_window=self.rate_limit_default_window,
+            burst_multiplier=self.rate_limit_burst_multiplier,
+            endpoints=endpoints,
+            authenticated_multiplier=self.rate_limit_authenticated_multiplier,
+            ip_whitelist=ip_whitelist,
+            backend=self.rate_limit_backend,
+            redis_key_prefix=self.rate_limit_redis_key_prefix,
+            log_violations=self.rate_limit_log_violations,
+            metrics_enabled=self.rate_limit_metrics_enabled
+        )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
