@@ -76,7 +76,7 @@ services:
   # Frontend Next.js
   search_next:
     build:
-      context: ./front-next
+      context: ./front
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8007
@@ -106,7 +106,7 @@ services:
     ports:
       - "3007:3000"
     volumes:
-      - ./front-next:/app
+      - ./front:/app
       - /app/node_modules
       - /app/.next
     environment:
