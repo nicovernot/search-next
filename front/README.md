@@ -1,229 +1,162 @@
-# OpenEdition Search - Frontend
+# Stagehand Research Agent
 
-Frontend React pour l'application de recherche OpenEdition, utilisant SearchKit pour l'interface de recherche.
+[Demo]() | [Browserbase](https://browserbase.com) | [Stagehand](https://stagehand.dev)
 
-## 🚀 Démarrage rapide
+An AI-powered research agent that runs **5 parallel browser sessions** to search the web in real-time. Watch AI agents browse Google, Wikipedia, YouTube, Hacker News, and Google News simultaneously, then synthesize findings into a comprehensive summary.
 
-### Prérequis
+## Deploy
 
-- Node.js 18+ et npm
-- Backend FastAPI en cours d'exécution (par défaut sur http://localhost:8000)
+Deploy this template to Vercel with one click. The Vercel Marketplace will automatically prompt you to set up Browserbase.
 
-### Installation
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fbrowserbase%2Fbrowserbase-nextjs-template&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22other%22%2C%22productSlug%22%3A%22browserbase%22%2C%22integrationSlug%22%3A%22browserbase%22%7D%5D)
+
+
+## Features
+
+- **Parallel Browser Sessions**: 5 browsers run simultaneously, each researching a different source
+- **Live Browser Views**: Watch AI agents navigate the web in real-time
+- **Multi-Source Research**: Searches Google, Wikipedia, YouTube, Hacker News, and Google News
+- **AI-Powered Extraction**: Uses Claude to intelligently extract relevant information from pages
+- **Smart Synthesis**: Combines findings into a structured, comprehensive summary
+- **Real-time Streaming**: Server-Sent Events deliver results as they're discovered
+
+## Tech Stack
+
+### Frontend
+- **Framework**: Next.js 15 with React 19 and TypeScript
+- **Styling**: Tailwind CSS 4
+- **Markdown**: ReactMarkdown for rendering summaries
+
+### Backend
+- **AI Model**: Claude Sonnet via Vercel AI Gateway
+- **Browser Automation**: [Stagehand](https://stagehand.dev) + [Browserbase](https://browserbase.com)
+- **Streaming**: Server-Sent Events (SSE)
+- **Runtime**: Next.js API Routes with 300s max duration
+
+### Infrastructure
+- **Browser Infrastructure**: Browserbase cloud browsers
+- **AI Gateway**: Vercel AI Gateway
+- **Deployment**: Vercel
+
+## Prerequisites
+
+- Node.js 18.x or later
+- npm, yarn, pnpm, or bun
+- [Browserbase](https://browserbase.com) account and API key
+- [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) API key
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
-# Installer les dépendances
+git clone https://github.com/browserbase/browserbase-nextjs-template
+cd research-agent-template
+```
+
+### 2. Install dependencies
+
+```bash
 npm install
-
-# Copier le fichier d'environnement
-cp .env.example .env
-
-# Configurer l'URL de l'API dans .env
-# REACT_APP_API_URL=http://localhost:8000
+# or
+pnpm install
 ```
 
-### Développement
+### 3. Configure environment variables
 
 ```bash
-# Lancer l'application en mode développement
-npm start
+cp .env.example .env.local
 ```
 
-L'application sera accessible sur http://localhost:3009 (ou sur le port défini dans la variable d'environnement FRONTEND_PORT)
-
-### Build de production
-
-```bash
-# Créer un build optimisé
-npm run build
-```
-
-Les fichiers de production seront générés dans le dossier `build/`.
-
-## 🐳 Docker
-
-### Build de l'image Docker
-
-```bash
-docker build -t openedition-search-frontend \
-  --build-arg REACT_APP_API_URL=http://localhost:8000 \
-  .
-```
-
-### Exécution du conteneur
-
-```bash
-docker run -p 80:80 openedition-search-frontend
-```
-
-L'application sera accessible sur http://localhost
-
-### Docker Compose (avec le backend)
-
-```yaml
-version: '3.8'
-
-services:
-  frontend:
-    build:
-      context: ./front
-      args:
-        REACT_APP_API_URL: http://localhost:8000
-    ports:
-      - "3009:80"
-    depends_on:
-      - backend
-      
-  backend:
-    build: ./search_api_solr
-    ports:
-      - "8000:8000"
-```
-
-## 📁 Structure du projet
-
-```
-front/
-├── public/                 # Fichiers publics statiques
-│   ├── index.html
-│   └── manifest.json
-├── src/
-│   ├── components/         # Composants React réutilisables
-│   │   ├── SearchBar.jsx   # Barre de recherche
-│   │   ├── ResultsList.jsx # Liste des résultats
-│   │   ├── ResultItem.jsx  # Item de résultat individuel
-│   │   ├── Facets.jsx      # Container des facettes
-│   │   ├── FacetGroup.jsx  # Groupe de facettes
-│   │   └── Pagination.jsx  # Pagination des résultats
-│   ├── pages/              # Pages principales
-│   │   └── Home.jsx        # Page d'accueil avec recherche
-│   ├── services/           # Services d'interaction avec l'API
-│   │   └── api.js          # Client API FastAPI
-│   ├── utils/              # Utilitaires
-│   │   └── searchkit.js    # Configuration SearchKit
-│   ├── App.jsx             # Composant principal
-│   ├── App.css             # Styles globaux
-│   ├── index.jsx           # Point d'entrée React
-│   └── index.css           # Styles de base
-├── Dockerfile              # Configuration Docker
-├── nginx.conf              # Configuration Nginx pour la production
-├── package.json            # Dépendances et scripts
-└── README.md
-```
-
-## 🔧 Configuration
-
-### Variables d'environnement
-
-Créez un fichier `.env` à la racine du projet et définissez le port exposé du frontend (par défaut 3009) :
+Edit `.env.local` with your API keys:
 
 ```env
-# Host port that will forward to the frontend dev server (container listens on 3000)
-FRONTEND_PORT=3009
-REACT_APP_API_URL=http://localhost:8000
-REACT_APP_SEARCHKIT_API_KEY=
-PORT=3000
+# Vercel AI Gateway API Key
+# Get yours at: https://vercel.com/docs/ai-gateway
+AI_GATEWAY_API_KEY=your_ai_gateway_key
+
+# Browserbase (for cloud browser sessions)
+# Get yours at: https://browserbase.com
+BROWSERBASE_PROJECT_ID=your_project_id
+BROWSERBASE_API_KEY=your_api_key
 ```
 
-### Configuration de l'API
-
-Le fichier `src/services/api.js` contient les fonctions pour communiquer avec le backend :
-
-- `search(searchRequest)` - Recherche POST avec objet SearchRequest
-- `searchGet(params)` - Recherche GET avec paramètres URL
-- `suggest(query)` - Autocomplétion
-- `getPermissions(urls, ip)` - Vérification des permissions
-
-### Configuration SearchKit
-
-Le fichier `src/utils/searchkit.js` configure SearchKit pour votre application :
-
-- Configuration de la connexion à l'API
-- Définition des champs de recherche
-- Configuration des facettes
-- Transformateurs de données
-
-## 🎨 Personnalisation
-
-### Styles
-
-Les composants utilisent des fichiers CSS modules séparés. Vous pouvez personnaliser :
-
-- `src/index.css` - Styles globaux
-- `src/App.css` - Layout principal
-- `src/components/*.css` - Styles des composants individuels
-
-### Facettes
-
-Pour ajouter ou modifier des facettes, éditez `src/components/Facets.jsx` :
-
-```javascript
-const facetConfigs = [
-  { key: 'platform', label: 'Plateforme', field: 'platform' },
-  { key: 'type', label: 'Type de document', field: 'type' },
-  // Ajoutez vos facettes ici
-];
-```
-
-### Champs de résultats
-
-Pour modifier l'affichage des résultats, éditez `src/components/ResultItem.jsx`.
-
-## 🧪 Tests
+### 4. Start the development server
 
 ```bash
-# Lancer les tests
-npm test
-
-# Lancer les tests avec couverture
-npm test -- --coverage
+npm run dev
 ```
 
-## 📦 Scripts disponibles
+### 5. Open your browser
 
-- `npm start` - Lance le serveur de développement
-- `npm build` - Crée un build de production
-- `npm test` - Lance les tests
-- `npm run lint` - Vérifie le code avec ESLint
-- `npm run format` - Formate le code avec Prettier
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🔗 Intégration avec le backend
+## Environment Variables
 
-Le frontend communique avec l'API FastAPI via les endpoints suivants :
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway API key for Claude access | Yes |
+| `BROWSERBASE_API_KEY` | Your Browserbase API key | Yes |
+| `BROWSERBASE_PROJECT_ID` | Your Browserbase project ID | Yes |
 
-- `POST /search` - Recherche principale
-- `GET /search` - Recherche avec paramètres URL
-- `GET /suggest` - Autocomplétion
-- `GET /permissions` - Vérification des permissions
+## Usage
 
-## 🌐 Déploiement
+1. **Enter a Query**: Type any research question or select from example queries:
+   - "What is quantum computing?"
+   - "Latest developments in AI"
+   - "How does blockchain work?"
 
-### Nginx (Production)
+2. **Watch the Research**: See 5 browser windows researching in parallel, each exploring a different source
 
-Le fichier `nginx.conf` est configuré pour :
-- Servir les fichiers statiques avec cache
-- Gérer le routing SPA
-- Proxifier les requêtes API (optionnel)
-- Headers de sécurité
+3. **Get Results**: Receive findings from each source as they complete, followed by an AI-synthesized summary
 
-### Variables d'environnement de build
+## How It Works
 
-Pour configurer l'URL de l'API au moment du build :
+1. **Session Creation**: Creates 5 parallel Stagehand sessions on Browserbase
+2. **Parallel Research**: Each session navigates to a different source (Google, Wikipedia, etc.)
+3. **AI Extraction**: Claude extracts relevant information from each page using structured schemas
+4. **Real-time Streaming**: Findings stream to the frontend as SSE events
+5. **Synthesis**: Claude combines all findings into a formatted summary
+
+## Available Scripts
 
 ```bash
-REACT_APP_API_URL=https://api.example.com npm run build
+# Development server
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm run start
+
+# Lint code
+npm run lint
 ```
 
-## 📝 Licence
+## Project Structure
 
-Ce projet fait partie de l'écosystème OpenEdition.
+```
+├── app/
+│   ├── api/
+│   │   └── research/
+│   │       └── route.ts      # Research API with parallel Stagehand sessions
+│   ├── components/           # React components
+│   ├── context/              # Research context provider
+│   ├── results/              # Results page
+│   ├── page.tsx              # Home page
+│   └── layout.tsx            # Root layout
+├── public/                   # Static assets
+└── .env.example              # Environment variables template
+```
 
-## 🤝 Contribution
+## License
 
-Les contributions sont les bienvenues ! Veuillez suivre les conventions de code existantes.
+MIT
 
-## 🧭 Playwright / CI image (optionnel)
+## Acknowledgments
 
-Pour les tests E2E reproductibles en CI, une image Docker dédiée contenant Playwright, les navigateurs et Xvfb est fournie dans le dépôt (`front/Dockerfile.playwright`). Elle permet de lancer les tests rapidement sans réinstaller les dépendances à chaque exécution.
-
-Consultez `front/README.playwright.md` pour les commandes détaillées et les exemples d'intégration CI (Makefile : `build-playwright-image`, `test-front-ci-image`, `test-front-ci-ui-image`, ...).
+- [Browserbase](https://browserbase.com) - Cloud browser infrastructure
+- [Stagehand](https://stagehand.dev) - AI-powered browser automation
+- [Vercel](https://vercel.com) - Hosting and AI Gateway
+- [Anthropic](https://anthropic.com) - Claude AI model

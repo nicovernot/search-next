@@ -1,56 +1,49 @@
 {
-  "name": "openedition-search-frontend",
-  "version": "0.1.0",
+  "name": "research-agent-template",
+  "version": "1.0.0",
+  "description": "AI-powered research agent using Stagehand + Browserbase for parallel browser automation",
+  "author": "Browserbase <support@browserbase.com>",
+  "license": "MIT",
   "private": true,
-  "description": "Frontend React pour la recherche OpenEdition",
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "i18next": "^23.11.0",
-    "i18next-browser-languagedetector": "^7.2.0",
-    "i18next-http-backend": "^2.5.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-i18next": "^14.1.3",
-    "react-router-dom": "^6.20.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
-  },
+  "keywords": [
+    "browserbase",
+    "stagehand",
+    "nextjs",
+    "ai",
+    "research",
+    "browser-automation",
+    "anthropic",
+    "claude"
+  ],
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint src/**/*.{js,jsx}",
-    "format": "prettier --write src/**/*.{js,jsx,css}",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.41",
+    "@ai-sdk/gateway": "^3.0.39",
+    "@browserbasehq/sdk": "^2.6.0",
+    "@browserbasehq/stagehand": "^3.0.8",
+    "ai": "^6.0.78",
+    "lucide-react": "^1.7.0",
+    "next": "16.1.6",
+    "next-intl": "^4.8.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-querybuilder": "^8.14.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^25.0.0",
-    "eslint": "^8.50.0",
-    "prettier": "^3.1.0",
-    "typescript": "^4.9.5"
-  },
-  "proxy": "http://localhost:8007"
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^10.0.0",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  }
 }
