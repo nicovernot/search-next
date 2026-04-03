@@ -16,7 +16,7 @@ from app.services.field_config import (
     get_highlight_fields,
     get_qf_params,
 )
-from app.models.search_models import SearchRequest  # Le modèle Pydantic de Searchkit
+from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
 
 # Constantes Solr
 SOLR_BASE_HANDLER = "/select"
@@ -126,6 +126,10 @@ class SearchBuilder(ISearchBuilder):
                 # Solr accepte des paramètres multiples pour facet.query
                 facet_params["facet.query"] = facettes_query
 
+            # Paramètres de sécurité pour les facettes
+            facet_params["facet.mincount"] = 1
+            facet_params["facet.limit"] = 50  # Évite les explosions de mémoire côté client
+
         return facet_params
 
     # --- C. Autocomplétion (Suggester) ---
@@ -162,12 +166,13 @@ class SearchBuilder(ISearchBuilder):
         
         # 0. Conversion (si dict => SearchRequest)
         if isinstance(request, dict):
-            from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
             search_request = SearchRequest(
                 query=QueryModel(query=request.get('query', '')),
+                logical_query=request.get('logical_query'),
                 filters=[FilterModel(identifier=f.get('identifier', ''), value=f.get('value', '')) for f in request.get('filters', [])],
                 pagination=PaginationModel(from_=request.get('pagination', {}).get('from', 0), size=request.get('pagination', {}).get('size', 10)),
-                facets=[FacetModel(identifier=f.get('identifier', ''), type=f.get('type', 'list')) for f in request.get('facets', [])]
+                facets=[FacetModel(identifier=f.get('identifier', ''), type=f.get('type', 'list')) for f in request.get('facets', [])],
+                sort=request.get('sort')
             )
             # Mise à jour de la référence pour la suite de la méthode
             request = search_request
@@ -192,7 +197,8 @@ class SearchBuilder(ISearchBuilder):
         )
 
         query_params = {
-            "q": request.query.query,  # La requête en texte libre (q)
+            "q": request.query.query or "*:*",  # Défaut à *:* si vide (Recherche Avancée seule)
+            "defType": "edismax",  # Requis pour utiliser qf (Query Fields)
             "df": get_default_search_field(),  # Champ par défaut pour le q
             "fl": get_default_fields(),  # Champs à retourner
             "qf": get_qf_params(),  # Paramètres de boost (Query Fields)
@@ -205,7 +211,20 @@ class SearchBuilder(ISearchBuilder):
             query_params["sort"] = request.sort
 
         # 3. Ajouter les Filtres (fq)
-        query_params["fq"] = self._build_filter_queries(request.filters)
+        fq_list = self._build_filter_queries(request.filters)
+        
+        # Intégration de la logique complexe (Phase 3)
+        if hasattr(request, 'logical_query') and request.logical_query:
+            from app.services.query_logic_parser import QueryLogicParser
+            try:
+                logical_fq = QueryLogicParser.to_solr_query(request.logical_query)
+                if logical_fq:
+                    fq_list.append(logical_fq)
+            except Exception as e:
+                import logging
+                logging.getLogger("uvicorn").error(f"Error parsing logical query: {e}")
+
+        query_params["fq"] = fq_list
 
         # 4. Ajouter les Facettes et le Highlighting
         facet_params = self._build_facet_params(request, active_platform)

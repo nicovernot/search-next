@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: search_api_solr
+    container_name: search-next_api
     ports:
       - "8007:8007"
     env_file:
@@ -13,6 +13,7 @@ services:
     environment:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
       - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://search_user:search_password@postgres:5432/search_db
     volumes:
       # Volume pour le développement (hot reload)
       - ./search_api_solr:/app
@@ -24,6 +25,7 @@ services:
     restart: unless-stopped
     depends_on:
       - redis
+      - postgres
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8007/health" ]
       interval: 30s
@@ -32,10 +34,31 @@ services:
     networks:
       - openedition_network
 
+  # Postgres DB pour comptes utilisateurs
+  postgres:
+    image: postgres:15-alpine
+    container_name: search-next_postgres
+    environment:
+      - POSTGRES_USER=search_user
+      - POSTGRES_PASSWORD=search_password
+      - POSTGRES_DB=search_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U search_user -d search_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openedition_network
+
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: openedition_redis
+    container_name: search-next_redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -50,53 +73,56 @@ services:
     networks:
       - openedition_network
 
-  # Frontend React
-  frontend:
+  # Frontend Next.js
+  search_next:
     build:
-      context: ./front
+      context: ./front-next
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://localhost:8007
-    env_file:
-      - .env.shared
-      - .env.development
-      - front/.env.local
-    container_name: openedition_frontend
+        NEXT_PUBLIC_API_URL: http://localhost:8007
+    container_name: search_next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8007
+      - HOSTNAME=0.0.0.0
     ports:
-      - "3009:80"
+      - "3009:3000"
     restart: unless-stopped
     depends_on:
       - api
-      - redis
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/" ]
+      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))" ]
       interval: 30s
-      timeout: 3s
+      timeout: 5s
       retries: 3
+      start_period: 15s
     networks:
       - openedition_network
-  # Frontend en mode développement (optionnel, décommentez pour utiliser)
-  # frontend-dev:
-  #   image: node:18-alpine
-  #   container_name: openedition_frontend_dev
-  #   working_dir: /app
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./front:/app
-  #     - /app/node_modules
-  #   environment:
-  #     - REACT_APP_API_URL=http://localhost:8007
-  #     - CHOKIDAR_USEPOLLING=true
-  #   command: sh -c "npm install && npm start"
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - api
-  #   networks:
-  #     - openedition_network
+
+  # Frontend Next.js en mode développement (hot-reload)
+  search_next_dev:
+    image: node:20-alpine
+    container_name: search_next_dev
+    working_dir: /app
+    ports:
+      - "3007:3000"
+    volumes:
+      - ./front-next:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8007
+      - HOSTNAME=0.0.0.0
+    command: sh -c "npm install && npm run dev"
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - openedition_network
 
 volumes:
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:

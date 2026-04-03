@@ -15,7 +15,7 @@ sync-env: ## Synchroniser l'environnement (dev, staging, prod, test)
 	@./scripts/sync_env.sh $(ENV)
 	@echo "Environment synchronized successfully!"
 	@echo "Backend: search_api_solr/.env.local"
-	@echo "Frontend: front/.env.local"
+	@echo "Frontend: front-next/.env.local"
 
 check-env: ## Vérifier la configuration d'environnement
 	@./scripts/check_env_setup.sh
@@ -25,7 +25,7 @@ configure-env: ## Configurer l'environnement (dev, staging, prod, test) - DEPREC
 	@echo "WARNING: This method is deprecated. Use 'make sync-env' instead."
 	@echo "Configuring environment: $(ENV)"
 	@cd search_api_solr && cp .env.$(ENV) .env
-	@cd front && cp .env.$(FRONTEND_ENV) .env
+	@cd front-next && cp .env.$(FRONTEND_ENV) .env.local
 	@echo "Environment configured successfully!"
 	@echo "Backend environment: $(ENV)"
 	@echo "Frontend environment: $(FRONTEND_ENV)"
@@ -86,33 +86,33 @@ test-ci: ## Lancer les tests pour CI/CD (dans container, sortie XML)
 # Tests Frontend
 test-front: ## Lancer les tests E2E Playwright (headless)
 	@$(MAKE) sync-env ENV=test
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	docker-compose up -d api search_next
 	@sleep 5
-	cd front && npx playwright test --reporter=list
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+	cd front-next && npx playwright test --reporter=list
+	docker-compose down
 
 test-front-ui: ## Lancer les tests E2E Playwright avec UI
 	@$(MAKE) sync-env ENV=test
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	docker-compose up -d api search_next
 	@sleep 5
-	cd front && npx playwright test --ui
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+	cd front-next && npx playwright test --ui
+	docker-compose down
 
-test-front-unit: ## Lancer les tests unitaires Jest du frontend (si présents)
-	docker run --rm -v $(PWD)/front:/app -w /app node:18-alpine sh -c "npm install && npm test -- --watchAll=false --ci --passWithNoTests"
+test-front-unit: ## Lancer les tests unitaires du frontend
+	docker run --rm -v $(PWD)/front-next:/app -w /app node:20-alpine sh -c "npm install && npm test -- --watchAll=false --ci --passWithNoTests"
 
 test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containerisé
 	@$(MAKE) sync-env ENV=test
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d api frontend
+	docker-compose up -d api search_next
 	@echo "Waiting for services to be ready..."
 	@sleep 8
-	docker run --rm --network searchv2_openedition_network \
-		-v $(PWD)/front:/app -w /app \
-		-e BASE_URL=http://openedition_frontend \
+	docker run --rm --network search-next_openedition_network \
+		-v $(PWD)/front-next:/app -w /app \
+		-e BASE_URL=http://search_next:3000 \
 		-e CI=true \
 		mcr.microsoft.com/playwright:v1.57.0-noble \
 		sh -c "npm ci --silent && npx playwright test --reporter=list --project=chromium"
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+	docker-compose down
 
 # Tests complets
 test-all: ## Lancer tous les tests (backend + frontend)
@@ -168,7 +168,7 @@ logs-api: ## Voir les logs de l'API
 	docker-compose logs -f api
 
 logs-frontend: ## Voir les logs du frontend
-	docker-compose logs -f frontend
+	docker-compose logs -f search_next
 
 # Gestion des environnements (nouvelle approche)
 
@@ -183,18 +183,15 @@ env-list: ## Lister les fichiers d'environnement disponibles
 	@ls -1 .env.* 2>/dev/null | grep -v "\.local" | sed 's/^\.env\./  /'
 
 build-playwright-image: ## Build a dedicated Playwright image with the frontend preinstalled
-	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
+	docker build -f front-next/Dockerfile.playwright -t openedition_playwright:local .
 
 test-front-ci-image: ## Run headless Playwright tests inside the prebuilt Playwright image
-	# Build image (if needed), build static frontend, serve it and execute headless tests
-	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
-	docker run --rm openedition_playwright:local bash -lc "npm run build && npx http-server build -p 3000 & CI= npx playwright test"
+	docker build -f front-next/Dockerfile.playwright -t openedition_playwright:local .
+	docker run --rm openedition_playwright:local bash -lc "npm run build && npx playwright test"
 
 test-front-ci-ui-image: ## Run Playwright UI inside prebuilt Playwright image (exposes 9323)
-	# Builds an image that contains node_modules and browsers so playback is fast
-	docker build -f front/Dockerfile.playwright -t openedition_playwright:local .
-	# Run UI under Xvfb inside the container, build static site and expose port 9323 to host
-	docker run --rm -p 9323:9323 openedition_playwright:local bash -lc "npm run build && npx http-server build -p 3000 & xvfb-run -s '-screen 0 1920x1080x24' npx playwright test --ui --project=chromium --reporter=list"
+	docker build -f front-next/Dockerfile.playwright -t openedition_playwright:local .
+	docker run --rm -p 9323:9323 openedition_playwright:local bash -lc "xvfb-run -s '-screen 0 1920x1080x24' npx playwright test --ui --project=chromium --reporter=list"
 
 
 # Shell
@@ -202,7 +199,7 @@ shell-api: ## Accéder au shell de l'API
 	docker-compose exec api bash
 
 shell-frontend: ## Accéder au shell du frontend
-	docker-compose exec frontend sh
+	docker-compose exec search_next sh
 
 # Nettoyage
 clean: ## Nettoyer les conteneurs et volumes

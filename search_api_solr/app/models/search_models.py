@@ -66,6 +66,7 @@ class SearchRequest(BaseModel):
     """Modèle de requête compatible avec Searchkit et SearchBuilder"""
 
     query: QueryModel
+    logical_query: Optional[Any] = Field(None, description="Requête logique complexe (Phase 3)")
     filters: List[FilterModel] = Field(
         default=[], description="Liste des filtres actifs"
     )

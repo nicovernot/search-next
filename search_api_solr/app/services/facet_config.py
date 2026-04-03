@@ -19,6 +19,7 @@ def build_common_facets_mapping() -> dict:
     """
     Construit le mapping des facettes à partir de common.json.
     Utilise le paramètre 'list' qui contient le nom du champ Solr.
+    Gère les facettes qui n'ont pas de clé par défaut '' (ex: date avec clés OB/OJ/HO/CO).
     """
     mapping = {}
     common_config = FACET_CONFIG.get('common', {})
@@ -30,6 +31,13 @@ def build_common_facets_mapping() -> dict:
             # Le champ Solr est le premier élément de la liste
             solr_field = default_config['list'][0]
             mapping[facet_name] = solr_field
+        else:
+            # Fallback: prendre la première config disponible (ex: date avec clés OB/OJ/HO/CO)
+            for key, config in facet_data.items():
+                if isinstance(config, dict) and 'list' in config:
+                    solr_field = config['list'][0]
+                    mapping[facet_name] = solr_field
+                    break
     
     return mapping
 
@@ -131,6 +139,13 @@ def build_platform_specific_facets() -> dict:
     
     return platform_facets
 
-# Facettes spécifiques par plateforme
-# Chargé dynamiquement depuis books.json, journals.json, hypotheses.json, calenda.json
 PLATFORM_SPECIFIC_FACETS = build_platform_specific_facets()
+
+# Mapping des champs de recherche (Advanced Query Builder)
+# Frontend ID -> Champ Solr indexé (tokenisé de préférence)
+SEARCH_FIELDS_MAPPING = {
+    "titre": "naked_titre",
+    "author": "contributeur_auteur",
+    "naked_texte": "naked_texte",
+    "disciplinary_field": "platformIndex_*"
+}

@@ -18,6 +18,7 @@ from app.services.cache_service import cache_service
 from app.models.search_models import SearchRequest
 from app.settings import settings, SOLR_CONFIG
 from app.models import DocsPermissionsResponse
+from app.api.auth import router as auth_router
 
 # Configuration du logging structuré
 logger = get_logger(__name__)
@@ -87,8 +88,8 @@ if settings.trusted_hosts:
     )
     logger.info(f"Trusted hosts configured: {settings.trusted_hosts}")
 
-# router = APIRouter()
-# app.include_router(router)
+# Includes des routers
+app.include_router(auth_router)
 
 # --- Injection de Dépendance ---
 
@@ -191,9 +192,11 @@ async def perform_search(
         # Convertir la requête SearchRequest en dictionnaire pour le service
         request_dict = {
             "query": request.query.query,
+            "logical_query": request.logical_query,
             "filters": [{"identifier": f.identifier, "value": f.value} for f in request.filters],
             "pagination": {"from": request.pagination.from_, "size": request.pagination.size},
-            "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets]
+            "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets],
+            "sort": request.sort
         }
         return await service.perform_search(request_dict)
     except Exception as e:
@@ -265,9 +268,28 @@ async def suggest(
     # 3. Exécution avec gestion d'erreurs
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(solr_suggest_url, timeout=2.0) # Timeout court pour l'autocomplétion
+            response = await client.get(solr_suggest_url, timeout=2.0)
             response.raise_for_status()
-            result = response.json()
+            solr_data = response.json()
+            
+            # Extraire les suggestions du format Solr
+            # Format attendu: solr_data['suggest']['default'][q]['suggestions']
+            suggestions = []
+            try:
+                suggest_block = solr_data.get("suggest", {}).get("default", {})
+                # Le premier niveau après 'default' est le terme de recherche
+                if q in suggest_block:
+                    raw_suggestions = suggest_block[q].get("suggestions", [])
+                    suggestions = [s.get("term") for s in raw_suggestions if s.get("term")]
+                elif suggest_block:
+                    # Si q n'est pas trouvé exactement, on prend le premier terme
+                    first_term = next(iter(suggest_block))
+                    raw_suggestions = suggest_block[first_term].get("suggestions", [])
+                    suggestions = [s.get("term") for s in raw_suggestions if s.get("term")]
+            except Exception as e:
+                logger.error(f"Error parsing Solr suggest response: {e}")
+            
+            result = {"suggestions": suggestions}
             
             # 4. Mettre en cache le résultat
             await cache_service.set_suggest_cache(q, result)
@@ -275,10 +297,10 @@ async def suggest(
             return result
         except httpx.ReadTimeout:
             logger.warning(f"Solr suggest timeout for query: {q}")
-            # Retourner une structure vide ou une erreur gérée
-            return {"suggest": {"default": {q: {"numFound": 0, "suggestions": []}}}}
+            return {"suggestions": []}
         except httpx.HTTPError as e:
             logger.error(f"Solr suggest error: {e}")
+            return {"suggestions": []}
             return {"suggest": {"default": {q: {"numFound": 0, "suggestions": []}}}}
 
 @app.get("/cache/stats")
@@ -296,6 +318,12 @@ async def clear_cache(
         "message": f"Cache cleared for pattern: {pattern}",
         "deleted_keys": deleted_count
     }
+
+@app.get("/facets/config")
+async def get_facets_config():
+    """ Retourne la configuration complète des facettes """
+    from app.services.facet_config import FACET_CONFIG
+    return FACET_CONFIG
 
 @app.get("/health")
 async def health_check():

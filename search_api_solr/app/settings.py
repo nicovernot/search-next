@@ -96,6 +96,14 @@ class Settings(BaseSettings):
     rate_limit_log_violations: bool = True
     rate_limit_metrics_enabled: bool = True
     
+    # Configuration Base de Données
+    database_url: str = "postgresql://search_user:search_password@postgres:5432/search_db"
+    
+    # Configuration Authentification (JWT)
+    secret_key: str = "your-secret-key-for-development" # À changer en production !
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    
     @model_validator(mode='after')
     def set_default_log_level(self):
         """Définit le niveau de log par défaut selon l'environnement"""
