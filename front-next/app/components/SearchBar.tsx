@@ -1,0 +1,38 @@
+"use client";
+
+import { useSearch } from "../context/SearchContext";
+import { useTranslations } from "../context/I18nContext";
+import AutocompleteInput from "./AutocompleteInput";
+
+export default function SearchBar() {
+  const { t } = useTranslations();
+  const { query, setQuery, executeSearch } = useSearch();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="flex gap-2 w-full max-w-3xl mx-auto items-center">
+        <AutocompleteInput 
+          value={query}
+          onChange={setQuery}
+          onSearch={executeSearch}
+          placeholder={t("searchPlaceholder")}
+        />
+        <button
+          type="submit"
+          className="px-5 py-[11px] bg-[#f03603] text-white rounded-lg font-medium hover:bg-[#d23003] transition-all flex items-center gap-2 whitespace-nowrap shadow-sm hover:shadow-md active:scale-95"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <span className="hidden sm:inline">{t("searchButton")}</span>
+        </button>
+      </div>
+    </form>
+  );
+}
