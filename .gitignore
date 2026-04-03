@@ -55,5 +55,5 @@ docker-compose.override.yml
 search_api_solr/venv/
 search_api_solr/env/
 search_api_solr/.venv/
-front-next/.next/
-front-next/node_modules/
+front/.next/
+front/node_modules/
