@@ -89,7 +89,7 @@ export default function AutocompleteInput({
     return (
       <>
         {suggestion.substring(0, index)}
-        <span className="font-bold text-[#f03603]">
+        <span className="font-bold text-highlight">
           {suggestion.substring(index, index + value.length)}
         </span>
         {suggestion.substring(index + value.length)}
@@ -111,24 +111,24 @@ export default function AutocompleteInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full px-4 py-3 rounded-lg border border-[#e6e4e2] bg-white text-[rgba(16,13,13,1)] placeholder-[#969493] focus:outline-none focus:border-[#f03603] focus:ring-1 focus:ring-[#f03603] transition-all text-base shadow-sm group-hover:border-[#969493]"
+        className="w-full px-5 py-3.5 rounded-xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 transition-all text-base shadow-sm group-hover:border-highlight/50"
       />
       
       {loadingSuggestions && (
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          <div className="w-4 h-4 border-2 border-[#f03603] border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <div className="w-5 h-5 border-2 border-highlight border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full mt-2 bg-white border border-[#e6e4e2] rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <ul className="absolute z-50 w-full mt-3 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in premium-shadow">
           {suggestions.map((s, i) => (
             <li
               key={i}
               onClick={() => handleSelectSuggestion(s)}
               onMouseEnter={() => setActiveIndex(i)}
-              className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 ${
-                i === activeIndex ? "bg-gray-50 text-[#f03603]" : "text-gray-700 hover:bg-gray-50"
+              className={`px-5 py-3.5 cursor-pointer transition-colors flex items-center gap-4 border-b border-border/50 last:border-0 ${
+                i === activeIndex ? "bg-highlight/10 text-highlight" : "text-foreground hover:bg-secondary"
               }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">

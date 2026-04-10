@@ -17,7 +17,7 @@ export default function LanguageSelector() {
     <select
       value={lang}
       onChange={(e) => setLang(e.target.value)}
-      className="text-sm border border-[#e6e4e2] rounded px-2 py-1 bg-white text-[#4a4848] focus:outline-none focus:border-[#f03603] cursor-pointer"
+      className="text-sm font-bold border border-border rounded-xl px-4 py-2 bg-secondary text-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 cursor-pointer appearance-none premium-shadow hover:bg-muted transition-all"
     >
       {supportedLangs.map((l) => (
         <option key={l} value={l}>{LANG_LABELS[l] || l}</option>

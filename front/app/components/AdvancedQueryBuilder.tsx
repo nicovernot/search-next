@@ -28,14 +28,14 @@ export default function AdvancedQueryBuilder() {
   };
 
   return (
-    <div className="bg-white border border-[#e6e4e2] rounded-2xl shadow-xl p-6 mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="bg-card border border-border rounded-2xl shadow-xl p-6 mb-8 animate-fade-in premium-shadow">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 border-l-4 border-[#f03603] pl-4">
+        <h3 className="text-xl font-bold text-foreground border-l-4 border-highlight pl-4 font-serif">
           Constructeur de Requête Logique
         </h3>
         <button
           onClick={handleSearch}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#f03603] text-white rounded-full font-medium hover:bg-[#d23003] transition-all shadow-lg hover:shadow-[#f0360333] active:scale-95"
+          className="flex items-center gap-2 px-6 py-2.5 bg-highlight text-white rounded-xl font-bold hover:brightness-110 transition-all premium-shadow active:scale-95"
         >
           <Search size={18} />
           {t("searchButton")}
@@ -62,15 +62,15 @@ export default function AdvancedQueryBuilder() {
           } as any}
           controlClassnames={{
             queryBuilder: "space-y-4",
-            ruleGroup: "bg-gray-50 border border-gray-100 rounded-xl p-4 transition-all hover:border-gray-200",
-            combinators: "rounded-md border-gray-300 py-1 px-2 text-sm focus:ring-[#f03603] focus:border-[#f03603]",
-            addRule: "text-xs font-medium bg-white border border-gray-200 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors flex items-center gap-1",
-            addGroup: "text-xs font-medium bg-white border border-gray-200 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors flex items-center gap-1",
-            fields: "rounded-md border-gray-300 py-1 px-2 text-sm focus:ring-[#f03603] focus:border-[#f03603]",
-            operators: "rounded-md border-gray-300 py-1 px-2 text-sm focus:ring-[#f03603] focus:border-[#f03603]",
-            value: "rounded-md border-gray-300 py-1 px-3 text-sm focus:ring-[#f03603] focus:border-[#f03603] w-full max-w-xs",
-            removeRule: "text-gray-400 hover:text-red-500 transition-colors p-1",
-            removeGroup: "text-gray-400 hover:text-red-500 transition-colors p-1",
+            ruleGroup: "bg-secondary/40 border border-border rounded-xl p-4 transition-all hover:border-highlight/30",
+            combinators: "rounded-md border-border bg-card py-1 px-2 text-sm focus:ring-highlight focus:border-highlight text-foreground",
+            addRule: "text-xs font-bold bg-secondary text-foreground border border-border px-3 py-1.5 rounded-md hover:bg-muted transition-colors flex items-center gap-1 premium-shadow",
+            addGroup: "text-xs font-bold bg-secondary text-foreground border border-border px-3 py-1.5 rounded-md hover:bg-muted transition-colors flex items-center gap-1 premium-shadow",
+            fields: "rounded-md border-border bg-card py-1 px-2 text-sm focus:ring-highlight focus:border-highlight text-foreground",
+            operators: "rounded-md border-border bg-card py-1 px-2 text-sm focus:ring-highlight focus:border-highlight text-foreground",
+            value: "rounded-md border-border bg-card py-1 px-3 text-sm focus:ring-highlight focus:border-highlight text-foreground w-full max-w-xs",
+            removeRule: "text-muted-foreground hover:text-destructive transition-colors p-1",
+            removeGroup: "text-muted-foreground hover:text-destructive transition-colors p-1",
           }}
         />
       </div>
@@ -86,7 +86,7 @@ export default function AdvancedQueryBuilder() {
             top: 20px;
             bottom: 20px;
             width: 2px;
-            background: #e6e4e2;
+            background: hsl(var(--border));
         }
         .query-builder-premium .rule {
             display: flex;

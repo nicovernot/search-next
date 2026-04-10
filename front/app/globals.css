@@ -125,3 +125,14 @@ input:focus, button:focus {
   outline: none;
 }
 
+select, input, textarea {
+  background-color: transparent;
+  color: inherit;
+  border-color: hsl(var(--border) / 0.5);
+}
+
+option {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
