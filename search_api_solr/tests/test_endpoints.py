@@ -25,8 +25,8 @@ class TestSearchEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert 'response' in data
-        assert 'docs' in data['response']
+        assert 'results' in data
+        assert 'total' in data
     
     def test_search_with_platform_filter(self):
         """Test de recherche avec filtre platform"""
@@ -44,7 +44,7 @@ class TestSearchEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert 'response' in data
+        assert 'results' in data
     
     def test_search_with_type_subcategory(self):
         """Test de recherche avec sous-catégorie de type"""
@@ -62,7 +62,7 @@ class TestSearchEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert 'response' in data
+        assert 'results' in data
     
     def test_search_with_multiple_filters(self):
         """Test de recherche avec plusieurs filtres"""
@@ -81,7 +81,7 @@ class TestSearchEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert 'response' in data
+        assert 'results' in data
 
 
 class TestPermissionsEndpoint:

@@ -36,12 +36,18 @@ check_docker() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        print_error "Docker Compose n'est pas installé. Veuillez l'installer : https://docs.docker.com/compose/install/"
+    # Détecter si docker compose ou docker-compose doit être utilisé
+    if docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        print_error "Docker Compose n'est pas installé (ni 'docker compose' ni 'docker-compose')."
+        print_info "Veuillez l'installer : https://docs.docker.com/compose/install/"
         exit 1
     fi
     
-    print_success "Docker et Docker Compose sont installés"
+    print_success "Docker est installé et $(echo $DOCKER_COMPOSE_CMD | sed 's/./\U&/') est disponible"
 }
 
 # Vérifier les fichiers .env
@@ -71,13 +77,13 @@ check_env_files() {
 # Mode développement
 start_dev() {
     print_info "Démarrage en mode développement..."
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+    $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml up --build
 }
 
 # Mode production
 start_prod() {
     print_info "Démarrage en mode production..."
-    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+    $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml up -d --build
     
     print_success "Services démarrés en arrière-plan"
     echo ""
@@ -86,23 +92,23 @@ start_prod() {
     echo "  - API : http://localhost:8007"
     echo "  - Solr Admin : http://localhost:8983/solr"
     echo ""
-    print_info "Voir les logs : docker-compose logs -f"
-    print_info "Arrêter : docker-compose -f docker-compose.yml -f docker-compose.prod.yml down"
+    print_info "Voir les logs : $DOCKER_COMPOSE_CMD logs -f"
+    print_info "Arrêter : $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down"
 }
 
 # Mode test
 start_test() {
     print_info "Lancement des tests..."
-    docker-compose up -d
+    $DOCKER_COMPOSE_CMD up -d
     sleep 5  # Attendre que les services démarrent
-    docker-compose exec api pytest
-    docker-compose down
+    $DOCKER_COMPOSE_CMD exec api pytest
+    $DOCKER_COMPOSE_CMD down
 }
 
 # Arrêt des services
 stop_services() {
     print_info "Arrêt des services..."
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     print_success "Services arrêtés"
 }
 
@@ -151,12 +157,12 @@ main() {
             ;;
         clean)
             print_info "Nettoyage..."
-            docker-compose down -v
+            $DOCKER_COMPOSE_CMD down -v
             docker system prune -f
             print_success "Nettoyage terminé"
             ;;
         logs)
-            docker-compose logs -f
+            $DOCKER_COMPOSE_CMD logs -f
             ;;
         help|--help|-h)
             show_help

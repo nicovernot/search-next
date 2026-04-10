@@ -24,10 +24,10 @@ services:
     # volumes:
     #   - ./certs:/etc/nginx/certs:ro
 
-    # Reverse proxy Nginx (optionnel pour la production)
+  # Reverse proxy Nginx (optionnel pour la production)
   nginx:
     image: nginx:alpine
-    container_name: openedition_nginx
+    container_name: search-next_nginx
     ports:
       - "80:80"
       - "443:443"
@@ -40,4 +40,14 @@ services:
       - frontend
     restart: unless-stopped
     networks:
-      - openedition_network
+      - search-next_network
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  search-next_network:
+    driver: bridge

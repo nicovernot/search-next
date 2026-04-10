@@ -275,7 +275,7 @@ class TestCacheIntegration:
             # Vérifier que Solr a été appelé
             mock_solr_client.search.assert_called_once()
             
-            assert result == {"response": {"docs": [], "numFound": 0}}
+            assert result == {'results': [], 'total': 0, 'facets': {}, 'highlighting': {}}
     
     async def test_search_service_cache_hit(self):
         """Test que SearchService retourne les résultats du cache quand disponibles"""
@@ -283,7 +283,7 @@ class TestCacheIntegration:
         from unittest.mock import Mock
         
         # Configurer le cache pour retourner des données
-        cached_result = {"response": {"docs": [{"id": "1", "title": "Cached"}], "numFound": 1}}
+        cached_result = {"results": [{"id": "1", "title": "Cached"}], "total": 1, "facets": {}, "highlighting": {}}
         
         # Patcher le cache_service au bon endroit
         with patch('app.services.cache_service.cache_service') as mock_cache:

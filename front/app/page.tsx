@@ -1,8 +1,6 @@
 "use client";
 
 import SearchBar from "./components/SearchBar";
-import ResultsList from "./components/ResultsList";
-import Facets from "./components/Facets";
 import LanguageSelector from "./components/LanguageSelector";
 import { useSearch } from "./context/SearchContext";
 import dynamic from "next/dynamic";
@@ -10,6 +8,16 @@ import dynamic from "next/dynamic";
 const AdvancedQueryBuilder = dynamic(() => import("./components/AdvancedQueryBuilder"), {
   ssr: false,
   loading: () => <div className="h-48 bg-gray-100 animate-pulse rounded-2xl" />
+});
+
+const ResultsList = dynamic(() => import("./components/ResultsList"), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-2xl w-full" />
+});
+
+const Facets = dynamic(() => import("./components/Facets"), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-2xl w-full" />
 });
 
 const PLATFORMS = [

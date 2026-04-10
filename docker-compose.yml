@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: search-next_api
     ports:
-      - "8007:8007"
+      - "${API_PORT:-8003}:8007"
     env_file:
       - search_api_solr/.env.local
     environment:
@@ -32,7 +32,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - openedition_network
+      - search-next_network
 
   # Postgres DB pour comptes utilisateurs
   postgres:
@@ -43,7 +43,7 @@ services:
       - POSTGRES_PASSWORD=search_password
       - POSTGRES_DB=search_db
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5435}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -53,14 +53,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - openedition_network
+      - search-next_network
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: search-next_redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6376}:6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -71,21 +71,21 @@ services:
       timeout: 3s
       retries: 3
     networks:
-      - openedition_network
+      - search-next_network
 
   # Frontend Next.js
-  search_next:
+  frontend:
     build:
       context: ./front
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8007
-    container_name: search_next
+        NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-8003}
+    container_name: search-next_frontend
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8007
+      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8003}
       - HOSTNAME=0.0.0.0
     ports:
-      - "3009:3000"
+      - "${FRONTEND_PORT:-3003}:3000"
     restart: unless-stopped
     depends_on:
       - api
@@ -96,28 +96,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - openedition_network
-
-  # Frontend Next.js en mode développement (hot-reload)
-  search_next_dev:
-    image: node:20-alpine
-    container_name: search_next_dev
-    working_dir: /app
-    ports:
-      - "3007:3000"
-    volumes:
-      - ./front:/app
-      - /app/node_modules
-      - /app/.next
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8007
-      - HOSTNAME=0.0.0.0
-    command: sh -c "npm install && npm run dev"
-    restart: unless-stopped
-    depends_on:
-      - api
-    networks:
-      - openedition_network
+      - search-next_network
 
 volumes:
   redis_data:
@@ -126,5 +105,5 @@ volumes:
     driver: local
 
 networks:
-  openedition_network:
+  search-next_network:
     driver: bridge

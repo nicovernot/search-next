@@ -22,8 +22,5 @@ async def test_suggest_timeout_handling():
         
         data = response.json()
         # Vérifier la structure de réponse vide
-        assert "suggest" in data
-        assert "default" in data["suggest"]
-        assert "test" in data["suggest"]["default"]
-        assert data["suggest"]["default"]["test"]["numFound"] == 0
-        assert data["suggest"]["default"]["test"]["suggestions"] == []
+        assert "suggestions" in data
+        assert data["suggestions"] == []

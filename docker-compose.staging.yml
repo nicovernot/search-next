@@ -29,7 +29,7 @@ services:
     # Optionnel: Nginx pour le staging si on veut tester la config nginx
   nginx:
     image: nginx:alpine
-    container_name: openedition_nginx_staging
+    container_name: search-next_nginx_staging
     ports:
       - "8081:80"
     volumes:
@@ -40,4 +40,14 @@ services:
       - frontend
     restart: unless-stopped
     networks:
-      - openedition_network
+      - search-next_network
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  search-next_network:
+    driver: bridge

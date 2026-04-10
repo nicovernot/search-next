@@ -78,7 +78,9 @@ front-next/app/
   `{ buckets: [{ key, doc_count }] }`.
 - Tailwind CSS 4 uniquement, pas de fichiers CSS séparés.
 
-## Test Cases
+## Test Cases (Playwright End-to-End)
+
+*Note: All End-to-End tests and User Scenarios verifications will be handled by **Playwright** framework as standard for UI/UX integration.*
 
 ### SearchContext
 - `executeSearch()` avec query vide et sans filtres → ne fait pas d'appel API

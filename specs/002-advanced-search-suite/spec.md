@@ -4,7 +4,9 @@
 **Created**: 2026-04-03  
 **Status**: Ready  
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing (Playwright) *(mandatory)*
+
+*Note: All End-to-End tests must be implemented using **Playwright** framework.*
 
 ### User Story 1 - Recherche Avancée et Éditeur Logique (Priority: P1)
 En tant qu'utilisateur, je veux pouvoir basculer vers un mode de recherche avancé, et utiliser un constructeur de requête logique (drag and drop de blocs AND, OR, NOT), afin de formuler des recherches complexes précises.

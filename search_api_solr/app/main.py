@@ -7,6 +7,9 @@ from typing import Dict, Any, List
 import httpx
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.core.logging import get_logger
 from app.core.env_validation import validate_environment
@@ -32,6 +35,11 @@ except Exception as e:
     raise
 
 app = FastAPI()
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Événements de démarrage et arrêt
 @app.on_event("startup")
@@ -124,6 +132,7 @@ def get_permissions_service(
 # --- Endpoint ---
 
 @app.get("/permissions")
+@limiter.limit("15/minute")
 async def get_document_permissions(
     request: Request,
     urls: str = Query(..., description="Liste des URLs de documents séparées par des virgules"),
@@ -182,8 +191,10 @@ async def _execute_search(request: SearchRequest, builder: SearchBuilder) -> Dic
             raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/search")
+@limiter.limit("15/minute")
 async def perform_search(
-    request: SearchRequest, 
+    request: Request,
+    search_request: SearchRequest, 
     service: ISearchService = Depends(get_search_service),
     response: Response = None
 ):
@@ -191,12 +202,12 @@ async def perform_search(
     try:
         # Convertir la requête SearchRequest en dictionnaire pour le service
         request_dict = {
-            "query": request.query.query,
-            "logical_query": request.logical_query,
-            "filters": [{"identifier": f.identifier, "value": f.value} for f in request.filters],
-            "pagination": {"from": request.pagination.from_, "size": request.pagination.size},
-            "facets": [{"identifier": f.identifier, "type": f.type} for f in request.facets],
-            "sort": request.sort
+            "query": search_request.query.query,
+            "logical_query": search_request.logical_query,
+            "filters": [{"identifier": f.identifier, "value": f.value} for f in search_request.filters],
+            "pagination": {"from": search_request.pagination.from_, "size": search_request.pagination.size},
+            "facets": [{"identifier": f.identifier, "type": f.type} for f in search_request.facets],
+            "sort": search_request.sort
         }
         return await service.perform_search(request_dict)
     except Exception as e:
@@ -210,7 +221,9 @@ async def perform_search(
              raise HTTPException(status_code=503, detail="Search service unavailable")
 
 @app.get("/search")
+@limiter.limit("15/minute")
 async def search_via_get(
+    request: Request,
     q: str = Query(..., description="Terme de recherche"),
     filters: List[str] = Query([], description="Filtres au format 'identifier:value' (ex: platform:OB)"),
     facets: List[str] = Query([], description="Facettes à récupérer (ex: platform)"),
@@ -251,7 +264,9 @@ async def search_via_get(
         else:
              raise HTTPException(status_code=503, detail="Search service unavailable")
 @app.get("/suggest")
+@limiter.limit("30/minute")
 async def suggest(
+    request: Request,
     q: str = Query(..., min_length=1, description="Terme à compléter"),
     builder: SearchBuilder = Depends(get_search_builder)
 ):

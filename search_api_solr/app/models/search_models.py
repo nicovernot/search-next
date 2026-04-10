@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Any, Literal
 
 
@@ -20,6 +20,16 @@ class QueryModel(BaseModel):
     query: str = Field(
         ..., description="Terme de recherche principal", example="histoire"
     )
+
+    @field_validator("query")
+    @classmethod
+    def sanitize_query(cls, v: str) -> str:
+        # Échappement des caractères spéciaux Solr
+        dangerous_chars = [':', 'AND', 'OR', 'NOT', '(', ')', '[', ']', '{', '}']
+        for char in dangerous_chars:
+            if char in v:
+                v = v.replace(char, f"\\{char}")
+        return v
 
 
 class FilterModel(BaseModel):

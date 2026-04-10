@@ -32,6 +32,12 @@ $(cat .env.shared | grep -v "^#" | grep -v "^$")
 
 # Environment-specific configuration
 $(cat .env.$ENVIRONMENT | grep -v "^#" | grep -v "^$")
+
+# Overrides from Docker setup (if available)
+NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8003}
+REACT_APP_API_URL=http://localhost:${API_PORT:-8003}
+API_BASE_URL=http://localhost:${API_PORT:-8003}
+FRONTEND_URL=http://localhost:${FRONTEND_PORT:-3003}
 EOL
 
 # Pour le backend
@@ -45,6 +51,11 @@ $(cat .env.shared | grep -v "^#" | grep -v "^$")
 
 # Environment-specific configuration
 $(cat .env.$ENVIRONMENT | grep -v "^#" | grep -v "^$")
+
+# Overrides from Docker setup (if available)
+REDIS_URL=redis://redis:6379/0
+POSTGRES_PORT=${POSTGRES_PORT:-5435}
+API_PORT=8007
 EOL
 
 echo "Environment synchronization complete!"

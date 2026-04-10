@@ -122,6 +122,10 @@ make prod
 
 # Tests (avec validation)
 make test
+
+# Tests E2E (Playwright UI)
+make test-front-ui
+make test-front
 ```
 
 **Fichiers de Configuration**
@@ -146,7 +150,7 @@ Vous pouvez spécifier des environnements différents pour le backend et le fron
 
 ```bash
 # Backend en staging, frontend en développement
-./configure_env.sh --env staging --frontend-env development
+./scripts/configure_env.sh --env staging --frontend-env development
 
 # Ou avec Make
 make run-dev ENV=staging FRONTEND_ENV=development
@@ -165,7 +169,7 @@ make run-dev ENV=staging
 make install-prod
 ```
 
-Voir [ENVIRONMENTS.md](./ENVIRONMENTS.md) pour plus de détails sur la gestion des environnements.
+Voir [docs/ENVIRONMENTS.md](./docs/ENVIRONMENTS.md) pour plus de détails sur la gestion des environnements.
 
 ### Sans Docker
 
@@ -515,8 +519,8 @@ docker stats
 - [Documentation Frontend](front/README.md)
 - [Guide Docker](search_api_solr/DOCKER.md)
 - [Guide de tests](search_api_solr/TESTING.md)
-- [Gestion des Environnements](./ENVIRONMENTS.md) - **Nouveau!**
-- [Résumé de la Configuration](./ENVIRONMENT_MANAGEMENT_SUMMARY.md)
+- [Gestion des Environnements](./docs/ENVIRONMENTS.md) - **Nouveau!**
+- [Résumé de la Configuration](./docs/ENVIRONMENT_MANAGEMENT_SUMMARY.md)
 
 ## 🐛 Résolution de problèmes
 
