@@ -34,14 +34,14 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
     activeFilters.some((f) => f.identifier === field && f.value === value);
 
   return (
-    <div className="group/facet border-b border-[#e6e4e2] pb-6 mb-2 last:border-0">
+    <div className="group/facet border-b border-border pb-6 mb-2 last:border-0">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left mb-3 group-hover/facet:translate-x-0.5 transition-transform"
       >
-        <span className="text-xs font-bold text-[rgba(16,13,13,1)] uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-bold text-foreground uppercase tracking-wider">{label}</span>
         <div className={`transition-transform duration-300 ${expanded ? "rotate-0" : "-rotate-180"}`}>
-          <ChevronDown size={14} className="text-[#969493]" />
+          <ChevronDown size={14} className="text-muted-foreground" />
         </div>
       </button>
 
@@ -55,13 +55,13 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
                 placeholder={t("searchFilters") || "Filtrer..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-8 py-1.5 text-xs bg-[#f9f6f4] border border-[#e6e4e2] rounded-md focus:outline-none focus:ring-1 focus:ring-[#f03603]/30 focus:border-[#f03603]/50 transition-all"
+                className="w-full pl-8 pr-8 py-1.5 text-xs bg-secondary border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-highlight/30 focus:border-highlight/50 transition-all text-secondary-foreground"
               />
-              <Search size={12} className="absolute left-2.5 top-2.5 text-[#969493]" />
+              <Search size={12} className="absolute left-2.5 top-2.5 text-muted-foreground" />
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-2.5 top-2.5 text-[#969493] hover:text-[#f03603]"
+                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-highlight"
                 >
                   <X size={12} />
                 </button>
@@ -79,7 +79,7 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
                         type="checkbox"
                         checked={isChecked(bucket.key)}
                         onChange={(e) => onFilterChange(field, bucket.key, e.target.checked)}
-                        className="peer w-4 h-4 appearance-none border border-[#e6e4e2] rounded checked:bg-[#f03603] checked:border-[#f03603] transition-all cursor-pointer"
+                        className="peer w-4 h-4 appearance-none border border-border rounded checked:bg-highlight checked:border-highlight transition-all cursor-pointer"
                       />
                       <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity">
                         <svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -88,12 +88,12 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
                       </div>
                     </div>
                     <span className={`text-sm flex-1 truncate transition-colors ${
-                      isChecked(bucket.key) ? "text-[#f03603] font-medium" : "text-[#4a4848] group-hover/item:text-[rgba(16,13,13,1)]"
+                      isChecked(bucket.key) ? "text-highlight font-medium" : "text-foreground/80 group-hover/item:text-foreground"
                     }`}>
                       {bucket.key}
                     </span>
                     <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-full transition-colors ${
-                      isChecked(bucket.key) ? "bg-[#f03603]/10 text-[#f03603]" : "bg-[#f9f6f4] text-[#969493]"
+                      isChecked(bucket.key) ? "bg-highlight/10 text-highlight font-bold" : "bg-secondary text-muted-foreground"
                     }`}>
                       {bucket.doc_count.toLocaleString()}
                     </span>
@@ -101,7 +101,7 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
                 </li>
               ))
             ) : (
-              <li className="text-xs text-[#969493] italic py-2">
+              <li className="text-xs text-muted-foreground italic py-2">
                 Aucun résultat pour "{searchTerm}"
               </li>
             )}
@@ -110,7 +110,7 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
               <li>
                 <button
                   onClick={() => setShowAll(!showAll)}
-                  className="flex items-center gap-1 text-xs font-semibold text-[#f03603] hover:text-[#d23003] mt-2 transition-colors"
+                  className="flex items-center gap-1 text-xs font-semibold text-highlight hover:text-primary mt-2 transition-colors"
                 >
                   {showAll ? (
                     <>Voir moins <ChevronUp size={12} /></>

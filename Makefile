@@ -122,7 +122,7 @@ test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containeris
 		-v $(PWD)/front:/app -w /app \
 		-e BASE_URL=http://frontend:3000 \
 		-e CI=true \
-		mcr.microsoft.com/playwright:v1.57.0-noble \
+		mcr.microsoft.com/playwright:v1.59.1-noble \
 		sh -c "npm install --legacy-peer-deps --silent && npx playwright test --reporter=list --project=chromium"
 	$(DOCKER_COMPOSE) down
 

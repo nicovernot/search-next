@@ -24,7 +24,7 @@ export default function SearchBar() {
         />
         <button
           type="submit"
-          className="px-5 py-[11px] bg-[#f03603] text-white rounded-lg font-medium hover:bg-[#d23003] transition-all flex items-center gap-2 whitespace-nowrap shadow-sm hover:shadow-md active:scale-95"
+          className="px-6 py-[11px] bg-highlight text-white rounded-xl font-bold hover:brightness-110 transition-all flex items-center gap-2 whitespace-nowrap premium-shadow hover:scale-105 active:scale-95"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <circle cx="11" cy="11" r="8" />
