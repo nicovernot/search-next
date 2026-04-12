@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { QueryBuilder, RuleGroupType, Field } from "react-querybuilder";
 import "react-querybuilder/dist/query-builder.css";
 import { useSearch } from "../context/SearchContext";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 import { Search, Trash2, Plus, ChevronDown } from "lucide-react";
 
 const fields: Field[] = [
@@ -15,7 +15,7 @@ const fields: Field[] = [
 ];
 
 export default function AdvancedQueryBuilder() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const { executeSearch, setLogicalQuery } = useSearch();
   const [query, setQuery] = useState<RuleGroupType>({
     combinator: "and",
@@ -31,7 +31,7 @@ export default function AdvancedQueryBuilder() {
     <div className="bg-card border border-border rounded-2xl shadow-xl p-6 mb-8 animate-fade-in premium-shadow">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-foreground border-l-4 border-highlight pl-4 font-serif">
-          Constructeur de Requête Logique
+          {t("queryBuilderTitle")}
         </h3>
         <button
           onClick={handleSearch}

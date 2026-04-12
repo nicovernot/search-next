@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { useLocale } from "next-intl";
 import type { SearchDoc, Facets, Filters, Pagination, FullFacetConfig } from "../types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8007";
@@ -35,6 +36,7 @@ interface SearchContextValue {
 const SearchContext = createContext<SearchContextValue | null>(null);
 
 export function SearchProvider({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchDoc[]>([]);
   const [facets, setFacets] = useState<Facets>({});
@@ -88,14 +90,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         pagination: { from: pagination.from, size: pagination.size },
       };
 
-      const lang =
-        typeof navigator !== "undefined"
-          ? (navigator.language || "en").split("-")[0]
-          : "en";
-
       const res = await fetch(`${API_BASE_URL}/search`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept-Language": lang },
+        headers: { "Content-Type": "application/json", "Accept-Language": locale },
         body: JSON.stringify(body),
       });
 

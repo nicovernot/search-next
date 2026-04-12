@@ -1,10 +1,10 @@
 "use client";
 
 import { useSearch } from "../context/SearchContext";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 
 export default function Pagination({ total }: { total: number }) {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const { pagination, setPage } = useSearch();
 
   const pageSize = pagination.size || 10;

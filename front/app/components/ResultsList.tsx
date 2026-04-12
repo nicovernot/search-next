@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { X, Filter, LayoutGrid } from "lucide-react";
 import { useSearch } from "../context/SearchContext";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 import ResultItem from "./ResultItem";
 import Facets from "./Facets";
 import Pagination from "./Pagination";
 
 export default function ResultsList() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const { 
     results, total, loading, error, query, logicalQuery, searchMode,
     filters, removeFilter, clearFilters, facetConfig, pagination 

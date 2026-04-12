@@ -1,8 +1,9 @@
 # Feature Specification: UX/UI Premium Overhaul
 
-**Feature Branch**: `feature/003-ux-ui-premium-overhaul`  
+**Feature Branch**: `feature/002-advanced-search-suite` (implémenté dans la même branche)  
 **Created**: 2026-04-10  
-**Status**: Planning  
+**Implemented**: 2026-04-10  
+**Status**: Implemented — toutes les user stories livrées  
 
 ## Overview
 L'objectif de cette spécification est d'amener l'application frontend (Next.js) à un standard de design Premium, moderne et dynamique ("WOW effect"), en remplaçant l'esthétisme basique actuel hérité de templates, par une identité visuelle harmonieuse et interactive.

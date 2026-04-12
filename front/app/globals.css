@@ -125,8 +125,15 @@ input:focus, button:focus {
   outline: none;
 }
 
-select, input, textarea {
+select {
   background-color: transparent;
+  color: inherit;
+  border-color: hsl(var(--border) / 0.5);
+}
+
+/* Les inputs héritent du background de leur contexte par défaut.
+   Les composants définissent leur propre background via style inline ou classes. */
+input, textarea {
   color: inherit;
   border-color: hsl(var(--border) / 0.5);
 }

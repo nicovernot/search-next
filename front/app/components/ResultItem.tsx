@@ -1,10 +1,10 @@
 "use client";
 
 import type { SearchDoc } from "../types";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 
 export default function ResultItem({ doc }: { doc: SearchDoc }) {
-  const { t } = useTranslations();
+  const t = useTranslations();
 
   const title = doc.titre || doc.title || doc.naked_titre || t("noTitle");
   const description = doc.naked_resume || doc.naked_texte || doc.description || "";

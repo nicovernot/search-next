@@ -2,7 +2,8 @@
 
 **Feature Branch**: `feature/002-advanced-search-suite`  
 **Created**: 2026-04-03  
-**Status**: Ready  
+**Updated**: 2026-04-11  
+**Status**: Complete — toutes les phases livrées  
 
 ## User Scenarios & Testing (Playwright) *(mandatory)*
 
@@ -54,4 +55,20 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 ### Measurable Outcomes
 - **SC-001**: L'interface de recherche avancée permet la soumission d'au moins 3 niveaux d'embranchements `AND/OR`.
 - **SC-002**: L'autocomplétion répond à la frappe de l'utilisateur en moins de 300ms.
-- **SC-003**: Le pipeline de traduction ne laisse aucune clé non traduite sur le build principal Next.js.
+- **SC-003**: Le pipeline de traduction ne laisse aucune clé non traduite sur le build principal Next.js (6 langues : FR, EN, ES, IT, PT, DE).
+- **SC-004**: Le header expose deux points d'entrée visuellement distincts — "Connexion" (secondaire) et "S'inscrire" (bouton highlight) — accessibles sans scroll.
+- **SC-005**: La suite Playwright couvre : inscription, connexion réussie, connexion échouée (mauvais mdp, email inexistant, mots de passe non concordants), déconnexion, persistance de session, sauvegarde/chargement/suppression de recherche.
+
+### Edge Cases couverts par les tests
+- Inscription avec email déjà utilisé → message d'erreur visible, modal reste ouverte.
+- Mots de passe non concordants → validation côté client avant appel API.
+- Token JWT expiré → l'API retourne 401, les boutons auth reviennent (le `localStorage` est nettoyé par `logout()`).
+- Sauvegarde de recherche vide → bouton "Sauvegarder" absent si aucune requête active.
+- Nom de sauvegarde vide → bouton confirmation désactivé.
+
+### Tests Playwright
+| Fichier | Cas couverts |
+|---|---|
+| `tests/auth.spec.ts` | 10 tests — header buttons, modal tabs, inscription, connexion, déconnexion, persistance session |
+| `tests/saved-searches.spec.ts` | 8 tests — panneau, sauvegarder, charger, supprimer, persistance après reload |
+| `tests/search.spec.ts` | 2 tests — chargement page, recherche simple |

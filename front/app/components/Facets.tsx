@@ -1,12 +1,12 @@
 "use client";
 
 import { useSearch } from "../context/SearchContext";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 import FacetGroup from "./FacetGroup";
 
 export default function Facets() {
   const { facets, filters, addFilter, removeFilter, clearFilters, facetConfig } = useSearch();
-  const { t } = useTranslations();
+  const t = useTranslations();
 
   const activeFilters = Object.entries(filters).flatMap(([field, values]) =>
     values.map((value) => ({ identifier: field, value }))

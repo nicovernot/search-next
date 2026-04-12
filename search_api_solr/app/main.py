@@ -22,6 +22,7 @@ from app.models.search_models import SearchRequest
 from app.settings import settings, SOLR_CONFIG
 from app.models import DocsPermissionsResponse
 from app.api.auth import router as auth_router
+from app.api.v1.saved_searches import router as saved_searches_router
 
 # Configuration du logging structuré
 logger = get_logger(__name__)
@@ -98,6 +99,7 @@ if settings.trusted_hosts:
 
 # Includes des routers
 app.include_router(auth_router)
+app.include_router(saved_searches_router)
 
 # --- Injection de Dépendance ---
 

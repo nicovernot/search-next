@@ -1,11 +1,11 @@
 "use client";
 
 import { useSearch } from "../context/SearchContext";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 import AutocompleteInput from "./AutocompleteInput";
 
 export default function SearchBar() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const { query, setQuery, executeSearch } = useSearch();
 
   const handleSubmit = (e: React.FormEvent) => {

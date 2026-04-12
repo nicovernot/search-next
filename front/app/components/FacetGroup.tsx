@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import type { FacetBucket } from "../types";
-import { useTranslations } from "../context/I18nContext";
+import { useTranslations } from "next-intl";
 
 interface FacetGroupProps {
   label: string;
@@ -14,7 +14,7 @@ interface FacetGroupProps {
 }
 
 export default function FacetGroup({ label, field, buckets, activeFilters, onFilterChange }: FacetGroupProps) {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
