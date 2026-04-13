@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearch } from "../context/SearchContext";
 
 interface AutocompleteInputProps {
@@ -23,10 +24,34 @@ export default function AutocompleteInput({
   const { suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [mounted, setMounted] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Gérer le clic en dehors pour fermer les suggestions
+  useEffect(() => { setMounted(true); }, []);
+
+  // Recalcule la position du dropdown à chaque ouverture ou resize/scroll
+  const updateDropdownRect = () => {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: r.bottom + 6, left: r.left, width: r.width });
+    }
+  };
+
+  useEffect(() => {
+    if (!showSuggestions) return;
+    updateDropdownRect();
+    window.addEventListener("resize", updateDropdownRect);
+    window.addEventListener("scroll", updateDropdownRect, true);
+    return () => {
+      window.removeEventListener("resize", updateDropdownRect);
+      window.removeEventListener("scroll", updateDropdownRect, true);
+    };
+  }, [showSuggestions]);
+
+  // Fermer au clic en dehors
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -105,9 +130,44 @@ export default function AutocompleteInput({
     );
   };
 
+  const suggestionList =
+    mounted && showSuggestions && suggestions.length > 0
+      ? createPortal(
+          <ul
+            style={{
+              position: "fixed",
+              top: dropdownRect.top,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+              zIndex: 2147483647,
+            }}
+            className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in premium-shadow"
+          >
+            {suggestions.map((s, i) => (
+              <li
+                key={i}
+                onClick={() => handleSelectSuggestion(s)}
+                onMouseEnter={() => setActiveIndex(i)}
+                className={`px-5 py-3.5 cursor-pointer transition-colors flex items-center gap-4 border-b border-border/50 last:border-0 ${
+                  i === activeIndex ? "bg-highlight/10 text-highlight" : "text-foreground hover:bg-secondary"
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <span className="truncate">{renderSuggestion(s)}</span>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )
+      : null;
+
   return (
     <div ref={wrapperRef} className={wrapperClassName || "relative flex-1 group"}>
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => {
@@ -115,39 +175,23 @@ export default function AutocompleteInput({
           setShowSuggestions(true);
           setActiveIndex(-1);
         }}
-        onFocus={() => setShowSuggestions(true)}
+        onFocus={() => {
+          updateDropdownRect();
+          setShowSuggestions(true);
+        }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
         className={inputClassName || "w-full px-5 py-3.5 rounded-xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 transition-all text-base shadow-sm group-hover:border-highlight/50"}
       />
-      
+
       {loadingSuggestions && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2">
           <div className="w-5 h-5 border-2 border-highlight border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full mt-3 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in premium-shadow">
-          {suggestions.map((s, i) => (
-            <li
-              key={i}
-              onClick={() => handleSelectSuggestion(s)}
-              onMouseEnter={() => setActiveIndex(i)}
-              className={`px-5 py-3.5 cursor-pointer transition-colors flex items-center gap-4 border-b border-border/50 last:border-0 ${
-                i === activeIndex ? "bg-highlight/10 text-highlight" : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <span className="truncate">{renderSuggestion(s)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {suggestionList}
     </div>
   );
 }

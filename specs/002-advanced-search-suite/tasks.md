@@ -72,3 +72,10 @@
 - [x] **AdvancedQueryBuilder sync** : ajout d'un `useEffect` qui synchronise l'état local `query` (RuleGroupType) avec `logicalQuery` du context quand `loadSearch` restaure une recherche avancée.
 - [x] **data-testid** : `data-testid="results-list"` ajouté sur le container dans `ResultsList.tsx`; `data-testid="result-item"` ajouté sur `<article>` dans `ResultItem.tsx`.
 - [x] **Tests Playwright** : `waitForResults()` helper vérifiant la présence d'au moins un `result-item`; test "charger" étendu pour vérifier que les résultats s'affichent; nouveau test "charger depuis reload" vérifiant la persistance + exécution après rechargement de page.
+
+### Correctifs UX — autocomplete & save (2026-04-13 — round 4)
+- [x] **AutocompleteInput portal** : la liste de suggestions est désormais rendue via `createPortal` sur `document.body` avec positionnement `fixed` via `getBoundingClientRect()`. Corrige l'affichage derrière le parent glassmorphism (`backdrop-filter` crée un stacking context qui piège les `z-index` enfants).
+- [x] **AutocompleteInput — inputRef** : ajout d'un `ref` sur l'`<input>` + `updateDropdownRect()` appelé sur `onFocus` pour calculer la position dès l'ouverture.
+- [x] **SavedSearchesPanel — feedback d'erreur** : ajout d'un état `saveError` + `catch` block dans `handleSave` → message d'erreur rouge visible sous le champ nom si le POST `/saved-searches` échoue (CORS, 401, réseau…). Avant ce correctif, les échecs étaient silencieux.
+- [x] **Tests Playwright** : `waitForResults` accepte un paramètre `timeout` (défaut 15 000 ms); `retries: 1` (local) dans `playwright.config.ts` pour les tests "charger" flaky sous charge Solr parallèle.
+- [x] **search.spec.ts** : `page.goto('/')` → `page.goto('/fr/')` pour contourner la détection Accept-Language de Playwright Chrome qui routait vers `/en/` et ne trouvait pas le texte "Rechercher".

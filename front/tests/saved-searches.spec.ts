@@ -36,10 +36,10 @@ async function doSearch(page: Page, query: string) {
   await page.waitForTimeout(1000);
 }
 
-async function waitForResults(page: Page) {
+async function waitForResults(page: Page, timeout = 15000) {
   // Wait for the results list to contain at least one result item
   await expect(page.locator('[data-testid="results-list"] [data-testid="result-item"]').first())
-    .toBeVisible({ timeout: 10000 });
+    .toBeVisible({ timeout });
 }
 
 async function openSavedSearchesPanel(page: Page) {

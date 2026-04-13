@@ -2,8 +2,8 @@
 
 **Feature Branch**: `feature/002-advanced-search-suite`  
 **Created**: 2026-04-03  
-**Updated**: 2026-04-11  
-**Status**: Complete — toutes les phases livrées  
+**Updated**: 2026-04-13  
+**Status**: Complete — toutes les phases livrées + correctifs post-livraison intégrés  
 
 ## User Scenarios & Testing (Playwright) *(mandatory)*
 
@@ -62,13 +62,30 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 ### Edge Cases couverts par les tests
 - Inscription avec email déjà utilisé → message d'erreur visible, modal reste ouverte.
 - Mots de passe non concordants → validation côté client avant appel API.
-- Token JWT expiré → l'API retourne 401, les boutons auth reviennent (le `localStorage` est nettoyé par `logout()`).
+- Token JWT expiré → l'API retourne 401, les boutons auth reviennent (le `localStorage` est nettoyé par `logout()`). Token durée de vie configurée à 1440 min (24h) via `ACCESS_TOKEN_EXPIRE_MINUTES`.
 - Sauvegarde de recherche vide → bouton "Sauvegarder" absent si aucune requête active.
 - Nom de sauvegarde vide → bouton confirmation désactivé.
+- Chargement d'une recherche sauvegardée → restitue le terme ET déclenche la recherche (résultats visibles) via `loadSearch()` atomique.
+- Rechargement de page → session JWT persistée via `localStorage`, recherches sauvegardées rechargées depuis l'API.
+
+### Correctifs post-livraison intégrés (2026-04-13)
+
+| Problème | Solution |
+|---|---|
+| CORS 8003/3003 manquant | Ajout des origines dans `.env` et `.env.development` |
+| Pagination/filtres sans refresh | `useEffect` dans `SearchContext` sur `filters` / `pagination.from` |
+| Stale closure dans `executeSearch` | Pattern `latestRef` (useRef synchronisé après chaque render) |
+| Chargement de recherche sans exécution | `loadSearch()` patche `latestRef` avant d'appeler `executeSearch()` |
+| Couleurs Tailwind v4 cassées | Bloc `@theme inline` dans `globals.css` mappant les variables CSS |
+| Token JWT expirant après 30 min | `ACCESS_TOKEN_EXPIRE_MINUTES=1440` dans les `.env` |
+| Clés i18n hardcodées | 69 clés × 6 langues synchronisées (facettes, QB, hero, hints) |
+| data-testid manquants pour les tests | Ajout sur `results-list`, `result-item`, `btn-load-search-*`, `btn-delete-search-*` |
 
 ### Tests Playwright
 | Fichier | Cas couverts |
 |---|---|
-| `tests/auth.spec.ts` | 10 tests — header buttons, modal tabs, inscription, connexion, déconnexion, persistance session |
-| `tests/saved-searches.spec.ts` | 8 tests — panneau, sauvegarder, charger, supprimer, persistance après reload |
-| `tests/search.spec.ts` | 2 tests — chargement page, recherche simple |
+| `tests/auth.spec.ts` | **15 tests** — header buttons (1), modal tabs / fermeture / bascule (6), inscription ok/mdp≠/email dupliqué (3), connexion ok/mauvais mdp/email inexistant (3), déconnexion + persistance session (2) |
+| `tests/saved-searches.spec.ts` | **12 tests** — panneau visible/ouverture/fermeture/vide (3), sauvegarder ok/via Enter/bouton désactivé si nom vide/absent si pas de recherche active (4+1), charger + résultats visibles / charger après reload (2), supprimer (1), persistance après reload (1) |
+| `tests/search.spec.ts` | **2 tests** — chargement page, recherche simple |
+
+**Total : 29 tests E2E verts** (suite au 2026-04-13)

@@ -26,6 +26,7 @@ export default function SavedSearchesPanel() {
   const [searches, setSearches] = useState<SavedSearch[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
@@ -94,6 +95,7 @@ export default function SavedSearchesPanel() {
   const handleSave = async () => {
     if (!token || !newName.trim()) return;
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/saved-searches`, {
         method: "POST",
@@ -109,8 +111,15 @@ export default function SavedSearchesPanel() {
         setShowSaveForm(false);
         fetchSearches();
         setTimeout(() => setSaveSuccess(false), 2000);
+      } else {
+        const detail = await res.json().then((d) => d.detail).catch(() => null);
+        setSaveError(detail || `Erreur ${res.status}`);
       }
-    } finally { setSaving(false); }
+    } catch (err) {
+      setSaveError("Impossible de joindre le serveur");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -180,34 +189,39 @@ export default function SavedSearchesPanel() {
             {hasCurrentSearch && (
               <div style={{ marginBottom: "1rem" }}>
                 {showSaveForm ? (
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <input
-                      data-testid="input-search-name"
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      placeholder={t("searchName")}
-                      autoFocus
-                      onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight/30 transition-all"
-                    />
-                    <button
-                      data-testid="btn-save-confirm"
-                      onClick={handleSave}
-                      disabled={saving || !newName.trim()}
-                      className="px-3 py-2 bg-highlight text-white text-xs font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-60"
-                    >
-                      {saving ? (
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Check size={14} />
-                      )}
-                    </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <input
+                        data-testid="input-search-name"
+                        type="text"
+                        value={newName}
+                        onChange={(e) => { setNewName(e.target.value); setSaveError(null); }}
+                        placeholder={t("searchName")}
+                        autoFocus
+                        onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                        className={`flex-1 px-3 py-2 text-sm rounded-lg border bg-background text-foreground focus:outline-none focus:ring-1 transition-all ${saveError ? "border-red-400 focus:border-red-400 focus:ring-red-300" : "border-border focus:border-highlight focus:ring-highlight/30"}`}
+                      />
+                      <button
+                        data-testid="btn-save-confirm"
+                        onClick={handleSave}
+                        disabled={saving || !newName.trim()}
+                        className="px-3 py-2 bg-highlight text-white text-xs font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-60"
+                      >
+                        {saving ? (
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Check size={14} />
+                        )}
+                      </button>
+                    </div>
+                    {saveError && (
+                      <p className="text-xs text-red-500 px-1">{saveError}</p>
+                    )}
                   </div>
                 ) : (
                   <button
                     data-testid="btn-show-save-form"
-                    onClick={() => setShowSaveForm(true)}
+                    onClick={() => { setShowSaveForm(true); setSaveError(null); }}
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-bold text-highlight bg-highlight/10 border border-highlight/20 rounded-xl hover:bg-highlight/20 transition-all"
                   >
                     <Plus size={15} />

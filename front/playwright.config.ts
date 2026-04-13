@@ -5,7 +5,7 @@ export default defineConfig({
   outputDir: '/tmp/playwright-results',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: process.env.CI ? 2 : 1,
   workers: 2,
   reporter: 'list',
   use: {

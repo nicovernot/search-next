@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Recherche OpenEdition - End To End', () => {
   test('La page principale charge correctement', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/fr/');
 
     // Vérifie que la marque est présente (utilisation d'un regex plus large pour éviter les problèmes de span)
     await expect(page.locator('header').filter({ hasText: /OpenEdition Search/i })).toBeVisible();
@@ -14,7 +14,7 @@ test.describe('Recherche OpenEdition - End To End', () => {
   });
 
   test('Permet de saisir une requête et de lancer la recherche', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/fr/');
 
     // On sélectionne l'input (support FR/EN)
     const searchInput = page.getByPlaceholder(/Search|Rechercher/i).first();

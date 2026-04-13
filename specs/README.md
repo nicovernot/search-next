@@ -6,20 +6,24 @@ Ce dossier contient les spécifications Spec Kit du projet.
 
 ```
 specs/
-├── 001-search-core/        ✅ Implémenté — Recherche de base, facettes, pagination, i18n
+├── 001-search-core/           ✅ Implémenté — Recherche de base, facettes, pagination, i18n
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 002-advanced-search-suite/ ✅ Implémenté — Recherche avancée, autocomplétion, comptes, recherches sauvegardées
+├── 002-advanced-search-suite/ ✅ Implémenté — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (29 tests E2E verts)
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 003-ux-ui-premium-overhaul/ ✅ Implémenté — Refonte visuelle, dark mode, animations
-│   ├── spec.md
+├── 003-ux-ui-premium-overhaul/ ✅ Implémenté — Refonte visuelle, dark mode, glassmorphism, animations
+│   └── spec.md
+├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward
+│   └── spec.md
+├── 005-permissions/           🔲 Backlog — Badges d'accès sur résultats (backend déjà prêt)
+│   └── spec.md
 └── README.md
 ```
 
@@ -54,5 +58,5 @@ specs/
 
 ## Features à spécifier (backlog)
 
-- `004-url-sync` — Synchronisation de l'état de recherche avec l'URL (query params)
-- `005-permissions` — Affichage des droits d'accès sur les résultats (`GET /permissions`)
+- `004-url-sync` — [Spec](004-url-sync/spec.md) — Synchronisation de l'état de recherche avec l'URL (query params, back/forward, liens partageables)
+- `005-permissions` — [Spec](005-permissions/spec.md) — Affichage des droits d'accès sur les résultats (badges open/restricted/institutional via `GET /permissions` — backend déjà implémenté)
