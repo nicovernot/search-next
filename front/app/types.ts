@@ -1,3 +1,5 @@
+import type { RuleGroupType } from "react-querybuilder";
+
 export interface SearchDoc {
   url?: string;
   titre?: string;
@@ -52,6 +54,22 @@ export interface FullFacetConfig {
   [group: string]: {
     [facetName: string]: Record<string, FacetConfig>;
   };
+}
+
+export type LogicalQuery = RuleGroupType;
+
+export interface SavedSearchData {
+  query?: string;
+  filters?: Filters;
+  searchMode?: "simple" | "advanced";
+  logicalQuery?: LogicalQuery | null;
+}
+
+export interface SavedSearchRecord {
+  id: number;
+  name: string;
+  query_json: SavedSearchData;
+  created_at: string;
 }
 
 export interface SearchState {

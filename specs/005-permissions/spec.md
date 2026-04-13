@@ -2,15 +2,15 @@
 
 **Feature Branch**: à créer — `feature/005-permissions`  
 **Created**: 2026-04-13  
-**Status**: Backlog — non démarré (backend déjà implémenté)
+**Status**: Backlog — non démarré (endpoint exposé, intégration métier incomplète)
 
 ## Overview
 
-Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de recherche, en s'appuyant sur le endpoint backend `GET /permissions` déjà opérationnel. L'objectif est de rendre visible, directement sur les cartes de résultats, si un document est accessible en lecture complète, en accès restreint (abonné), ou fermé.
+Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de recherche, en s'appuyant sur le endpoint backend `GET /permissions` déjà exposé. L'objectif est de rendre visible, directement sur les cartes de résultats, si un document est accessible en lecture complète, en accès restreint (abonné), ou fermé.
 
 ## Contexte technique
 
-Le backend expose déjà `GET /permissions?urls=url1,url2&remote_ip=x.x.x.x` via `DocsPermissionsClient`. La réponse contient, pour chaque URL demandée, un flag `isPermitted: bool` et les infos d'organisation (abonné, acheté, etc.).
+Le backend expose déjà `GET /permissions`, mais la logique métier complète de permissions n'est pas encore branchée dans le service principal. Un `DocsPermissionsClient` existe dans le codebase et peut servir de base pour finaliser cette feature.
 
 L'IP de l'utilisateur final doit être transmise côté backend (via header `X-Forwarded-For` ou détection dans FastAPI) — le frontend Next.js ne la connaît pas directement.
 

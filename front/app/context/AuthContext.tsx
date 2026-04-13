@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8007";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
 
 interface AuthUser {
   id: number;
@@ -28,6 +28,10 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function isErrorWithMessage(error: unknown): error is Error {
+  return error instanceof Error;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -72,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(authUser);
       localStorage.setItem("auth_token", accessToken);
       localStorage.setItem("auth_user", JSON.stringify(authUser));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("auth_error");
       throw err;
     } finally {
@@ -92,8 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (!res.ok) throw new Error("register_error");
         await login(email, password);
-      } catch (err: any) {
-        if (err.message !== "auth_error") setError("register_error");
+      } catch (err: unknown) {
+        if (!isErrorWithMessage(err) || err.message !== "auth_error") setError("register_error");
         throw err;
       } finally {
         setLoading(false);

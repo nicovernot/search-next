@@ -1,25 +1,24 @@
 {
-  "name": "research-agent-template",
+  "name": "openedition-search-front",
   "version": "1.0.0",
-  "description": "AI-powered research agent using Stagehand + Browserbase for parallel browser automation",
-  "author": "Browserbase <support@browserbase.com>",
-  "license": "MIT",
+  "description": "Frontend Next.js pour OpenEdition Search",
+  "author": "OpenEdition",
+  "license": "UNLICENSED",
   "private": true,
   "keywords": [
-    "browserbase",
-    "stagehand",
     "nextjs",
-    "ai",
-    "research",
-    "browser-automation",
-    "anthropic",
-    "claude"
+    "openedition",
+    "search",
+    "solr",
+    "fastapi",
+    "i18n"
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.41",
@@ -43,7 +42,7 @@
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^10.0.0",
+    "eslint": "^9.38.0",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"

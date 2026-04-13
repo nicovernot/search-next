@@ -1,162 +1,51 @@
-# Stagehand Research Agent
+# Frontend OpenEdition Search
 
-[Demo]() | [Browserbase](https://browserbase.com) | [Stagehand](https://stagehand.dev)
+Frontend Next.js du projet OpenEdition Search.
 
-An AI-powered research agent that runs **5 parallel browser sessions** to search the web in real-time. Watch AI agents browse Google, Wikipedia, YouTube, Hacker News, and Google News simultaneously, then synthesize findings into a comprehensive summary.
+## Stack
 
-## Deploy
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- next-intl
+- Playwright
 
-Deploy this template to Vercel with one click. The Vercel Marketplace will automatically prompt you to set up Browserbase.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fbrowserbase%2Fbrowserbase-nextjs-template&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22other%22%2C%22productSlug%22%3A%22browserbase%22%2C%22integrationSlug%22%3A%22browserbase%22%7D%5D)
-
-
-## Features
-
-- **Parallel Browser Sessions**: 5 browsers run simultaneously, each researching a different source
-- **Live Browser Views**: Watch AI agents navigate the web in real-time
-- **Multi-Source Research**: Searches Google, Wikipedia, YouTube, Hacker News, and Google News
-- **AI-Powered Extraction**: Uses Claude to intelligently extract relevant information from pages
-- **Smart Synthesis**: Combines findings into a structured, comprehensive summary
-- **Real-time Streaming**: Server-Sent Events deliver results as they're discovered
-
-## Tech Stack
-
-### Frontend
-- **Framework**: Next.js 15 with React 19 and TypeScript
-- **Styling**: Tailwind CSS 4
-- **Markdown**: ReactMarkdown for rendering summaries
-
-### Backend
-- **AI Model**: Claude Sonnet via Vercel AI Gateway
-- **Browser Automation**: [Stagehand](https://stagehand.dev) + [Browserbase](https://browserbase.com)
-- **Streaming**: Server-Sent Events (SSE)
-- **Runtime**: Next.js API Routes with 300s max duration
-
-### Infrastructure
-- **Browser Infrastructure**: Browserbase cloud browsers
-- **AI Gateway**: Vercel AI Gateway
-- **Deployment**: Vercel
-
-## Prerequisites
-
-- Node.js 18.x or later
-- npm, yarn, pnpm, or bun
-- [Browserbase](https://browserbase.com) account and API key
-- [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) API key
-
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/browserbase/browserbase-nextjs-template
-cd research-agent-template
-```
-
-### 2. Install dependencies
+## Démarrage
 
 ```bash
 npm install
-# or
-pnpm install
+npm run dev
 ```
 
-### 3. Configure environment variables
+Le frontend écoute sur `http://localhost:3000` en local simple, et sur `http://localhost:3003` quand il est lancé via Docker Compose.
 
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with your API keys:
+## Variables d'environnement
 
 ```env
-# Vercel AI Gateway API Key
-# Get yours at: https://vercel.com/docs/ai-gateway
-AI_GATEWAY_API_KEY=your_ai_gateway_key
-
-# Browserbase (for cloud browser sessions)
-# Get yours at: https://browserbase.com
-BROWSERBASE_PROJECT_ID=your_project_id
-BROWSERBASE_API_KEY=your_api_key
+NEXT_PUBLIC_API_URL=http://localhost:8003
 ```
 
-### 4. Start the development server
+## Scripts
 
 ```bash
 npm run dev
-```
-
-### 5. Open your browser
-
-Navigate to [http://localhost:3000](http://localhost:3000)
-
-## Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `AI_GATEWAY_API_KEY` | Vercel AI Gateway API key for Claude access | Yes |
-| `BROWSERBASE_API_KEY` | Your Browserbase API key | Yes |
-| `BROWSERBASE_PROJECT_ID` | Your Browserbase project ID | Yes |
-
-## Usage
-
-1. **Enter a Query**: Type any research question or select from example queries:
-   - "What is quantum computing?"
-   - "Latest developments in AI"
-   - "How does blockchain work?"
-
-2. **Watch the Research**: See 5 browser windows researching in parallel, each exploring a different source
-
-3. **Get Results**: Receive findings from each source as they complete, followed by an AI-synthesized summary
-
-## How It Works
-
-1. **Session Creation**: Creates 5 parallel Stagehand sessions on Browserbase
-2. **Parallel Research**: Each session navigates to a different source (Google, Wikipedia, etc.)
-3. **AI Extraction**: Claude extracts relevant information from each page using structured schemas
-4. **Real-time Streaming**: Findings stream to the frontend as SSE events
-5. **Synthesis**: Claude combines all findings into a formatted summary
-
-## Available Scripts
-
-```bash
-# Development server
-npm run dev
-
-# Production build
 npm run build
-
-# Start production server
 npm run start
-
-# Lint code
 npm run lint
+npm run test:e2e
 ```
 
-## Project Structure
+## Fonctionnalités UI
 
-```
-├── app/
-│   ├── api/
-│   │   └── research/
-│   │       └── route.ts      # Research API with parallel Stagehand sessions
-│   ├── components/           # React components
-│   ├── context/              # Research context provider
-│   ├── results/              # Results page
-│   ├── page.tsx              # Home page
-│   └── layout.tsx            # Root layout
-├── public/                   # Static assets
-└── .env.example              # Environment variables template
-```
+- Recherche simple
+- Recherche avancée
+- Facettes et pagination
+- Authentification
+- Recherches sauvegardées
+- i18n
+- Thème clair / sombre
 
-## License
+## Tests
 
-MIT
-
-## Acknowledgments
-
-- [Browserbase](https://browserbase.com) - Cloud browser infrastructure
-- [Stagehand](https://stagehand.dev) - AI-powered browser automation
-- [Vercel](https://vercel.com) - Hosting and AI Gateway
-- [Anthropic](https://anthropic.com) - Claude AI model
+Les tests E2E vivent dans `front/tests` et utilisent Playwright.

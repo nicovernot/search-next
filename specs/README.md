@@ -22,7 +22,7 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward
 │   └── spec.md
-├── 005-permissions/           🔲 Backlog — Badges d'accès sur résultats (backend déjà prêt)
+├── 005-permissions/           🔲 Backlog — Badges d'accès sur résultats (endpoint existant, intégration incomplète)
 │   └── spec.md
 └── README.md
 ```
@@ -59,4 +59,4 @@ specs/
 ## Features à spécifier (backlog)
 
 - `004-url-sync` — [Spec](004-url-sync/spec.md) — Synchronisation de l'état de recherche avec l'URL (query params, back/forward, liens partageables)
-- `005-permissions` — [Spec](005-permissions/spec.md) — Affichage des droits d'accès sur les résultats (badges open/restricted/institutional via `GET /permissions` — backend déjà implémenté)
+- `005-permissions` — [Spec](005-permissions/spec.md) — Affichage des droits d'accès sur les résultats (badges open/restricted/institutional via `GET /permissions` — endpoint existant mais service encore partiel)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useAuth } from "../context/AuthContext";
@@ -22,10 +22,10 @@ export default function AuthModal() {
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Nécessaire pour éviter l'erreur SSR avec createPortal
-  useEffect(() => { setMounted(true); }, []);
+  const handleClose = useCallback(() => {
+    clearError();
+    closeModal();
+  }, [clearError, closeModal]);
 
   // Synchronise l'onglet quand le contexte change
   useEffect(() => { setTab(modalTab); }, [modalTab]);
@@ -47,12 +47,7 @@ export default function AuthModal() {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [modalOpen]);
-
-  const handleClose = () => {
-    clearError();
-    closeModal();
-  };
+  }, [modalOpen, handleClose]);
 
   const switchTab = (next: "login" | "register") => {
     setTab(next);
@@ -89,7 +84,7 @@ export default function AuthModal() {
       ? t("registerError")
       : null);
 
-  if (!mounted || !modalOpen) return null;
+  if (typeof document === "undefined" || !modalOpen) return null;
 
   return createPortal(
     // Container : fixed inset-0, z-[9999] relatif au ROOT stacking context

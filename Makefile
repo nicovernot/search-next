@@ -231,9 +231,9 @@ stats: ## Voir les statistiques des conteneurs
 
 health: ## Vérifier la santé des services
 	@echo "=== API Health ==="
-	@curl -f http://localhost:8007/docs > /dev/null 2>&1 && echo "✓ API is healthy" || echo "✗ API is down"
+	@curl -f http://localhost:${API_PORT:-8003}/docs > /dev/null 2>&1 && echo "✓ API is healthy" || echo "✗ API is down"
 	@echo "\n=== Frontend Health ==="
-	@curl -f http://localhost:${FRONTEND_PORT:-3009} > /dev/null 2>&1 && echo "✓ Frontend is healthy" || echo "✗ Frontend is down"
+	@curl -f http://localhost:${FRONTEND_PORT:-3003} > /dev/null 2>&1 && echo "✓ Frontend is healthy" || echo "✗ Frontend is down"
 	@echo "\n=== Solr Health (distant) ==="
 	@curl -f https://solrslave-sec.labocleo.org/solr/documents/admin/ping > /dev/null 2>&1 && echo "✓ Solr distant is healthy" || echo "✗ Solr distant is down"
 
@@ -245,8 +245,8 @@ install: ## Installation initiale (build + up)
 	$(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml build
 	$(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml up -d
 	@echo "✓ Installation terminée"
-	@echo "API: http://localhost:8007"
-	@echo "Frontend: http://localhost:${FRONTEND_PORT:-3009}"
+	@echo "API: http://localhost:${API_PORT:-8003}"
+	@echo "Frontend: http://localhost:${FRONTEND_PORT:-3003}"
 
 install-prod: ## Installation en production
 	@echo "Installation de l'environnement OpenEdition Search en production..."
@@ -256,4 +256,3 @@ install-prod: ## Installation en production
 	@echo "✓ Installation production terminée"
 	@echo "API: http://localhost:8000"
 	@echo "Frontend: http://localhost:80"
-

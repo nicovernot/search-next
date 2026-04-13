@@ -5,8 +5,8 @@ export default defineConfig({
   outputDir: '/tmp/playwright-results',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
-  workers: 2,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 2 : 1,
   reporter: 'list',
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3003',

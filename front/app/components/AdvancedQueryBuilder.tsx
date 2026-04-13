@@ -1,33 +1,39 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { QueryBuilder, RuleGroupType, Field } from "react-querybuilder";
+import React from "react";
+import { QueryBuilder, RuleGroupType, Field, type ValueEditorProps } from "react-querybuilder";
 import "react-querybuilder/dist/query-builder.css";
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
 
-interface QueryBuilderValueEditorProps {
-  value?: unknown;
-  handleOnChange: (value: string) => void;
-  schema?: {
-    translations?: {
-      value?: {
-        label?: string;
-      };
-    };
-  };
-}
+const DEFAULT_QUERY: RuleGroupType = {
+  combinator: "and",
+  rules: [],
+};
 
-function QueryBuilderAutocompleteValueEditor(props: QueryBuilderValueEditorProps) {
+function QueryBuilderAutocompleteValueEditor(props: ValueEditorProps) {
   const currentValue = typeof props.value === "string" ? props.value : "";
+  const placeholder =
+    typeof props.schema === "object" &&
+    props.schema !== null &&
+    "translations" in props.schema &&
+    typeof props.schema.translations === "object" &&
+    props.schema.translations !== null &&
+    "value" in props.schema.translations &&
+    typeof props.schema.translations.value === "object" &&
+    props.schema.translations.value !== null &&
+    "label" in props.schema.translations.value &&
+    typeof props.schema.translations.value.label === "string"
+      ? props.schema.translations.value.label
+      : "Value";
 
   return (
     <AutocompleteInput
       value={currentValue}
       onChange={(nextValue) => props.handleOnChange(nextValue)}
-      placeholder={props.schema?.translations?.value?.label || "Value"}
+      placeholder={placeholder}
       wrapperClassName="relative w-full max-w-xs group"
       inputClassName="w-full rounded-md border border-border bg-card py-1 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30 focus:border-highlight transition-all"
     />
@@ -44,18 +50,6 @@ export default function AdvancedQueryBuilder() {
     { name: "naked_texte", label: t("qb_fieldFullText") },
     { name: "disciplinary_field", label: t("qb_fieldKeywords") },
   ];
-  const [query, setQuery] = useState<RuleGroupType>({
-    combinator: "and",
-    rules: [],
-  });
-
-  // Sync local builder state when a saved search restores logicalQuery
-  useEffect(() => {
-    if (contextLogicalQuery?.rules) {
-      setQuery(contextLogicalQuery as RuleGroupType);
-    }
-  }, [contextLogicalQuery]);
-
   const handleSearch = () => {
     // setLogicalQuery synced via onQueryChange — executeSearch lit depuis latestRef
     executeSearch();
@@ -79,9 +73,8 @@ export default function AdvancedQueryBuilder() {
       <div className="query-builder-premium">
         <QueryBuilder
           fields={fields}
-          query={query}
+          query={contextLogicalQuery ?? DEFAULT_QUERY}
           onQueryChange={(q) => {
-            setQuery(q);
             setLogicalQuery(q);
           }}
           translations={{
@@ -108,7 +101,7 @@ export default function AdvancedQueryBuilder() {
           }}
           controlElements={{
             valueEditor: QueryBuilderAutocompleteValueEditor,
-          } as any}
+          }}
         />
       </div>
 

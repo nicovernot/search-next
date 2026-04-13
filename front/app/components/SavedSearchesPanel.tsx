@@ -6,24 +6,17 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "../context/AuthContext";
 import { useSearch } from "../context/SearchContext";
 import { Bookmark, Trash2, ChevronDown, Plus, Check } from "lucide-react";
+import type { SavedSearchRecord } from "../types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8007";
-
-interface SavedSearch {
-  id: number;
-  name: string;
-  query_json: any;
-  created_at: string;
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
 
 export default function SavedSearchesPanel() {
   const t = useTranslations();
   const { token } = useAuth();
   const { query, filters, logicalQuery, searchMode, loadSearch } = useSearch();
 
-  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const [searches, setSearches] = useState<SavedSearch[]>([]);
+  const [searches, setSearches] = useState<SavedSearchRecord[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -33,9 +26,6 @@ export default function SavedSearchesPanel() {
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  // Nécessaire pour éviter l'erreur SSR avec createPortal (même pattern qu'AuthModal)
-  useEffect(() => { setMounted(true); }, []);
 
   // Fermer au clic en dehors — vérifie le bouton ET le panel portal
   useEffect(() => {
@@ -86,7 +76,10 @@ export default function SavedSearchesPanel() {
       const res = await fetch(`${API_BASE_URL}/saved-searches`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setSearches(await res.json());
+      if (res.ok) {
+        const data: SavedSearchRecord[] = await res.json();
+        setSearches(data);
+      }
     } catch { /* silently fail */ }
   }, [token]);
 
@@ -115,7 +108,7 @@ export default function SavedSearchesPanel() {
         const detail = await res.json().then((d) => d.detail).catch(() => null);
         setSaveError(detail || `Erreur ${res.status}`);
       }
-    } catch (err) {
+    } catch {
       setSaveError("Impossible de joindre le serveur");
     } finally {
       setSaving(false);
@@ -133,15 +126,15 @@ export default function SavedSearchesPanel() {
     } catch { /* silently fail */ }
   };
 
-  const handleLoad = (s: SavedSearch) => {
+  const handleLoad = (s: SavedSearchRecord) => {
     loadSearch(s.query_json);
     setOpen(false);
   };
 
   const hasCurrentSearch =
-    query || Object.values(filters).some((v) => v.length > 0) || logicalQuery?.rules?.length > 0;
+    query || Object.values(filters).some((v) => v.length > 0) || (Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0);
 
-  if (!mounted) {
+  if (typeof document === "undefined") {
     return (
       <button
         ref={buttonRef}

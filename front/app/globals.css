@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), sans-serif;
-  --font-serif: var(--font-outfit), serif;
+  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
 }
 
 /* Tailwind v4 : mappe les variables CSS sémantiques vers --color-* pour que
@@ -101,7 +101,7 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
   min-height: 100vh;
 }
@@ -168,4 +168,3 @@ option {
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
 }
-

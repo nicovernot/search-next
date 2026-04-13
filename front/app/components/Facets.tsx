@@ -3,6 +3,7 @@
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import FacetGroup from "./FacetGroup";
+import type { FacetConfig } from "../types";
 
 // Mapping clés backend Solr → clés de traduction
 const FACET_I18N: Record<string, string> = {
@@ -23,11 +24,11 @@ export default function Facets() {
     values.map((value) => ({ identifier: field, value }))
   );
 
-  const getFacetLabel = (key: string, config?: any): string => {
-    const configName = (config as any)?.[""]?.name;
+  const getFacetLabel = (key: string, config?: Record<string, FacetConfig>): string => {
+    const configName = config?.[""]?.name;
     if (configName) return configName;
     const i18nKey = FACET_I18N[key];
-    return i18nKey ? t(i18nKey as any) : key;
+    return i18nKey ? t(i18nKey) : key;
   };
 
   // Générer les configurations de facettes dynamiquement à partir du backend
@@ -42,7 +43,11 @@ export default function Facets() {
       ];
 
   const handleChange = (field: string, value: string, checked: boolean) => {
-    checked ? addFilter(field, value) : removeFilter(field, value);
+    if (checked) {
+      addFilter(field, value);
+      return;
+    }
+    removeFilter(field, value);
   };
 
   return (
