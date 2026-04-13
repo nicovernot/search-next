@@ -19,8 +19,8 @@ En tant qu'utilisateur, chaque interaction (survol de cartes de résultats, ouve
 **Independent Test**: Les éléments de type `ResultItem` ou `FacetGroup` possèdent des états de `:hover` et `:active` testables visuellement (changement de transform/scale ou box-shadow).
 
 ### User Story 3 - Dark Mode Global & Toggle (Priority: P2)
-En tant qu'utilisateur, je veux pouvoir forcer l'interface en mode clair ou sombre selon ma convenance, ou suivre mon thème système.
-**Independent Test**: Un "Theme Switcher" dans la navbar permet de persister la préférence de thème localement.
+En tant qu'utilisateur, je veux pouvoir basculer l'interface entre mode clair et sombre, avec prise en charge du thème système au chargement.
+**Independent Test**: Un "Theme Switcher" dans la navbar permet de persister la préférence locale clair/sombre, avec un thème système pris en charge par défaut.
 
 ## Requirements
 

@@ -6,8 +6,10 @@ import { useSearch } from "../context/SearchContext";
 interface AutocompleteInputProps {
   value: string;
   onChange: (val: string) => void;
-  onSearch: () => void;
+  onSearch?: () => void;
   placeholder?: string;
+  inputClassName?: string;
+  wrapperClassName?: string;
 }
 
 export default function AutocompleteInput({
@@ -15,6 +17,8 @@ export default function AutocompleteInput({
   onChange,
   onSearch,
   placeholder,
+  inputClassName,
+  wrapperClassName,
 }: AutocompleteInputProps) {
   const { suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -64,11 +68,13 @@ export default function AutocompleteInput({
         const selected = suggestions[activeIndex];
         onChange(selected);
         setShowSuggestions(false);
-        // On attend le prochain tick pour lancer la recherche avec la nouvelle valeur
-        setTimeout(() => onSearch(), 0);
+        if (onSearch) {
+          // On attend le prochain tick pour lancer la recherche avec la nouvelle valeur
+          setTimeout(() => onSearch(), 0);
+        }
       } else {
         setShowSuggestions(false);
-        onSearch();
+        onSearch?.();
       }
     } else if (e.key === "Escape") {
       setShowSuggestions(false);
@@ -78,7 +84,9 @@ export default function AutocompleteInput({
   const handleSelectSuggestion = (suggestion: string) => {
     onChange(suggestion);
     setShowSuggestions(false);
-    setTimeout(() => onSearch(), 0);
+    if (onSearch) {
+      setTimeout(() => onSearch(), 0);
+    }
   };
 
   // Highlighting de la partie correspondante
@@ -98,7 +106,7 @@ export default function AutocompleteInput({
   };
 
   return (
-    <div ref={wrapperRef} className="relative flex-1 group">
+    <div ref={wrapperRef} className={wrapperClassName || "relative flex-1 group"}>
       <input
         type="text"
         value={value}
@@ -111,7 +119,7 @@ export default function AutocompleteInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full px-5 py-3.5 rounded-xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 transition-all text-base shadow-sm group-hover:border-highlight/50"
+        className={inputClassName || "w-full px-5 py-3.5 rounded-xl border border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 transition-all text-base shadow-sm group-hover:border-highlight/50"}
       />
       
       {loadingSuggestions && (

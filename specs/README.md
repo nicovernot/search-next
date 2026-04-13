@@ -12,12 +12,14 @@ specs/
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 002-advanced-search-suite/ 🚧 En cours — Recherche Avancée, Autocomplétion, I18n, Comptes
+├── 002-advanced-search-suite/ ✅ Implémenté — Recherche avancée, autocomplétion, comptes, recherches sauvegardées
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
+├── 003-ux-ui-premium-overhaul/ ✅ Implémenté — Refonte visuelle, dark mode, animations
+│   ├── spec.md
 └── README.md
 ```
 
@@ -52,6 +54,5 @@ specs/
 
 ## Features à spécifier (backlog)
 
-- `003-url-sync` — Synchronisation de l'état de recherche avec l'URL (query params)
-- `004-permissions` — Affichage des droits d'accès sur les résultats (`GET /permissions`)
-- `005-dark-mode` — Mode sombre
+- `004-url-sync` — Synchronisation de l'état de recherche avec l'URL (query params)
+- `005-permissions` — Affichage des droits d'accès sur les résultats (`GET /permissions`)

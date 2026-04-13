@@ -17,11 +17,11 @@ FastAPI/Solr et affiche les résultats avec facettes et pagination.
   de document, accès et langue.
 - En tant qu'utilisateur, je peux naviguer entre les pages de résultats.
 - En tant qu'utilisateur, je peux changer la langue de l'interface (fr, en,
-  es, it, pt).
+  es, de, it, pt).
 
 ## Acceptance Criteria
 
-- [ ] La barre de recherche déclenche une recherche après 500 ms de debounce
+- [ ] La barre de recherche propose des suggestions après 300 ms de debounce
 - [ ] Les résultats affichent titre, auteurs, description tronquée, plateforme, type
 - [ ] Les facettes (platform, type, access, translations) s'affichent si non vides
 - [ ] Les filtres actifs sont visibles sous forme de tags supprimables
@@ -33,18 +33,20 @@ FastAPI/Solr et affiche les résultats avec facettes et pagination.
 ## Module Boundaries
 
 ```
-front-next/app/
+front/app/
 ├── context/SearchContext.tsx   # État global, appels API
-├── hooks/useTranslations.ts    # i18n léger
+├── [locale]/                   # Routing localisé next-intl
 ├── components/
-│   ├── SearchBar.tsx           # Input + debounce
+│   ├── SearchBar.tsx           # Input + autocomplétion
 │   ├── ResultsList.tsx         # Liste + skeleton
 │   ├── ResultItem.tsx          # Carte résultat
 │   ├── Facets.tsx              # Sidebar filtres
 │   ├── FacetGroup.tsx          # Groupe expand/collapse
 │   ├── Pagination.tsx          # Navigation pages
 │   └── LanguageSelector.tsx    # Sélecteur langue
-└── page.tsx                    # Layout principal
+├── messages/                   # Traductions next-intl
+├── i18n/                       # Routing et navigation
+└── [locale]/page.tsx           # Layout principal
 ```
 
 ## API Contract
@@ -62,8 +64,13 @@ front-next/app/
 **Response**
 ```json
 {
-  "response": { "docs": [...], "numFound": 0 },
-  "facet_counts": { "facet_fields": { "platformID": [...] } }
+  "results": [...],
+  "total": 0,
+  "facets": {
+    "platform": {
+      "buckets": [{ "key": "OpenEdition Books", "doc_count": 12 }]
+    }
+  }
 }
 ```
 
@@ -71,10 +78,10 @@ front-next/app/
 
 - `SearchContext` gère tout l'état de recherche (query, filters, pagination,
   results, facets). Pas de state management externe (Redux, Zustand).
-- i18n sans librairie lourde : hook `useTranslations` qui charge les JSON
-  depuis `/public/locales/`.
-- Debounce 500 ms dans `SearchBar` via `useRef<setTimeout>`.
-- Facettes Solr au format `[key, count, key, count, ...]` transformées en
+- i18n via `next-intl` avec routing `[locale]` et fichiers `messages/*.json`.
+- Le champ principal utilise l'autocomplétion backend (`GET /suggest`) avec
+  debounce 300 ms, puis soumission explicite de la recherche.
+- Les facettes consommées par le frontend sont déjà normalisées au format
   `{ buckets: [{ key, doc_count }] }`.
 - Tailwind CSS 4 uniquement, pas de fichiers CSS séparés.
 
@@ -90,7 +97,7 @@ front-next/app/
 - `setPage(3)` avec `size=10` → `from = 20`
 
 ### SearchBar
-- Saisie de 3 caractères → déclenche `executeSearch` après 500 ms
+- Saisie de 2 caractères ou plus → déclenche la récupération des suggestions après 300 ms
 - Soumission du formulaire → appelle `executeSearch` immédiatement
 - Effacement du champ → déclenche `executeSearch` (query vide)
 

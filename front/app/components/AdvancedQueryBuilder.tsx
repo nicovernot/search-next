@@ -5,7 +5,34 @@ import { QueryBuilder, RuleGroupType, Field } from "react-querybuilder";
 import "react-querybuilder/dist/query-builder.css";
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
-import { Search, Trash2, Plus, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
+import AutocompleteInput from "./AutocompleteInput";
+
+interface QueryBuilderValueEditorProps {
+  value?: unknown;
+  handleOnChange: (value: string) => void;
+  schema?: {
+    translations?: {
+      value?: {
+        label?: string;
+      };
+    };
+  };
+}
+
+function QueryBuilderAutocompleteValueEditor(props: QueryBuilderValueEditorProps) {
+  const currentValue = typeof props.value === "string" ? props.value : "";
+
+  return (
+    <AutocompleteInput
+      value={currentValue}
+      onChange={(nextValue) => props.handleOnChange(nextValue)}
+      placeholder={props.schema?.translations?.value?.label || "Value"}
+      wrapperClassName="relative w-full max-w-xs group"
+      inputClassName="w-full rounded-md border border-border bg-card py-1 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30 focus:border-highlight transition-all"
+    />
+  );
+}
 
 export default function AdvancedQueryBuilder() {
   const t = useTranslations();
@@ -66,7 +93,7 @@ export default function AdvancedQueryBuilder() {
             fields: { label: t("qb_field") },
             operators: { label: t("qb_operator") },
             value: { label: t("qb_value") },
-          } as any}
+          } as const}
           controlClassnames={{
             queryBuilder: "space-y-4",
             ruleGroup: "bg-secondary/40 border border-border rounded-xl p-4 transition-all hover:border-highlight/30",
@@ -78,6 +105,9 @@ export default function AdvancedQueryBuilder() {
             value: "rounded-md border-border bg-card py-1 px-3 text-sm focus:ring-highlight focus:border-highlight text-foreground w-full max-w-xs",
             removeRule: "text-muted-foreground hover:text-destructive transition-colors p-1",
             removeGroup: "text-muted-foreground hover:text-destructive transition-colors p-1",
+          }}
+          controlElements={{
+            valueEditor: QueryBuilderAutocompleteValueEditor,
           }}
         />
       </div>
