@@ -13,6 +13,7 @@ export default function ResultItem({ doc }: { doc: SearchDoc }) {
   const type = doc.type || "";
   const rawAuthors = doc.contributeurFacet_auteur || doc.contributeurFacetR_auteur;
   const authors = Array.isArray(rawAuthors) ? rawAuthors : rawAuthors ? [rawAuthors] : [];
+  const year = doc.anneedatepubli ? String(doc.anneedatepubli) : null;
 
   return (
     <article data-testid="result-item" className="bg-card border border-border rounded-2xl p-6 transition-all duration-300 hover:border-highlight/50 hover:shadow-lg hover:shadow-highlight/5 hover:-translate-y-1 slide-up-enter group">
@@ -25,6 +26,11 @@ export default function ResultItem({ doc }: { doc: SearchDoc }) {
         {type && (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-highlight/10 text-highlight border border-highlight/20 shadow-sm">
             {type}
+          </span>
+        )}
+        {year && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-muted border border-border">
+            {year}
           </span>
         )}
       </div>

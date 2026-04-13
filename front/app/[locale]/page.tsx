@@ -62,6 +62,11 @@ export default function Home() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {loading && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
+              <div className="w-3.5 h-3.5 border-2 border-highlight border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
           <ThemeToggle />
           <LanguageSelector />
           {user ? (
