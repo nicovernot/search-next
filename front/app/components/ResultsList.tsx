@@ -19,9 +19,17 @@ export default function ResultsList() {
     values.map((value) => ({ identifier: field, value }))
   );
 
+  const FACET_I18N: Record<string, string> = {
+    platform: "platform", type: "documentType", access: "access",
+    translations: "languageFilter", author: "qb_fieldAuthor",
+    date: "facet_date", subscribers: "facet_subscribers",
+  };
   const getFacetLabel = (identifier: string) => {
     const config = facetConfig?.common?.[identifier] || facetConfig?.platform?.[identifier];
-    return (config as any)?.[""]?.name || t(identifier as any) || identifier;
+    const configName = (config as any)?.[""]?.name;
+    if (configName) return configName;
+    const i18nKey = FACET_I18N[identifier];
+    return i18nKey ? t(i18nKey as any) : identifier;
   };
 
   const hasQuery = searchMode === "simple" ? !!query : (logicalQuery?.rules?.length > 0);
@@ -35,7 +43,7 @@ export default function ResultsList() {
     }`;
 
   return (
-    <div className="animate-in fade-in duration-700">
+    <div className="animate-in fade-in duration-700" data-testid="results-list">
       {/* Tabs — style ResearchResults */}
       <div className="flex items-center gap-10 border-b border-[#e6e4e2] mb-8">
         <button onClick={() => setActiveTab("results")} className={tabClass("results")}>
@@ -60,7 +68,7 @@ export default function ResultsList() {
       {/* Active Filters Summary (Chips) */}
       {!loading && activeFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-2.5 mb-8 animate-in slide-in-from-left-2 duration-300">
-          <span className="text-[9px] font-bold text-[#969493] uppercase tracking-[0.2em] mr-1">Filtres:</span>
+          <span className="text-[9px] font-bold text-[#969493] uppercase tracking-[0.2em] mr-1">{t("filters")}:</span>
           {activeFilters.map((f, i) => (
             <div 
               key={i}
@@ -71,7 +79,7 @@ export default function ResultsList() {
               <button 
                 onClick={() => removeFilter(f.identifier, f.value)}
                 className="ml-1 text-[#969493] hover:text-[#f03603] hover:scale-110 transition-all"
-                title="Supprimer ce filtre"
+                title={t("removeFilter")}
               >
                 <X size={12} strokeWidth={3} />
               </button>
@@ -122,7 +130,7 @@ export default function ResultsList() {
             <div className="text-center py-24 bg-white border border-[#e6e4e2] border-dashed rounded-2xl text-[#969493]">
               <div className="text-4xl mb-4">🔍</div>
               <p className="font-medium text-sm">{t("noResults") || "Aucun résultat trouvé"}</p>
-              <p className="text-xs mt-2 opacity-70">Essayez de modifier votre recherche ou vos filtres</p>
+              <p className="text-xs mt-2 opacity-70">{t("noResultsHint")}</p>
             </div>
           )}
 
@@ -145,7 +153,7 @@ export default function ResultsList() {
           {!loading && !error && !hasQuery && (
             <div className="text-center py-24 text-[#969493] opacity-60">
                <div className="text-3xl mb-4 opacity-50">✨</div>
-               <p className="text-sm italic">Entrez un terme pour commencer votre recherche</p>
+               <p className="text-sm italic">{t("searchHint")}</p>
             </div>
           )}
         </>

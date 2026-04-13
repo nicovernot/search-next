@@ -7,33 +7,29 @@
 
 ---
 
-## Avancement au 2026-04-11
+## Avancement au 2026-04-13
 
 | Phase | Statut |
 |---|---|
 | Phase 1 — Backend Infrastructure & DB | ✅ Complète |
 | Phase 2 — Autocomplétion | ✅ Complète |
 | Phase 3 — Query Builder avancé | ✅ Complète |
-| Phase 4 — i18n (FR/EN/ES/IT/PT) | ⚠️ Partielle (voir décisions ouvertes) |
-| Phase 5 — Saved Searches | ❌ Non commencée |
+| Phase 4 — i18n (FR/EN/ES/DE/IT/PT) | ✅ Complète — 67 clés, 6 langues, 0 hardcodé |
+| Phase 5 — Saved Searches | ✅ Complète |
 | Spec 003 — UX Premium | ✅ Complète (dark mode, glassmorphism, animations) |
+| Correctifs CORS + pagination/filtres + i18n | ✅ Appliqués le 2026-04-13 |
+| Refactor SearchContext (latest ref) + loadSearch | ✅ Appliqué le 2026-04-13 |
 
 ---
 
-## Décisions ouvertes (nécessitent validation)
+## Décisions clôturées
 
-### D-001 : Langue allemande (DE)
-- Spec FR-007 demande : FR, EN, ES, **DE**, IT
-- Implémenté : FR, EN, ES, IT, **PT**
-- **Option A** : Ajouter DE + garder PT → 6 langues
-- **Option B** : Remplacer PT par DE → 5 langues (conforme spec, perd PT)
-- **Option C** : Garder PT, corriger la spec → PT reste, DE est retiré des exigences
+### D-001 : Langue allemande (DE) → **Option A retenue**
+- 6 langues : FR, EN, ES, DE, IT, PT
 
-### D-002 : next-intl vs I18nContext custom
-- `next-intl` est installé en tant que dépendance mais non utilisé
-- Le routing `[locale]` de next-intl n'est pas en place
-- **Option A** : Migrer vers next-intl complet (URLs localisées `/fr/`, `/en/`) — breaking change, travail estimé 1j
-- **Option B** : Conserver I18nContext custom + désinstaller next-intl (nettoyage) — rapide, spec déjà satisfaite fonctionnellement
+### D-002 : next-intl vs I18nContext custom → **Option A retenue**
+- Migration complète vers next-intl v4 avec routing `[locale]` (`/fr/`, `/en/`, etc.)
+- `I18nContext` custom supprimé
 
 ---
 

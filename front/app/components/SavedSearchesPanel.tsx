@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useAuth } from "../context/AuthContext";
 import { useSearch } from "../context/SearchContext";
@@ -18,31 +19,65 @@ interface SavedSearch {
 export default function SavedSearchesPanel() {
   const t = useTranslations();
   const { token } = useAuth();
-  const { query, filters, logicalQuery, searchMode, setQuery, setLogicalQuery, setSearchMode, executeSearch, clearFilters, addFilter } = useSearch();
+  const { query, filters, logicalQuery, searchMode, loadSearch } = useSearch();
 
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [searches, setSearches] = useState<SavedSearch[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [newName, setNewName] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
 
-  // Fermer le panel au clic en dehors (sans backdrop fixed qui bloque les z-index)
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Nécessaire pour éviter l'erreur SSR avec createPortal (même pattern qu'AuthModal)
+  useEffect(() => { setMounted(true); }, []);
+
+  // Fermer au clic en dehors — vérifie le bouton ET le panel portal
   useEffect(() => {
     if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-      // If the target was removed from DOM during React re-render (e.g. btn-show-save-form),
-      // it's disconnected — ignore it, the click was inside the component.
       if (!target.isConnected) return;
-      if (containerRef.current && !containerRef.current.contains(target)) {
-        setOpen(false);
+      if (buttonRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    // Délai pour ne pas capturer le clic d'ouverture
+    const id = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  // Recalculer position si scroll/resize pendant que le panel est ouvert
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
   }, [open]);
+
+  const handleToggle = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setOpen((v) => !v);
+  };
 
   const fetchSearches = useCallback(async () => {
     if (!token) return;
@@ -50,35 +85,23 @@ export default function SavedSearchesPanel() {
       const res = await fetch(`${API_BASE_URL}/saved-searches`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        setSearches(await res.json());
-      }
-    } catch {
-      // silently fail
-    }
+      if (res.ok) setSearches(await res.json());
+    } catch { /* silently fail */ }
   }, [token]);
 
-  useEffect(() => {
-    if (open) fetchSearches();
-  }, [open, fetchSearches]);
+  useEffect(() => { if (open) fetchSearches(); }, [open, fetchSearches]);
 
   const handleSave = async () => {
     if (!token || !newName.trim()) return;
     setSaving(true);
     try {
-      const queryPayload = {
-        query,
-        filters,
-        searchMode,
-        logicalQuery: searchMode === "advanced" ? logicalQuery : null,
-      };
       const res = await fetch(`${API_BASE_URL}/saved-searches`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newName.trim(), query_json: queryPayload }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: newName.trim(),
+          query_json: { query, filters, searchMode, logicalQuery: searchMode === "advanced" ? logicalQuery : null },
+        }),
       });
       if (res.ok) {
         setSaveSuccess(true);
@@ -87,9 +110,7 @@ export default function SavedSearchesPanel() {
         fetchSearches();
         setTimeout(() => setSaveSuccess(false), 2000);
       }
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: number) => {
@@ -100,36 +121,37 @@ export default function SavedSearchesPanel() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSearches((prev) => prev.filter((s) => s.id !== id));
-    } catch {
-      // silently fail
-    }
+    } catch { /* silently fail */ }
   };
 
   const handleLoad = (s: SavedSearch) => {
-    const { query: q, filters: f, searchMode: m, logicalQuery: lq } = s.query_json;
-    if (q !== undefined) setQuery(q);
-    if (m) setSearchMode(m);
-    if (lq) setLogicalQuery(lq);
-    // Restore filters
-    clearFilters();
-    if (f && typeof f === "object") {
-      for (const [field, values] of Object.entries(f)) {
-        for (const value of values as string[]) {
-          addFilter(field, value);
-        }
-      }
-    }
+    loadSearch(s.query_json);
     setOpen(false);
-    setTimeout(() => executeSearch(), 50);
   };
 
-  const hasCurrentSearch = query || Object.values(filters).some((v) => v.length > 0) || logicalQuery?.rules?.length > 0;
+  const hasCurrentSearch =
+    query || Object.values(filters).some((v) => v.length > 0) || logicalQuery?.rules?.length > 0;
+
+  if (!mounted) {
+    return (
+      <button
+        ref={buttonRef}
+        data-testid="btn-saved-searches"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-foreground bg-secondary border border-border rounded-xl premium-shadow"
+      >
+        <Bookmark size={15} />
+        {t("savedSearches")}
+        <ChevronDown size={12} />
+      </button>
+    );
+  }
 
   return (
-    <div className="relative" ref={containerRef}>
+    <>
       <button
+        ref={buttonRef}
         data-testid="btn-saved-searches"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-foreground bg-secondary border border-border rounded-xl hover:bg-muted hover:border-highlight/50 transition-all premium-shadow"
       >
         <Bookmark size={15} className={saveSuccess ? "text-green-500" : ""} />
@@ -137,14 +159,28 @@ export default function SavedSearchesPanel() {
         <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {open && (
-        <>
-          <div data-testid="saved-searches-panel" className="absolute right-0 top-12 z-40 w-80 bg-card border border-border rounded-2xl premium-shadow animate-fade-in p-4">
-            {/* Save current search */}
+      {createPortal(
+        open ? (
+          <div
+            ref={panelRef}
+            data-testid="saved-searches-panel"
+            style={{
+              position: "fixed",
+              top: dropdownPos.top,
+              right: dropdownPos.right,
+              zIndex: 2147483647,
+              width: "320px",
+              backgroundColor: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "1rem",
+              boxShadow: "0 20px 60px -10px rgba(0,0,0,0.15)",
+              padding: "1rem",
+            }}
+          >
             {hasCurrentSearch && (
-              <div className="mb-4">
+              <div style={{ marginBottom: "1rem" }}>
                 {showSaveForm ? (
-                  <div className="flex gap-2">
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
                     <input
                       data-testid="input-search-name"
                       type="text"
@@ -181,8 +217,7 @@ export default function SavedSearchesPanel() {
               </div>
             )}
 
-            {/* List */}
-            <div className="space-y-1 max-h-64 overflow-y-auto">
+            <div style={{ maxHeight: "16rem", overflowY: "auto" }}>
               {searches.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-6 italic">
                   {t("noSavedSearches")}
@@ -214,8 +249,9 @@ export default function SavedSearchesPanel() {
               )}
             </div>
           </div>
-        </>
+        ) : null,
+        document.body
       )}
-    </div>
+    </>
   );
 }

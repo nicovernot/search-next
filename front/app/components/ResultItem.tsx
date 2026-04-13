@@ -15,7 +15,7 @@ export default function ResultItem({ doc }: { doc: SearchDoc }) {
   const authors = Array.isArray(rawAuthors) ? rawAuthors : rawAuthors ? [rawAuthors] : [];
 
   return (
-    <article className="bg-card border border-border rounded-2xl p-6 transition-all duration-300 hover:border-highlight/50 hover:shadow-lg hover:shadow-highlight/5 hover:-translate-y-1 slide-up-enter group">
+    <article data-testid="result-item" className="bg-card border border-border rounded-2xl p-6 transition-all duration-300 hover:border-highlight/50 hover:shadow-lg hover:shadow-highlight/5 hover:-translate-y-1 slide-up-enter group">
       {/* Source badge row */}
       <div className="flex items-center gap-3 mb-4">
         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-bold text-secondary-foreground shadow-sm">

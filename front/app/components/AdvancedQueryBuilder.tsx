@@ -1,29 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { QueryBuilder, RuleGroupType, Field } from "react-querybuilder";
 import "react-querybuilder/dist/query-builder.css";
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import { Search, Trash2, Plus, ChevronDown } from "lucide-react";
 
-const fields: Field[] = [
-  { name: "titre", label: "Titre" },
-  { name: "author", label: "Auteur" },
-  { name: "naked_texte", label: "Texte intégral" },
-  { name: "disciplinary_field", label: "Sujet / Mots-clés" },
-];
-
 export default function AdvancedQueryBuilder() {
   const t = useTranslations();
-  const { executeSearch, setLogicalQuery } = useSearch();
+  const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery } = useSearch();
+
+  const fields: Field[] = [
+    { name: "titre", label: t("qb_fieldTitle") },
+    { name: "author", label: t("qb_fieldAuthor") },
+    { name: "naked_texte", label: t("qb_fieldFullText") },
+    { name: "disciplinary_field", label: t("qb_fieldKeywords") },
+  ];
   const [query, setQuery] = useState<RuleGroupType>({
     combinator: "and",
     rules: [],
   });
 
+  // Sync local builder state when a saved search restores logicalQuery
+  useEffect(() => {
+    if (contextLogicalQuery?.rules) {
+      setQuery(contextLogicalQuery as RuleGroupType);
+    }
+  }, [contextLogicalQuery]);
+
   const handleSearch = () => {
-    setLogicalQuery(query);
+    // setLogicalQuery synced via onQueryChange — executeSearch lit depuis latestRef
     executeSearch();
   };
 
@@ -51,14 +58,14 @@ export default function AdvancedQueryBuilder() {
             setLogicalQuery(q);
           }}
           translations={{
-            addGroup: "+ Groupe",
-            addRule: "+ Règle",
-            removeGroup: "Supprimer",
-            removeRule: "Supprimer",
-            combinators: { label: "Logique" },
-            fields: { label: "Champ" },
-            operators: { label: "Opérateur" },
-            value: { label: "Valeur" },
+            addGroup: t("qb_addGroup"),
+            addRule: t("qb_addRule"),
+            removeGroup: t("qb_remove"),
+            removeRule: t("qb_remove"),
+            combinators: { label: t("qb_logic") },
+            fields: { label: t("qb_field") },
+            operators: { label: t("qb_operator") },
+            value: { label: t("qb_value") },
           } as any}
           controlClassnames={{
             queryBuilder: "space-y-4",

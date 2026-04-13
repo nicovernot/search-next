@@ -36,6 +36,12 @@ async function doSearch(page: Page, query: string) {
   await page.waitForTimeout(1000);
 }
 
+async function waitForResults(page: Page) {
+  // Wait for the results list to contain at least one result item
+  await expect(page.locator('[data-testid="results-list"] [data-testid="result-item"]').first())
+    .toBeVisible({ timeout: 10000 });
+}
+
 async function openSavedSearchesPanel(page: Page) {
   await page.getByTestId("btn-saved-searches").click();
   await expect(page.getByTestId("saved-searches-panel")).toBeVisible();
@@ -158,11 +164,11 @@ test.describe("Charger une recherche sauvegardée", () => {
       page.getByTestId("saved-searches-panel").getByText("Sociologie test")
     ).toBeVisible({ timeout: 5000 });
 
-    // Fermer le panel (fill() ne dispatch pas de click, donc on ferme explicitement)
+    // Fermer le panel
     await page.mouse.click(10, 10);
     await expect(page.getByTestId("saved-searches-panel")).not.toBeVisible();
 
-    // Effacer la recherche courante (scroll au top pour s'assurer que le header est visible)
+    // Effacer la recherche courante
     await page.evaluate(() => window.scrollTo(0, 0));
     const searchInput = page.getByPlaceholder(/Rechercher|Search/i).first();
     await searchInput.fill("");
@@ -172,8 +178,42 @@ test.describe("Charger une recherche sauvegardée", () => {
     const loadBtn = page.locator("[data-testid^='btn-load-search-']").first();
     await loadBtn.click();
 
-    // Vérifier que le terme est restauré
+    // Vérifier que le terme est restauré ET que les résultats s'affichent
     await expect(searchInput).toHaveValue("sociologie", { timeout: 5000 });
+    await waitForResults(page);
+  });
+
+  test("charger depuis un nouvel onglet (après reload) exécute la recherche", async ({ page }) => {
+    await gotoHome(page);
+    const email = uniqueEmail();
+    await registerAndLogin(page, email, "password123");
+
+    // Sauvegarder une recherche
+    await doSearch(page, "histoire");
+    await openSavedSearchesPanel(page);
+    await page.getByTestId("btn-show-save-form").click();
+    await page.getByTestId("input-search-name").fill("Histoire persistée");
+    await page.getByTestId("btn-save-confirm").click();
+    await expect(
+      page.getByTestId("saved-searches-panel").getByText("Histoire persistée")
+    ).toBeVisible({ timeout: 5000 });
+
+    // Recharger la page (la session JWT persiste via localStorage)
+    await page.reload();
+    await expect(page.locator("header")).toBeVisible({ timeout: 15000 });
+
+    // Ouvrir le panel et charger la recherche
+    await openSavedSearchesPanel(page);
+    await expect(
+      page.getByTestId("saved-searches-panel").getByText("Histoire persistée")
+    ).toBeVisible({ timeout: 5000 });
+    const loadBtn = page.locator("[data-testid^='btn-load-search-']").first();
+    await loadBtn.click();
+
+    // Vérifier que le terme est restauré et que les résultats s'affichent
+    const searchInput = page.getByPlaceholder(/Rechercher|Search/i).first();
+    await expect(searchInput).toHaveValue("histoire", { timeout: 5000 });
+    await waitForResults(page);
   });
 });
 

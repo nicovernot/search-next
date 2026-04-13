@@ -1,12 +1,17 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { useLocale } from "next-intl";
 import type { SearchDoc, Facets, Filters, Pagination, FullFacetConfig } from "../types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8007";
 
-
+interface SavedSearchData {
+  query?: string;
+  filters?: Filters;
+  searchMode?: "simple" | "advanced";
+  logicalQuery?: any;
+}
 
 interface SearchContextValue {
   query: string;
@@ -23,6 +28,7 @@ interface SearchContextValue {
   loading: boolean;
   error: string | null;
   executeSearch: () => Promise<void>;
+  loadSearch: (data: SavedSearchData) => void;
   suggestions: string[];
   fetchSuggestions: (q: string) => Promise<void>;
   loadingSuggestions: boolean;
@@ -51,6 +57,14 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [searchMode, setSearchMode] = useState<"simple" | "advanced">("simple");
   const [facetConfig, setFacetConfig] = useState<FullFacetConfig | null>(null);
 
+  // Ref always holding the latest search params — avoids stale closure in executeSearch
+  const latestRef = useRef({ query, filters, pagination, logicalQuery, searchMode, facetConfig, locale });
+
+  // Sync ref after every render (no deps = runs unconditionally after each render)
+  React.useEffect(() => {
+    latestRef.current = { query, filters, pagination, logicalQuery, searchMode, facetConfig, locale };
+  });
+
   // Charger la configuration des facettes au démarrage
   React.useEffect(() => {
     fetch(`${API_BASE_URL}/facets/config`)
@@ -59,11 +73,17 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       .catch(err => console.error("Failed to load facet config", err));
   }, []);
 
-  const executeSearch = useCallback(async () => {
-    const hasFilters = Object.values(filters).some((v) => v.length > 0);
-    const hasLogical = searchMode === "advanced" && logicalQuery && logicalQuery.rules.length > 0;
-    
-    if (!query && !hasFilters && !hasLogical) {
+  // Core search — reads from latestRef so it's always stable (empty deps)
+  const runSearch = useCallback(async (overrides?: Partial<typeof latestRef.current>) => {
+    const { query: q, filters: f, pagination: pg, logicalQuery: lq, searchMode: sm, facetConfig: fc, locale: l } = {
+      ...latestRef.current,
+      ...overrides,
+    };
+
+    const hasFilters = Object.values(f).some((v) => v.length > 0);
+    const hasLogical = sm === "advanced" && lq && lq.rules?.length > 0;
+
+    if (!q && !hasFilters && !hasLogical) {
       setResults([]);
       setTotal(0);
       return;
@@ -73,39 +93,35 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const formattedFilters = Object.entries(filters).flatMap(([field, values]) =>
+      const formattedFilters = Object.entries(f).flatMap(([field, values]) =>
         values.map((value) => ({ identifier: field, value }))
       );
 
       const body = {
-        query: { query: query || "*" },
-        logical_query: searchMode === "advanced" ? logicalQuery : null,
+        query: { query: q || "*" },
+        logical_query: sm === "advanced" ? lq : null,
         filters: formattedFilters,
-        facets: facetConfig 
-          ? Object.keys(facetConfig.common || {}).map(f => ({ identifier: f, type: "list" }))
+        facets: fc
+          ? Object.keys(fc.common || {}).map(fk => ({ identifier: fk, type: "list" }))
           : [
-            { identifier: "platform", type: "list" },
-            { identifier: "type", type: "list" },
-          ],
-        pagination: { from: pagination.from, size: pagination.size },
+              { identifier: "platform", type: "list" },
+              { identifier: "type", type: "list" },
+            ],
+        pagination: { from: pg.from, size: pg.size },
       };
 
       const res = await fetch(`${API_BASE_URL}/search`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept-Language": locale },
+        headers: { "Content-Type": "application/json", "Accept-Language": l },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(res.statusText);
 
       const data = await res.json();
-      setResults(data.results || []); // Backend returns 'results' and 'total'
+      setResults(data.results || []);
       setTotal(data.total || 0);
-
-      const rawFacets = data.facets || {};
-      const transformed: Facets = {};
-      // Simplifié : le backend renvoie déjà un format plus propre ou on adapte
-      setFacets(rawFacets);
+      setFacets(data.facets || {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
       setResults([]);
@@ -113,7 +129,31 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [query, filters, pagination, logicalQuery, searchMode, facetConfig]);
+  }, []); // Stable forever — reads from ref
+
+  // Public executeSearch: no args, uses latest ref (called from SearchBar, AdvancedQueryBuilder)
+  const executeSearch = useCallback(() => runSearch(), [runSearch]);
+
+  // Load a saved search: updates state + executes immediately with the new values
+  const loadSearch = useCallback((data: SavedSearchData) => {
+    const q = data.query ?? "";
+    const f = data.filters ?? {};
+    const m = data.searchMode ?? "simple";
+    const lq = data.logicalQuery ?? null;
+    const pg = { ...latestRef.current.pagination, from: 0 };
+
+    // Update React state (for UI consistency on next render)
+    setQuery(q);
+    setSearchMode(m);
+    setLogicalQuery(lq);
+    setFilters(f);
+    setPagination(pg);
+
+    // Patch ref immediately so runSearch sees the new values right away
+    latestRef.current = { ...latestRef.current, query: q, filters: f, searchMode: m, logicalQuery: lq, pagination: pg };
+
+    runSearch({ query: q, filters: f, searchMode: m, logicalQuery: lq, pagination: pg });
+  }, [runSearch]);
 
   const addFilter = useCallback((field: string, value: string) => {
     setFilters((prev) => {
@@ -145,6 +185,14 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setPagination((p) => ({ ...p, from: (page - 1) * p.size }));
   }, []);
 
+  // Re-déclenche la recherche quand les filtres ou la page changent (si une recherche est active)
+  React.useEffect(() => {
+    const hasActive = query || (searchMode === "advanced" && logicalQuery?.rules?.length > 0);
+    if (!hasActive) return;
+    runSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, pagination.from, pagination.size]);
+
   const fetchSuggestions = useCallback(async (q: string) => {
     if (!q || q.length < 2) {
       setSuggestions([]);
@@ -170,7 +218,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       value={{
         query, setQuery, results, facets, filters,
         addFilter, removeFilter, clearFilters,
-        pagination, setPage, total, loading, error, executeSearch,
+        pagination, setPage, total, loading, error,
+        executeSearch, loadSearch,
         suggestions, fetchSuggestions, loadingSuggestions,
         logicalQuery, setLogicalQuery, searchMode, setSearchMode,
         facetConfig,

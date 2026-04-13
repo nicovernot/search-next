@@ -50,7 +50,7 @@ export default function Home() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 px-6 py-4 flex items-center justify-between glass animate-fade-in border-b-0 m-2 rounded-2xl">
+      <header className="relative z-50 px-6 py-4 flex items-center justify-between glass animate-fade-in border-b-0 m-2 rounded-2xl">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-highlight flex items-center justify-center premium-shadow">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
@@ -85,13 +85,13 @@ export default function Home() {
       <div className={hasContent ? "hidden" : "flex flex-col items-center px-6 pb-8"}>
         <div className="w-full max-w-2xl text-center pt-[10vh]">
           <h2 className="hero-title text-5xl font-extrabold text-foreground mb-4 tracking-tight font-serif">
-            Rechercher dans{" "}
+            {t("heroTitle")}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-highlight to-primary animate-pulse-glow">
               OpenEdition
             </span>
           </h2>
           <p className="hero-subtitle text-lg text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
-            Accédez à des milliers de publications scientifiques en sciences humaines et sociales avec un moteur IA.
+            {t("heroSubtitle")}
           </p>
           <div className="hero-badges flex items-center justify-center gap-3 flex-wrap mb-10">
             {PLATFORMS.map((p) => (

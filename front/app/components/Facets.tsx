@@ -4,6 +4,17 @@ import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import FacetGroup from "./FacetGroup";
 
+// Mapping clés backend Solr → clés de traduction
+const FACET_I18N: Record<string, string> = {
+  platform: "platform",
+  type: "documentType",
+  access: "access",
+  translations: "languageFilter",
+  author: "qb_fieldAuthor",
+  date: "facet_date",
+  subscribers: "facet_subscribers",
+};
+
 export default function Facets() {
   const { facets, filters, addFilter, removeFilter, clearFilters, facetConfig } = useSearch();
   const t = useTranslations();
@@ -12,11 +23,18 @@ export default function Facets() {
     values.map((value) => ({ identifier: field, value }))
   );
 
+  const getFacetLabel = (key: string, config?: any): string => {
+    const configName = (config as any)?.[""]?.name;
+    if (configName) return configName;
+    const i18nKey = FACET_I18N[key];
+    return i18nKey ? t(i18nKey as any) : key;
+  };
+
   // Générer les configurations de facettes dynamiquement à partir du backend
-  const dynamicFacetConfigs = facetConfig?.common 
+  const dynamicFacetConfigs = facetConfig?.common
     ? Object.entries(facetConfig.common).map(([key, config]) => ({
         key,
-        label: (config as any)[""]?.name || t(key as any) || key
+        label: getFacetLabel(key, config),
       }))
     : [
         { key: "platform", label: t("platform") },

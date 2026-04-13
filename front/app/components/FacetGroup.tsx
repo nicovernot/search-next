@@ -102,7 +102,7 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
               ))
             ) : (
               <li className="text-xs text-muted-foreground italic py-2">
-                Aucun résultat pour "{searchTerm}"
+                {t("noFacetResults", { term: searchTerm })}
               </li>
             )}
 
@@ -113,9 +113,9 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
                   className="flex items-center gap-1 text-xs font-semibold text-highlight hover:text-primary mt-2 transition-colors"
                 >
                   {showAll ? (
-                    <>Voir moins <ChevronUp size={12} /></>
+                    <>{t("showLess")} <ChevronUp size={12} /></>
                   ) : (
-                    <>Voir plus ({filteredBuckets.length - maxVisible}) <ChevronDown size={12} /></>
+                    <>{t("showMore", { count: filteredBuckets.length - maxVisible })} <ChevronDown size={12} /></>
                   )}
                 </button>
               </li>
