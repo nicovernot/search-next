@@ -2,7 +2,7 @@
 
 ## Status: ✅ All tasks completed
 
-- [x] **T01** — Créer `front-next/` à partir du starter browserbase-nextjs-template
+- [x] **T01** — Initialiser le frontend à partir du starter browserbase-nextjs-template
 - [x] **T01b** — Finaliser la structure applicative dans `front/`
 - [x] **T02** — Supprimer les composants Browserbase/Stagehand inutilisés
 - [x] **T03** — Définir les types TypeScript dans `app/types.ts`
