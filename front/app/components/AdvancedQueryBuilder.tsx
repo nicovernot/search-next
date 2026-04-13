@@ -85,15 +85,15 @@ export default function AdvancedQueryBuilder() {
             setLogicalQuery(q);
           }}
           translations={{
-            addGroup: t("qb_addGroup"),
-            addRule: t("qb_addRule"),
-            removeGroup: t("qb_remove"),
-            removeRule: t("qb_remove"),
-            combinators: { label: t("qb_logic") },
-            fields: { label: t("qb_field") },
-            operators: { label: t("qb_operator") },
-            value: { label: t("qb_value") },
-          } as const}
+            addGroup: { label: t("qb_addGroup"), title: t("qb_addGroup") },
+            addRule: { label: t("qb_addRule"), title: t("qb_addRule") },
+            removeGroup: { label: t("qb_remove"), title: t("qb_remove") },
+            removeRule: { label: t("qb_remove"), title: t("qb_remove") },
+            combinators: { title: t("qb_logic") },
+            fields: { title: t("qb_field") },
+            operators: { title: t("qb_operator") },
+            value: { title: t("qb_value") },
+          }}
           controlClassnames={{
             queryBuilder: "space-y-4",
             ruleGroup: "bg-secondary/40 border border-border rounded-xl p-4 transition-all hover:border-highlight/30",
@@ -108,7 +108,7 @@ export default function AdvancedQueryBuilder() {
           }}
           controlElements={{
             valueEditor: QueryBuilderAutocompleteValueEditor,
-          }}
+          } as any}
         />
       </div>
 

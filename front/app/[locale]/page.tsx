@@ -136,7 +136,7 @@ export default function Home() {
       {/* Search Component */}
       <div
         className={`relative z-30 transition-all duration-500 ease-in-out ${
-          hasContent ? "sticky top-4 px-6 pb-6" : "px-6 pb-12"
+          hasContent ? "px-6 pb-6" : "px-6 pb-12"
         }`}
       >
         <div
