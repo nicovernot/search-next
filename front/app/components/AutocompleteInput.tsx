@@ -24,13 +24,11 @@ export default function AutocompleteInput({
   const { suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [mounted, setMounted] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => { setMounted(true); }, []);
 
   // Recalcule la position du dropdown à chaque ouverture ou resize/scroll
   const updateDropdownRect = () => {
@@ -51,12 +49,13 @@ export default function AutocompleteInput({
     };
   }, [showSuggestions]);
 
-  // Fermer au clic en dehors
+  // Fermer au clic en dehors — exclut le wrapper ET la liste portal
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
+      const target = event.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if (listRef.current?.contains(target)) return;
+      setShowSuggestions(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -131,9 +130,10 @@ export default function AutocompleteInput({
   };
 
   const suggestionList =
-    mounted && showSuggestions && suggestions.length > 0
+    typeof document !== "undefined" && showSuggestions && suggestions.length > 0
       ? createPortal(
           <ul
+            ref={listRef}
             style={{
               position: "fixed",
               top: dropdownRect.top,

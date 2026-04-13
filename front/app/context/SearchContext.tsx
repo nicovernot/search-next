@@ -2,16 +2,17 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { useLocale } from "next-intl";
-import type { SearchDoc, Facets, Filters, Pagination, FullFacetConfig } from "../types";
+import type {
+  SearchDoc,
+  Facets,
+  Filters,
+  Pagination,
+  FullFacetConfig,
+  LogicalQuery,
+  SavedSearchData,
+} from "../types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8007";
-
-interface SavedSearchData {
-  query?: string;
-  filters?: Filters;
-  searchMode?: "simple" | "advanced";
-  logicalQuery?: any;
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
 
 interface SearchContextValue {
   query: string;
@@ -32,8 +33,8 @@ interface SearchContextValue {
   suggestions: string[];
   fetchSuggestions: (q: string) => Promise<void>;
   loadingSuggestions: boolean;
-  logicalQuery: any;
-  setLogicalQuery: (q: any) => void;
+  logicalQuery: LogicalQuery | null;
+  setLogicalQuery: (q: LogicalQuery | null) => void;
   searchMode: "simple" | "advanced";
   setSearchMode: (m: "simple" | "advanced") => void;
   facetConfig: FullFacetConfig | null;
@@ -53,12 +54,14 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [logicalQuery, setLogicalQuery] = useState<any>(null);
+  const [logicalQuery, setLogicalQuery] = useState<LogicalQuery | null>(null);
   const [searchMode, setSearchMode] = useState<"simple" | "advanced">("simple");
   const [facetConfig, setFacetConfig] = useState<FullFacetConfig | null>(null);
 
   // Ref always holding the latest search params — avoids stale closure in executeSearch
   const latestRef = useRef({ query, filters, pagination, logicalQuery, searchMode, facetConfig, locale });
+  // Prevents the filters/pagination useEffect from firing a second runSearch when loadSearch already called it
+  const skipEffectRef = useRef(false);
 
   // Sync ref after every render (no deps = runs unconditionally after each render)
   React.useEffect(() => {
@@ -142,6 +145,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     const lq = data.logicalQuery ?? null;
     const pg = { ...latestRef.current.pagination, from: 0 };
 
+    // Prevent the filters/pagination useEffect from firing a redundant runSearch
+    skipEffectRef.current = true;
+
     // Update React state (for UI consistency on next render)
     setQuery(q);
     setSearchMode(m);
@@ -168,8 +174,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setFilters((prev) => {
       const cur = (prev[field] || []).filter((v) => v !== value);
       if (cur.length === 0) {
-        const { [field]: _, ...rest } = prev;
-        return rest;
+        const next = { ...prev };
+        delete next[field];
+        return next;
       }
       return { ...prev, [field]: cur };
     });
@@ -187,7 +194,13 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   // Re-déclenche la recherche quand les filtres ou la page changent (si une recherche est active)
   React.useEffect(() => {
-    const hasActive = query || (searchMode === "advanced" && logicalQuery?.rules?.length > 0);
+    // Skip if loadSearch already called runSearch directly
+    if (skipEffectRef.current) {
+      skipEffectRef.current = false;
+      return;
+    }
+    const hasActive =
+      query || (searchMode === "advanced" && Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0);
     if (!hasActive) return;
     runSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps

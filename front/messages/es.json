@@ -4,6 +4,7 @@
   "language": "Idioma",
   "searchPlaceholder": "Buscar en OpenEdition...",
   "searchButton": "Buscar",
+  "resultsTitle": "Resultados",
   "filters": "Filtros",
   "resetFilters": "Restablecer",
   "platform": "Plataforma",

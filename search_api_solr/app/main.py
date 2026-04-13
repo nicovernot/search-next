@@ -148,13 +148,6 @@ async def get_document_permissions(
     try:
         return await service.get_document_permissions(urls, remote_ip)
     except Exception as e:
-        return DocsPermissionsResponse(
-            data={"organization": None, "docs": None},
-            info={"error": str(e)}
-        )
-    try:
-        return await service.get_document_permissions(urls, remote_ip)
-    except Exception as e:
         logger.error(f"Error in permissions endpoint: {e}")
         return DocsPermissionsResponse(
             data={"organization": None, "docs": None},
@@ -193,7 +186,7 @@ async def _execute_search(request: SearchRequest, builder: SearchBuilder) -> Dic
             raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/search")
-@limiter.limit("15/minute")
+@limiter.limit("120/minute")
 async def perform_search(
     request: Request,
     search_request: SearchRequest, 
@@ -223,7 +216,7 @@ async def perform_search(
              raise HTTPException(status_code=503, detail="Search service unavailable")
 
 @app.get("/search")
-@limiter.limit("15/minute")
+@limiter.limit("120/minute")
 async def search_via_get(
     request: Request,
     q: str = Query(..., description="Terme de recherche"),
@@ -318,7 +311,6 @@ async def suggest(
         except httpx.HTTPError as e:
             logger.error(f"Solr suggest error: {e}")
             return {"suggestions": []}
-            return {"suggest": {"default": {q: {"numFound": 0, "suggestions": []}}}}
 
 @app.get("/cache/stats")
 async def get_cache_stats():
