@@ -1,3 +1,16 @@
+# Changelog
+
+## [2026-04-15] - Correction environnement frontend Docker
+
+### Correction
+
+- **Problème** : Le container frontend crashait au démarrage avec `Cannot find module './cjs/react.development.js'`
+- **Cause** : Le fichier `front/.env` était absent. Sans lui, Next.js dans le container Docker ne chargeait pas correctement et l'initialisation de node_modules échouait.
+- **Solution** : `scripts/sync_env.sh` génère maintenant `front/.env` en plus de `front/.env.local`. Tous les targets `make dev`, `make prod`, `make staging` bénéficient automatiquement de ce fix via `sync-env`.
+- **Fichiers modifiés** : `scripts/sync_env.sh`
+
+---
+
 # Changelog - Décembre 2025
 
 ## [2025-12-12] - Corrections majeures

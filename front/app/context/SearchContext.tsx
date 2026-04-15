@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { useLocale } from "next-intl";
+import { api } from "../lib/api";
 import type {
   SearchDoc,
   Facets,
@@ -11,8 +12,6 @@ import type {
   LogicalQuery,
   SavedSearchData,
 } from "../types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
 
 interface SearchContextValue {
   query: string;
@@ -70,7 +69,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   // Charger la configuration des facettes au démarrage
   React.useEffect(() => {
-    fetch(`${API_BASE_URL}/facets/config`)
+    api.facetsConfig()
       .then(res => res.json())
       .then(config => setFacetConfig(config))
       .catch(err => console.error("Failed to load facet config", err));
@@ -113,11 +112,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         pagination: { from: pg.from, size: pg.size },
       };
 
-      const res = await fetch(`${API_BASE_URL}/search`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept-Language": l },
-        body: JSON.stringify(body),
-      });
+      const res = await api.search(body, l);
 
       if (!res.ok) throw new Error(res.statusText);
 
@@ -214,7 +209,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
     setLoadingSuggestions(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/suggest?q=${encodeURIComponent(q)}`);
+      const res = await api.suggest(q);
       if (!res.ok) throw new Error("Failed to fetch suggestions");
       const data = await res.json();
       setSuggestions(data.suggestions || []);

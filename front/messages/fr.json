@@ -48,6 +48,7 @@
   "loginRequired": "Connectez-vous pour sauvegarder vos recherches",
   "authError": "Email ou mot de passe incorrect",
   "registerError": "Erreur lors de la création du compte",
+  "emailAlreadyExists": "Cette adresse email est déjà utilisée",
   "passwordMismatch": "Les mots de passe ne correspondent pas",
   "queryBuilderTitle": "Constructeur de Requête Logique",
   "heroTitle": "Rechercher dans",

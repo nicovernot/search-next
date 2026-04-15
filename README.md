@@ -52,11 +52,12 @@ Frontend:
 
 ```bash
 cd front
+echo "NEXT_PUBLIC_API_URL=http://localhost:8003" > .env
 npm install
 npm run dev
 ```
 
-Le frontend s'attend à une API sur `NEXT_PUBLIC_API_URL`, avec repli local sur `http://localhost:8003`.
+Le fichier `front/.env` est généré automatiquement par `make dev` / `make sync-env`. En démarrage manuel, il faut le créer. Le frontend s'attend à une API sur `NEXT_PUBLIC_API_URL`, avec repli local sur `http://localhost:8003`.
 
 ## Commandes utiles
 

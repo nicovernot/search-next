@@ -1,3 +1,5 @@
+> **ARCHIVE** — Document historique basé sur l'état du projet avant la migration Next.js 16 / React 19 / TypeScript. Certaines recommandations ont depuis été implémentées.
+
 # 📋 Analyse Complète et Recommandations - OpenEdition Search v2
 
 Ce document présente une analyse approfondie du projet OpenEdition Search v2 basée sur l'examen du code, de l'architecture et des tests existants, avec des recommandations concrètes pour améliorer la sécurité, les performances, la maintenabilité et l'expérience utilisateur.

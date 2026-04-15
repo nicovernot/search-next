@@ -22,7 +22,7 @@ def register_user(
     user = db.query(User).filter(User.email == user_in.email).first()
     if user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_GATEWAY,
+            status_code=status.HTTP_409_CONFLICT,
             detail="User already registered"
         )
     
@@ -58,7 +58,7 @@ def login_user(
     # 2. Vérifier si l'utilisateur est actif
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_GATEWAY,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Inactive user"
         )
     

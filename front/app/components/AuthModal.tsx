@@ -80,6 +80,8 @@ export default function AuthModal() {
     localError ||
     (error === "auth_error"
       ? t("authError")
+      : error === "email_exists"
+      ? t("emailAlreadyExists")
       : error === "register_error"
       ? t("registerError")
       : null);

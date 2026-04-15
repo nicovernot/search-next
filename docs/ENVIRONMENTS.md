@@ -23,6 +23,9 @@ Le projet utilise une approche centralisée pour la gestion des environnements a
 1. **`.env.shared`** - Chargé en premier, contient les variables communes
 2. **`.env.{environment}`** - Surcharge les variables spécifiques à l'environnement
 3. **`{service}/.env.local`** - Fichiers générés, ne pas éditer manuellement
+4. **`front/.env`** - Copie de `front/.env.local`, nécessaire au container Docker
+
+> Le script `sync_env.sh` génère à la fois `front/.env.local` (pour Next.js en local) et `front/.env` (requis par le container Docker via bind-mount). Ne pas éditer ces fichiers manuellement.
 
 ## Utilisation
 
@@ -71,13 +74,11 @@ docker-compose -f docker-compose.prod.yml up --build
 
 ## Variables d'Environnement
 
-### Variables Frontend (React)
+### Variables Frontend (Next.js)
 
-Toutes les variables frontend doivent être préfixées par `REACT_APP_` :
+Les variables exposées côté client doivent être préfixées par `NEXT_PUBLIC_` :
 
-- `REACT_APP_API_URL` : URL de l'API backend
-- `REACT_APP_DEBUG` : Active/désactive le mode debug
-- `REACT_APP_MOCK_API` : Utilise des données mockées
+- `NEXT_PUBLIC_API_URL` : URL de l'API backend (seule variable requise)
 
 ### Variables Backend (FastAPI)
 

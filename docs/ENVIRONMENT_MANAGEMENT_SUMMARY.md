@@ -1,3 +1,5 @@
+> **DOUBLON** — Ce document fait doublon avec `docs/ENVIRONMENTS.md` qui est la référence à jour. Voir `docs/ENVIRONMENTS.md`.
+
 # Gestion Centralisée des Environnements - Résumé
 
 ## Ce qui a été implémenté

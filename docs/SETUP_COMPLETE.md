@@ -1,3 +1,5 @@
+> **ARCHIVE** — Document historique (ancienne architecture avec Solr local, ports 3009/8007, React 18). La source de vérité actuelle est `search_api_solr/DOCKER.md` et le `README.md` racine.
+
 # 🎉 Configuration Docker & Frontend - Récapitulatif Final
 
 ## ✅ Travail effectué

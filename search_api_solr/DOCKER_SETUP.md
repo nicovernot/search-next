@@ -1,3 +1,5 @@
+> **DOUBLON** — Ce document fait doublon avec `search_api_solr/DOCKER.md` qui est la référence à jour.
+
 # 🎉 Mise à jour Docker & Docker Compose - Résumé
 
 ## ✅ Fichiers créés/modifiés

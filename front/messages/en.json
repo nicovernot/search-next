@@ -48,6 +48,7 @@
   "loginRequired": "Log in to save your searches",
   "authError": "Incorrect email or password",
   "registerError": "Error creating account",
+  "emailAlreadyExists": "This email address is already in use",
   "passwordMismatch": "Passwords do not match",
   "queryBuilderTitle": "Logical Query Builder",
   "heroTitle": "Search in",

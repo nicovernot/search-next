@@ -58,6 +58,10 @@ POSTGRES_PORT=${POSTGRES_PORT:-5435}
 API_PORT=8007
 EOL
 
+# Copier .env.local en .env pour le container Docker (qui ne charge pas .env.local automatiquement)
+echo "Creating front/.env..."
+cp front/.env.local front/.env
+
 echo "Environment synchronization complete!"
-echo "Frontend: front/.env.local"
+echo "Frontend: front/.env.local + front/.env"
 echo "Backend: search_api_solr/.env.local"

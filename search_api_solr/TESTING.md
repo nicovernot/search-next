@@ -3,7 +3,7 @@
 ## 🚀 Démarrer le Serveur
 
 ```bash
-cd /home/nico/projets/search_v2/search_api_solr
+cd /home/nico/projets/search-next/search_api_solr
 uvicorn app.main:app --reload --port 8007
 ```
 
@@ -79,7 +79,7 @@ lsof -ti:8007 | xargs kill -9
 
 **Erreur d'import ?**
 ```bash
-cd /home/nico/projets/search_v2/search_api_solr
+cd /home/nico/projets/search-next/search_api_solr
 python3 -c "from app.main import app; print('✅ OK')"
 ```
 

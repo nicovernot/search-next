@@ -1,3 +1,5 @@
+> **DOUBLON** — Ce document résume `docs/CORS_CONFIGURATION.md` qui est la référence complète à jour. Voir `docs/CORS_CONFIGURATION.md`.
+
 # 🎉 Résumé de l'Implémentation CORS - OpenEdition Search v2
 
 Ce document résume l'implémentation réussie de la configuration CORS sécurisée pour le projet OpenEdition Search v2.

@@ -8,11 +8,21 @@
 
 Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de recherche, en s'appuyant sur le endpoint backend `GET /permissions` déjà exposé. L'objectif est de rendre visible, directement sur les cartes de résultats, si un document est accessible en lecture complète, en accès restreint (abonné), ou fermé.
 
-## Contexte technique
+## Contexte technique (état au 2026-04-15)
 
-Le backend expose déjà `GET /permissions`, mais la logique métier complète de permissions n'est pas encore branchée dans le service principal. Un `DocsPermissionsClient` existe dans le codebase et peut servir de base pour finaliser cette feature.
+**Backend — complet** :
+- `GET /permissions` est exposé et rate-limité (15 req/min)
+- `PermissionsService` et `DocsPermissionsClient` existent dans `search_api_solr/app/services/`
+- Le service appelle `http://auth.openedition.org/auth_by_url/` avec les URLs de documents
+- L'IP de l'utilisateur final est attendue via header `X-Forwarded-For`
 
-L'IP de l'utilisateur final doit être transmise côté backend (via header `X-Forwarded-For` ou détection dans FastAPI) — le frontend Next.js ne la connaît pas directement.
+**Frontend — absent** :
+- `ResultItem.tsx` n'appelle pas `/permissions` et n'affiche aucun badge
+- Aucun mécanisme de batch des URLs par page
+
+**Dépendance** : spec 006 (client API centralisé) — l'appel `/permissions` doit s'intégrer dans `lib/api.ts` avant d'être utilisé ici.
+
+L'IP de l'utilisateur final doit être transmise via header `X-Forwarded-For` depuis le serveur Next.js (route handler ou middleware) vers le backend FastAPI — le client browser ne la connaît pas directement.
 
 ## User Scenarios & Testing (Playwright)
 

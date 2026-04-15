@@ -1,8 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+import { api } from "../lib/api";
 
 interface AuthUser {
   id: number;
@@ -59,11 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await api.login(email, password);
       if (!res.ok) throw new Error("auth_error");
 
       const data = await res.json();
@@ -89,15 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        if (!res.ok) throw new Error("register_error");
+        const res = await api.register(email, password);
+        if (!res.ok) {
+          throw new Error(res.status === 409 ? "email_exists" : "register_error");
+        }
         await login(email, password);
       } catch (err: unknown) {
-        if (!isErrorWithMessage(err) || err.message !== "auth_error") setError("register_error");
+        if (!isErrorWithMessage(err) || err.message !== "auth_error") {
+          setError(isErrorWithMessage(err) ? err.message : "register_error");
+        }
         throw err;
       } finally {
         setLoading(false);

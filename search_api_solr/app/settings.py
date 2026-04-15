@@ -106,7 +106,7 @@ class Settings(BaseSettings):
     # Configuration Authentification (JWT)
     secret_key: str = "your-secret-key-for-development" # À changer en production !
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 1440  # 24h
     
     @model_validator(mode='after')
     def set_default_log_level(self):

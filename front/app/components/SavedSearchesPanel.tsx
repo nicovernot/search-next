@@ -6,9 +6,8 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "../context/AuthContext";
 import { useSearch } from "../context/SearchContext";
 import { Bookmark, Trash2, ChevronDown, Plus, Check } from "lucide-react";
+import { api } from "../lib/api";
 import type { SavedSearchRecord } from "../types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
 
 export default function SavedSearchesPanel() {
   const t = useTranslations();
@@ -73,9 +72,7 @@ export default function SavedSearchesPanel() {
   const fetchSearches = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/saved-searches`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.getSavedSearches(token);
       if (res.ok) {
         const data: SavedSearchRecord[] = await res.json();
         setSearches(data);
@@ -90,13 +87,9 @@ export default function SavedSearchesPanel() {
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/saved-searches`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          name: newName.trim(),
-          query_json: { query, filters, searchMode, logicalQuery: searchMode === "advanced" ? logicalQuery : null },
-        }),
+      const res = await api.createSavedSearch(token, {
+        name: newName.trim(),
+        query_json: { query, filters, searchMode, logicalQuery: searchMode === "advanced" ? logicalQuery : null },
       });
       if (res.ok) {
         setSaveSuccess(true);
@@ -118,10 +111,7 @@ export default function SavedSearchesPanel() {
   const handleDelete = async (id: number) => {
     if (!token) return;
     try {
-      await fetch(`${API_BASE_URL}/saved-searches/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.deleteSavedSearch(token, id);
       setSearches((prev) => prev.filter((s) => s.id !== id));
     } catch { /* silently fail */ }
   };

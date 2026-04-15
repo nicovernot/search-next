@@ -48,6 +48,7 @@
   "loginRequired": "Inicie sesión para guardar sus búsquedas",
   "authError": "Correo o contraseña incorrectos",
   "registerError": "Error al crear la cuenta",
+  "emailAlreadyExists": "Esta dirección de correo ya está en uso",
   "passwordMismatch": "Las contraseñas no coinciden",
   "queryBuilderTitle": "Constructor de Consulta Lógica",
   "heroTitle": "Buscar en",

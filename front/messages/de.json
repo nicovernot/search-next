@@ -48,6 +48,7 @@
   "loginRequired": "Melden Sie sich an, um Ihre Suchen zu speichern",
   "authError": "Falsche E-Mail oder falsches Passwort",
   "registerError": "Fehler beim Erstellen des Kontos",
+  "emailAlreadyExists": "Diese E-Mail-Adresse wird bereits verwendet",
   "passwordMismatch": "Passwörter stimmen nicht überein",
   "queryBuilderTitle": "Logischer Abfrage-Builder",
   "heroTitle": "Suchen in",

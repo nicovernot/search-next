@@ -26,6 +26,14 @@ Le frontend écoute sur `http://localhost:3000` en local simple, et sur `http://
 NEXT_PUBLIC_API_URL=http://localhost:8003
 ```
 
+Via Docker (`make dev`, `make prod`), le fichier `front/.env` est généré automatiquement par `scripts/sync_env.sh`.
+
+Pour un démarrage manuel sans Docker, créer `front/.env` manuellement :
+
+```bash
+echo "NEXT_PUBLIC_API_URL=http://localhost:8003" > .env
+```
+
 ## Scripts
 
 ```bash

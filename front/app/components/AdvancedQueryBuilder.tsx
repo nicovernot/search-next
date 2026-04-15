@@ -7,6 +7,7 @@ import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
+import { QB_FIELDS } from "../lib/qb-fields";
 
 const DEFAULT_QUERY: RuleGroupType = {
   combinator: "and",
@@ -44,12 +45,7 @@ export default function AdvancedQueryBuilder() {
   const t = useTranslations();
   const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery } = useSearch();
 
-  const fields: Field[] = [
-    { name: "titre", label: t("qb_fieldTitle") },
-    { name: "author", label: t("qb_fieldAuthor") },
-    { name: "naked_texte", label: t("qb_fieldFullText") },
-    { name: "disciplinary_field", label: t("qb_fieldKeywords") },
-  ];
+  const fields: Field[] = QB_FIELDS.map((f) => ({ name: f.name, label: t(f.labelKey) }));
   const handleSearch = () => {
     // setLogicalQuery synced via onQueryChange — executeSearch lit depuis latestRef
     executeSearch();
