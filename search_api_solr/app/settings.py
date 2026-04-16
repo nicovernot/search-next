@@ -55,11 +55,11 @@ class Settings(BaseSettings):
     api_reload: bool = True
     
     # Auth API
-    auth_api_url: str = "http://auth.openedition.org/auth_by_url/"
-    
+    auth_api_url: str = "https://auth.openedition.org/auth_by_url/"
+
     # Dev mode
     dev: bool = False
-    test_ip: str = "193.48.45.2"  # IP de test par défaut
+    test_ip: str = "139.124.244.81"  # IP de test par défaut (AMU)
     
     # Configuration CORS
     cors_origins: Optional[Union[str, List[str]]] = None
@@ -355,7 +355,7 @@ SOLR_CONFIG = {
 }
 
 # Constantes pour les filtres Solr (FQ)
-FQ_IDS_ARE = 'id:(%s)'
+FQ_IDS_ARE = 'url:(%s)'
 FQ_SUBSCRIBERS_IS = 'subscribers:%s'
 FQ_TYPE_IS = 'type:(%s)'
 SOLR_QUERY = '*:*'

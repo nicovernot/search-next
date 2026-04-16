@@ -1,8 +1,9 @@
 # Feature Specification: Corrections & Fondations Techniques
 
-**Feature Branch**: à créer — `feature/006-tech-debt`
+**Feature Branch**: `feature/002-advanced-search-suite` (intégrée dans la branche courante)
 **Created**: 2026-04-15
-**Status**: Backlog — correctifs identifiés lors de l'audit d'architecture du 2026-04-15
+**Updated**: 2026-04-15
+**Status**: ✅ Complète — tous les correctifs livrés
 
 ## Overview
 
@@ -92,42 +93,38 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 
 ---
 
+## État d'avancement (2026-04-15)
+
+| Correctif | FR | Statut |
+|-----------|----|----|
+| Token JWT 1440 min | FR-001 | ✅ Livré — `settings.py` default=1440, `.env.development` confirmé |
+| HTTP 409 email existant | FR-002 | ✅ Livré — `api/auth.py` retourne `HTTP_409_CONFLICT` |
+| Erreurs auth traduites | FR-003 | ✅ Livré — codes → `t()` dans AuthModal, 6 langues |
+| Client API centralisé | FR-004/005 | ✅ Livré — `lib/api.ts`, tous contextes migrés |
+| Champs QB depuis config | FR-006 | ✅ Livré — `GET /facets/config` expose `search_fields`, `SearchContext` le charge dans `searchFields`, fallback sur `QB_FIELDS` si API indisponible |
+
+---
+
 ## Plan d'implémentation
 
-### Étape 1 — Corrections backend (< 4h)
+### Étape 1 — Corrections backend (< 4h) ✅ FAIT
 
 1. `search_api_solr/app/api/auth.py:25` : `HTTP_400_BAD_GATEWAY` → `HTTP_409_CONFLICT`
 2. `search_api_solr/app/settings.py` : valeur par défaut `ACCESS_TOKEN_EXPIRE_MINUTES = 1440`
 3. `scripts/sync_env.sh` + `.env.development` : ajouter `ACCESS_TOKEN_EXPIRE_MINUTES=1440`
 
-### Étape 2 — i18n erreurs auth (< 2h)
+### Étape 2 — i18n erreurs auth (< 2h) ✅ FAIT
 
-1. Ajouter clés dans `front/app/messages/*.json` : `auth.error_invalid_credentials`, `auth.error_email_exists`, `auth.error_register_failed`
-2. `front/app/context/AuthContext.tsx` : remplacer les strings hardcodées par `t("auth.error_...")`
+- Clés `authError`, `emailAlreadyExists`, `registerError`, `passwordMismatch` dans les 6 fichiers `messages/*.json`
+- `AuthContext.tsx` : émet des codes (`"auth_error"`, `"email_exists"`, `"register_error"`)
+- `AuthModal.tsx` : mappe codes → `t()` (pattern adapté, fonctionnel)
 
-### Étape 3 — Client API centralisé (< 1 jour)
+### Étape 3 — Client API centralisé (< 1 jour) ✅ FAIT
 
-1. Créer `front/app/lib/api.ts` :
-   ```typescript
-   const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8003";
+- `front/app/lib/api.ts` créé avec toutes les méthodes typées
+- `SearchContext.tsx`, `AuthContext.tsx`, `SavedSearchesPanel.tsx` utilisent tous `api.*`
 
-   function headers(token?: string): HeadersInit {
-     return {
-       "Content-Type": "application/json",
-       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-     };
-   }
-
-   export const api = {
-     search: (body, lang, token?) => fetch(`${BASE}/search`, { method: "POST", headers: headers(token), body: JSON.stringify(body) }),
-     suggest: (q, lang) => fetch(`${BASE}/suggest?q=${encodeURIComponent(q)}`),
-     login: (email, password) => fetch(`${BASE}/auth/login`, { method: "POST", headers: headers(), body: JSON.stringify({ email, password }) }),
-     // ...
-   };
-   ```
-2. Remplacer les 7 appels `fetch()` dans `SearchContext.tsx`, `AuthContext.tsx`, `SavedSearchesPanel.tsx` par les méthodes `api.*`
-
-### Étape 4 — Champs QB depuis config (< 1 jour)
+### Étape 4 — Champs QB depuis config (< 1 jour) ⚠️ RESTE À FAIRE
 
 1. Backend : s'assurer que `GET /facets/config` expose les champs de recherche avancée (ou créer un endpoint dédié `GET /search-fields`)
 2. Frontend : charger les champs au montage dans `SearchContext` ou directement dans `AdvancedQueryBuilder`

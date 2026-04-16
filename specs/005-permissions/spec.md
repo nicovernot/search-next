@@ -1,8 +1,9 @@
 # Feature Specification: Permissions & Accès aux Résultats
 
-**Feature Branch**: à créer — `feature/005-permissions`  
-**Created**: 2026-04-13  
-**Status**: Backlog — non démarré (endpoint exposé, intégration métier incomplète)
+**Feature Branch**: `feature/002-advanced-search-suite` (intégrée dans la branche courante)
+**Created**: 2026-04-13
+**Updated**: 2026-04-15
+**Status**: ✅ Livré — badges d'accès affichés sur chaque résultat, chargement non-bloquant, 6 langues
 
 ## Overview
 

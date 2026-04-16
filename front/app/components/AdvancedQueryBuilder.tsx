@@ -7,7 +7,7 @@ import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
-import { QB_FIELDS } from "../lib/qb-fields";
+import { QB_FIELDS, QB_LABELS_MAP } from "../lib/qb-fields";
 
 const DEFAULT_QUERY: RuleGroupType = {
   combinator: "and",
@@ -43,9 +43,13 @@ function QueryBuilderAutocompleteValueEditor(props: ValueEditorProps) {
 
 export default function AdvancedQueryBuilder() {
   const t = useTranslations();
-  const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery } = useSearch();
+  const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery, searchFields } = useSearch();
 
-  const fields: Field[] = QB_FIELDS.map((f) => ({ name: f.name, label: t(f.labelKey) }));
+  // Champs depuis l'API si disponibles, fallback sur QB_FIELDS hardcodés
+  const fields: Field[] = (searchFields ?? QB_FIELDS.map((f) => f.name)).map((name) => ({
+    name,
+    label: QB_LABELS_MAP[name] ? t(QB_LABELS_MAP[name]) : name,
+  }));
   const handleSearch = () => {
     // setLogicalQuery synced via onQueryChange — executeSearch lit depuis latestRef
     executeSearch();

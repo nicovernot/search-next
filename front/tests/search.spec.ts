@@ -22,7 +22,7 @@ test.describe('Recherche OpenEdition - End To End', () => {
     
     await searchInput.press('Enter');
 
-    // On s'assure que les résultats ou le conteneur principal sont chargés
-    await expect(page.locator('article, .animate-fade-in')).toBeVisible({ timeout: 10000 });
+    // On s'assure qu'au moins un résultat (article) est affiché
+    await expect(page.locator('article').first()).toBeVisible({ timeout: 10000 });
   });
 });

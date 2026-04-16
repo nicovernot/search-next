@@ -161,24 +161,29 @@ class PermissionsService:
     async def get_document_permissions(self, urls: str, ip: str) -> Dict[str, Any]:
         """Récupère les permissions pour des documents avec cache"""
         try:
-            # Import local pour éviter les imports circulaires
             from app.services.cache_service import cache_service
-            
+            from app.services.docs_permissions_client import DocsPermissionsClient, SolrClient as PermSolrClient
+            from app.settings import SOLR_CONFIG
+
             # 1. Vérifier le cache d'abord
             cached_result = await cache_service.get_permissions_cache(urls, ip)
             if cached_result:
                 self.logger.debug(f"Returning cached permissions for URLs: {urls}")
                 return cached_result
-            
-            # 2. Logique pour récupérer les permissions
-            # (À implémenter selon la logique existante)
-            result = {"data": {"organization": None, "docs": None}, "info": {"status": "ok"}}
-            
+
+            # 2. Appel réel via DocsPermissionsClient
+            perm_client = DocsPermissionsClient(
+                solr_client=PermSolrClient(base_url=SOLR_CONFIG["base_url"]),
+                settings=SOLR_CONFIG,
+            )
+            response = await perm_client.handle_query(urls, ip)
+            result = response.dict() if hasattr(response, "dict") else dict(response)
+
             # 3. Mettre en cache le résultat
             await cache_service.set_permissions_cache(urls, result, ip)
-            
+
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Permissions check failed: {e}")
             return {"data": {"organization": None, "docs": None}, "info": {"error": str(e)}}

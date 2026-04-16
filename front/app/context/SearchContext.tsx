@@ -9,8 +9,13 @@ import type {
   Filters,
   Pagination,
   FullFacetConfig,
+  FacetsConfigResponse,
   LogicalQuery,
   SavedSearchData,
+  PermissionsMap,
+  PermissionInfo,
+  PermissionStatus,
+  Organization,
 } from "../types";
 
 interface SearchContextValue {
@@ -37,6 +42,13 @@ interface SearchContextValue {
   searchMode: "simple" | "advanced";
   setSearchMode: (m: "simple" | "advanced") => void;
   facetConfig: FullFacetConfig | null;
+  /** Champs de recherche avancée chargés depuis /facets/config (null = pas encore chargé) */
+  searchFields: string[] | null;
+  /** Statut d'accès par URL — chargé de façon asynchrone après les résultats */
+  permissions: PermissionsMap;
+  loadingPermissions: boolean;
+  /** Organisation détectée pour l'IP courante (null si anonyme) */
+  organization: Organization | null;
 }
 
 const SearchContext = createContext<SearchContextValue | null>(null);
@@ -56,6 +68,10 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [logicalQuery, setLogicalQuery] = useState<LogicalQuery | null>(null);
   const [searchMode, setSearchMode] = useState<"simple" | "advanced">("simple");
   const [facetConfig, setFacetConfig] = useState<FullFacetConfig | null>(null);
+  const [searchFields, setSearchFields] = useState<string[] | null>(null);
+  const [permissions, setPermissions] = useState<PermissionsMap>({});
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [organization, setOrganization] = useState<Organization | null>(null);
 
   // Ref always holding the latest search params — avoids stale closure in executeSearch
   const latestRef = useRef({ query, filters, pagination, logicalQuery, searchMode, facetConfig, locale });
@@ -67,12 +83,50 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     latestRef.current = { query, filters, pagination, logicalQuery, searchMode, facetConfig, locale };
   });
 
-  // Charger la configuration des facettes au démarrage
+  // Charger la configuration des facettes + champs de recherche avancée au démarrage
   React.useEffect(() => {
     api.facetsConfig()
       .then(res => res.json())
-      .then(config => setFacetConfig(config))
+      .then((raw: FacetsConfigResponse) => {
+        const { search_fields, ...facetGroups } = raw;
+        setFacetConfig(facetGroups as FullFacetConfig);
+        if (Array.isArray(search_fields) && search_fields.length > 0) {
+          setSearchFields(search_fields);
+        }
+      })
       .catch(err => console.error("Failed to load facet config", err));
+  }, []);
+
+  // Charge les statuts d'accès pour un lot d'URLs — non-bloquant, silencieux en cas d'erreur
+  const fetchPermissions = useCallback(async (urls: string[]) => {
+    const validUrls = urls.filter(Boolean);
+    if (validUrls.length === 0) return;
+    setLoadingPermissions(true);
+    try {
+      const res = await api.permissions(validUrls);
+      if (!res.ok) return;
+      const data = await res.json();
+      const docs: Array<{ url: string; isPermitted: boolean; formats?: string[] }> | null = data?.data?.docs ?? null;
+      const org: Organization | null = data?.data?.organization ?? null;
+      const purchased: boolean = org?.purchased ?? false;
+      setOrganization(org);
+      const map: PermissionsMap = {};
+      if (!docs) {
+        validUrls.forEach((url) => {
+          map[url] = { status: "unknown" as PermissionStatus, formats: [] };
+        });
+      } else {
+        docs.forEach(({ url, isPermitted, formats }) => {
+          const status: PermissionStatus = !isPermitted ? "restricted" : purchased ? "institutional" : "open";
+          map[url] = { status, formats: formats ?? [] };
+        });
+      }
+      setPermissions(map);
+    } catch {
+      // Échec silencieux — les badges restent en état neutre
+    } finally {
+      setLoadingPermissions(false);
+    }
   }, []);
 
   // Core search — reads from latestRef so it's always stable (empty deps)
@@ -93,6 +147,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     setError(null);
+    setPermissions({});
+    setOrganization(null);
 
     try {
       const formattedFilters = Object.entries(f).flatMap(([field, values]) =>
@@ -117,9 +173,13 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(res.statusText);
 
       const data = await res.json();
-      setResults(data.results || []);
+      const pageResults: SearchDoc[] = data.results || [];
+      setResults(pageResults);
       setTotal(data.total || 0);
       setFacets(data.facets || {});
+      // Permissions — non-bloquant, fire-and-forget
+      const pageUrls = pageResults.map((d) => d.url).filter((u): u is string => !!u);
+      if (pageUrls.length > 0) fetchPermissions(pageUrls);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
       setResults([]);
@@ -230,7 +290,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         executeSearch, loadSearch,
         suggestions, fetchSuggestions, loadingSuggestions,
         logicalQuery, setLogicalQuery, searchMode, setSearchMode,
-        facetConfig,
+        facetConfig, searchFields,
+        permissions, loadingPermissions, organization,
       }}
     >
       {children}

@@ -77,4 +77,10 @@ export const api = {
       headers: bearerHeaders(token),
     });
   },
+
+  // --- Permissions ---
+
+  permissions(urls: string[]): Promise<Response> {
+    return fetch(`${BASE}/permissions?urls=${urls.map(encodeURIComponent).join(",")}`);
+  },
 };

@@ -1,8 +1,8 @@
 # Architecture — OpenEdition Search
 
-**Date d'audit**: 2026-04-15
+**Dernier audit**: 2026-04-15 (mis à jour après commit f5297ac)
 **Branch active**: `feature/002-advanced-search-suite`
-**État global**: Application fonctionnelle, 29 tests E2E verts, 3 specs implémentées sur 5.
+**État global**: Application fonctionnelle, 29 tests E2E verts, spec 006 quasi-complète.
 
 ---
 
@@ -43,14 +43,19 @@
 │  ├── ResultsList / ResultItem / Pagination                  │
 │  ├── AuthModal / AuthButtons                                │
 │  └── SavedSearchesPanel                                     │
+│                                                              │
+│  Lib:                                                        │
+│  ├── lib/api.ts     — client API centralisé (tous fetch)   │
+│  └── lib/qb-fields.ts — définition des champs QueryBuilder │
 └─────────────────────┬────────────────────────────────────────┘
-                      │ fetch() — REST JSON
+                      │ fetch() via lib/api.ts — REST JSON
                       │ http://localhost:8003
 ┌─────────────────────▼────────────────────────────────────────┐
 │                    BACKEND (FastAPI)                          │
 │                                                              │
 │  Endpoints:                                                  │
-│  ├── POST /search, GET /suggest                             │
+│  ├── POST /search, GET /search                              │
+│  ├── GET /suggest                                           │
 │  ├── GET /facets/config                                     │
 │  ├── GET /permissions                                       │
 │  ├── POST /auth/login, POST /auth/register                  │
@@ -99,8 +104,8 @@ AdvancedQueryBuilder → setLogicalQuery(RuleGroupType)
 
 ### Authentification
 ```
-AuthModal → POST /auth/login { email, password }
-  → JWT (HS256, sub=user_id)
+AuthModal → api.login(email, password) → POST /auth/login
+  → JWT (HS256, sub=user_id, TTL=1440 min)
   → localStorage["auth_token"] + localStorage["auth_user"]
   → AuthProvider.setUser() / setToken()
   → Accès SavedSearchesPanel
@@ -108,7 +113,7 @@ AuthModal → POST /auth/login { email, password }
 
 ---
 
-## Ce qui fonctionne (état réel)
+## État des features (2026-04-15)
 
 | Feature | Statut | Tests |
 |---------|--------|-------|
@@ -117,39 +122,14 @@ AuthModal → POST /auth/login { email, password }
 | Recherche avancée (QueryBuilder AND/OR/NOT) | ✅ Complet | inclus dans 29 |
 | i18n 6 langues (FR/EN/ES/DE/IT/PT) | ✅ Complet | — |
 | Thème clair/sombre | ✅ Complet | — |
-| Authentification JWT | ✅ Complet | 15 E2E |
+| Authentification JWT (1440 min) | ✅ Complet | 15 E2E |
 | Recherches sauvegardées | ✅ Complet | 12 E2E |
-| Badges d'accès (permissions) | ⚠️ Partiel | — |
+| Client API centralisé (`lib/api.ts`) | ✅ Complet | — |
+| HTTP 409 pour email existant | ✅ Complet | — |
+| Erreurs auth traduites (6 langues) | ✅ Complet | — |
+| Badges d'accès (permissions) | ⚠️ Partiel — endpoint OK, UI absente | — |
+| Champs QB depuis config API | ⚠️ Partiel — fichier dédié, mais toujours hardcodé | — |
 | Sync état ↔ URL | 🔲 Absent | — |
-
----
-
-## Problèmes de cohérence identifiés
-
-### Critiques
-
-| # | Problème | Fichier | Impact |
-|---|---------|---------|--------|
-| C1 | Token JWT expiré en 30 min (doit être 1440 min) | `settings.py:109` | Utilisateurs déconnectés trop tôt |
-| C2 | Badges permissions : endpoint `/permissions` existant, UI absente | `ResultItem.tsx` | Spec 005 non livrée |
-| C3 | Pas de sync état ↔ URL | `SearchContext.tsx` | Liens non partageables |
-
-### Importants
-
-| # | Problème | Fichier | Impact |
-|---|---------|---------|--------|
-| I1 | Champs QueryBuilder hardcodés au lieu de venir de la config | `AdvancedQueryBuilder.tsx:47-52` | Maintenance manuelle à chaque ajout de champ |
-| I2 | Appels `fetch()` dispersés sans client API centralisé | `SearchContext.tsx`, `AuthContext.tsx`, `SavedSearchesPanel.tsx` | Headers auth manquants, gestion d'erreurs incohérente |
-| I3 | Code erreur `HTTP_400_BAD_GATEWAY` (502) au lieu de 409 | `api/auth.py:25` | Erreur email existant mal interprétée par le frontend |
-| I4 | Messages d'erreur auth non traduits | `AuthContext.tsx:80,100` | Rupture i18n en cas d'échec login/register |
-
-### Mineurs
-
-| # | Problème | Fichier |
-|---|---------|---------|
-| M1 | Type `Any` pour `logical_query` dans le modèle Pydantic | `search_models.py:79` |
-| M2 | Assertion de type manuelle dans `ResultsList.tsx` pour facet config | `ResultsList.tsx:29-33` |
-| M3 | Logs frontend via `console.error()` non structurés | Tous les composants |
 
 ---
 
@@ -157,40 +137,59 @@ AuthModal → POST /auth/login { email, password }
 
 ### Points forts
 - **DI backend** : Services injectés via `Depends()`, interfaces définies (`ISearchService`, `ISearchBuilder`). Facile à mocker/tester.
-- **Config JSON** : Facettes et champs Solr en JSON (`facets_json/`, `fields_json/`). Pas de recompilation pour ajouter un champ.
-- **Contextes React** : Logique métier centralisée dans `SearchContext` / `AuthContext`. Composants UI dumb.
+- **Config JSON** : Facettes et champs Solr en JSON (`facets_json/`, `fields_json/`). Pas de recompilation pour modifier une facette.
+- **Contextes React** : Logique métier centralisée dans `SearchContext` / `AuthContext`. Composants UI sans état propre (dumb).
+- **latestRef pattern** : Évite les stale closures dans `executeSearch` sans useCallback instable. Pattern robuste.
+- **Client API centralisé** : `lib/api.ts` — un seul endroit pour changer base URL, headers, auth. Tous les contextes l'utilisent.
+- **Types centralisés** : `front/app/types.ts` — interfaces partagées entre composants et contextes.
 - **Tests E2E** : 29 tests Playwright couvrent les flux critiques.
+- **i18n** : 69 clés × 6 langues, gérées via next-intl. Ajout d'une langue = 1 fichier JSON.
 
-### Dettes techniques
-- **Pas de client API frontend** : 7 appels `fetch()` dispersés dans 4 fichiers différents. Chaque modification (ajout header auth, changement de base URL) nécessite des modifications à plusieurs endroits.
-- **Champs QB hardcodés** : Les 4 champs du QueryBuilder (`titre`, `author`, `naked_texte`, `disciplinary_field`) sont dans `AdvancedQueryBuilder.tsx`. Ajouter un champ nécessite de modifier le code.
-- **Expiration token** : Valeur par défaut 30 min dans `settings.py`, non compensée dans les fichiers `.env` de dev.
+### Dettes techniques restantes
+
+| # | Problème | Fichier | Impact |
+|---|---------|---------|--------|
+| D1 | Champs QB encore hardcodés dans `qb-fields.ts` (pas depuis `/facets/config`) | `lib/qb-fields.ts` | Ajout d'un champ nécessite un commit frontend |
+| D2 | `logical_query: Optional[Any]` dans Pydantic | `search_models.py:79` | Pas de validation schema de la requête avancée |
+| D3 | Timestamp hardcodé `"2024-01-01T00:00:00Z"` dans `/health` | `main.py:342` | Health check retourne une date fixe |
+| D4 | `solr_connector.py` et `document_mapper.py` potentiellement orphelins | `services/` | Code mort possible |
 
 ---
 
-## Plan d'action prioritaire
+## Problèmes de cohérence résolus depuis l'audit initial
 
-### Priorité 1 — Corrections rapides (< 1 jour)
-1. **Fixer le token TTL** : Ajouter `ACCESS_TOKEN_EXPIRE_MINUTES=1440` dans `.env.development` et `sync_env.sh`
-2. **Fixer le code HTTP** : `HTTP_400_BAD_GATEWAY` → `HTTP_409_CONFLICT` dans `api/auth.py:25`
-3. **i18n erreurs auth** : Utiliser des clés i18n dans `AuthContext.tsx` au lieu de strings hardcodées
+| Problème initial | Solution apportée |
+|---|---|
+| Token JWT 30 min | `settings.py` default=1440, `.env.development` aussi |
+| HTTP 502 pour email existant | `api/auth.py` → `HTTP_409_CONFLICT` |
+| Erreurs auth hardcodées (non traduites) | Pattern codes → `t()` dans AuthModal, 6 langues |
+| 7 `fetch()` dispersés | `lib/api.ts` centralisé, tous les contextes migrent |
+| Champs QB dans le composant | Extraits dans `lib/qb-fields.ts` |
 
-### Priorité 2 — Fondations (2-3 jours)
-4. **Client API centralisé** : Créer `front/app/lib/api.ts` regroupant tous les appels `fetch()` avec gestion des headers et des erreurs
-5. **Champs QB depuis config** : Charger les champs du QueryBuilder depuis `GET /facets/config` au lieu du hardcode
+---
 
-### Priorité 3 — Features backlog
-6. **005-permissions** : Badges d'accès sur les résultats (endpoint existant, UI à créer)
-7. **004-url-sync** : Synchronisation état ↔ URL (liens partageables, back/forward)
+## Plan d'action prioritaire (état actuel)
+
+### Priorité 1 — Compléter spec 006 (< 1 jour)
+1. **Champs QB depuis config** (D1) : Charger les champs depuis `GET /facets/config` dans `SearchContext`, passer en prop à `AdvancedQueryBuilder`, fallback sur `QB_FIELDS` si config indisponible
+2. **Typer `logical_query`** (D2) : Remplacer `Optional[Any]` par un modèle Pydantic récursif
+3. **Fix timestamp `/health`** (D3) : `datetime.utcnow().isoformat()` au lieu de la string fixe
+4. **Vérifier orphelins** (D4) : Confirmer si `solr_connector.py` et `document_mapper.py` sont importés quelque part
+
+### Priorité 2 — Spec 005 Permissions (~3 jours)
+5. **Badges d'accès** : Appeler `GET /permissions?urls=...` depuis `ResultsList`, afficher badges sur `ResultItem`
+
+### Priorité 3 — Spec 004 URL Sync (~4 jours)
+6. **Sync état ↔ URL** : Encoder query/filters/page dans les query params, gérer back/forward, générer des liens partageables
 
 ---
 
 ## Ordre d'implémentation recommandé
 
 ```
-[Corrections rapides] → [Client API] → [005-permissions] → [004-url-sync]
-       ~1j                   ~2j              ~3j                ~4j
+[006 restant] → [005-permissions] → [004-url-sync]
+     <1j              ~3j                ~4j
 ```
 
-La spec 005 bénéficie du client API centralisé (l'appel `/permissions` s'y intègre proprement).
-La spec 004 est la plus complexe et doit venir en dernier car elle touche le `SearchContext` en profondeur.
+La spec 005 bénéficie du client API centralisé (déjà en place).
+La spec 004 est la plus complexe (touche `SearchContext` en profondeur) — à faire en dernier.

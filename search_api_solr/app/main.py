@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from typing import Dict, Any, List
+from datetime import datetime, timezone
 import httpx
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -145,6 +146,9 @@ async def get_document_permissions(
     remote_ip = request.client.host if request.client else None
     if ip:
         remote_ip = ip
+    elif settings.dev and settings.test_ip:
+        remote_ip = settings.test_ip
+        logger.info(f"[DEV] IP simulée depuis TEST_IP: {remote_ip}")
     try:
         return await service.get_document_permissions(urls, remote_ip)
     except Exception as e:
@@ -330,16 +334,16 @@ async def clear_cache(
 
 @app.get("/facets/config")
 async def get_facets_config():
-    """ Retourne la configuration complète des facettes """
-    from app.services.facet_config import FACET_CONFIG
-    return FACET_CONFIG
+    """ Retourne la configuration complète des facettes + champs de recherche avancée """
+    from app.services.facet_config import FACET_CONFIG, SEARCH_FIELDS_MAPPING
+    return {**FACET_CONFIG, "search_fields": list(SEARCH_FIELDS_MAPPING.keys())}
 
 @app.get("/health")
 async def health_check():
     """ Endpoint de santé incluant le statut Redis """
     health_status = {
         "status": "healthy",
-        "timestamp": "2024-01-01T00:00:00Z",  # À remplacer par datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "services": {
             "api": "healthy",
             "cache": "unknown"

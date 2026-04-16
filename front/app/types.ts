@@ -56,6 +56,11 @@ export interface FullFacetConfig {
   };
 }
 
+/** Réponse brute de GET /facets/config — inclut search_fields en plus des groupes de facettes */
+export interface FacetsConfigResponse extends Record<string, unknown> {
+  search_fields?: string[];
+}
+
 export type LogicalQuery = RuleGroupType;
 
 export interface SavedSearchData {
@@ -70,6 +75,24 @@ export interface SavedSearchRecord {
   name: string;
   query_json: SavedSearchData;
   created_at: string;
+}
+
+export type PermissionStatus = "open" | "institutional" | "restricted" | "unknown";
+
+export interface PermissionInfo {
+  status: PermissionStatus;
+  formats: string[];
+}
+
+export type PermissionsMap = Record<string, PermissionInfo>;
+
+export interface Organization {
+  name?: string;
+  shortname?: string;
+  longname?: string;
+  logoUrl?: string;
+  formats?: string[];
+  purchased?: boolean;
 }
 
 export interface SearchState {

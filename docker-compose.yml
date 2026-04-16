@@ -14,13 +14,16 @@ services:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://search_user:search_password@postgres:5432/search_db
+      - DEV=true
+      - TEST_IP=${TEST_IP:-139.124.244.81}
+      - AUTH_API_URL=https://auth.openedition.org/auth_by_url/
     volumes:
       # Volume pour le développement (hot reload)
       - ./search_api_solr:/app
       # Exclure les répertoires Python cache
       - /app/__pycache__
       - /app/.pytest_cache
-      - ./search_api_solr/.env:/app/.env
+      # Note: ./search_api_solr/.env est un répertoire, le fichier de config vient des env vars ci-dessus
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
     restart: unless-stopped
     depends_on:

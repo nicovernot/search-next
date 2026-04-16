@@ -69,5 +69,9 @@
   "qb_value": "Valor",
   "noFacetResults": "Sin resultados para \"{term}\"",
   "facet_date": "Fecha",
-  "facet_subscribers": "Suscriptores"
+  "facet_subscribers": "Suscriptores",
+  "access_open": "Acceso abierto",
+  "access_institutional": "Acceso institucional",
+  "access_restricted": "Acceso restringido",
+  "access_unknown": "Acceso desconocido"
 }

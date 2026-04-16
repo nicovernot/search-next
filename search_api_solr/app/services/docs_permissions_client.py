@@ -5,7 +5,7 @@ import logging
 from urllib.parse import urlencode, quote_plus
 import httpx # Librairie pour les requêtes HTTP asynchrones
 
-from app.settings import SOLR_CONFIG, FQ_IDS_ARE, FQ_SUBSCRIBERS_IS, FQ_TYPE_IS, SOLR_QUERY
+from app.settings import SOLR_CONFIG, FQ_IDS_ARE, FQ_SUBSCRIBERS_IS, FQ_TYPE_IS, SOLR_QUERY, settings
 from app.models import DocsPermissionsResponse, Organization # Importez vos modèles Pydantic
 
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +17,7 @@ class SolrClient:
         self.base_url = base_url
     
     async def query(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        url = f"{self.base_url}/select?{urlencode(params)}"
+        url = f"{self.base_url}/select?{urlencode(params, doseq=True)}"
         logger.info(f"Requête Solr exécutée: {url}")
         
         async with httpx.AsyncClient() as client:
@@ -95,6 +95,37 @@ class DocsPermissionsClient:
             })
         return accessible_docs
 
+    @staticmethod
+    def _formats_for_url(url: str, has_facsimile: bool) -> List[str]:
+        """Dérive les formats disponibles selon la plateforme OpenEdition et la présence d'un PDF."""
+        if 'journals.openedition.org' in url:
+            # Revues : html + epub + pdf (accès institutionnel standard)
+            return ['html', 'epub', 'pdf']
+        if 'books.openedition.org' in url:
+            return ['html', 'pdf'] if has_facsimile else ['html']
+        # hypotheses.org, calenda.org, etc.
+        return ['html']
+
+    async def _fetch_doc_formats(self, docs_urls: List[str]) -> Dict[str, List[str]]:
+        """Dérive les formats disponibles par doc depuis Solr (files_facsimile) + type de plateforme."""
+        escaped_urls = [self._escape_url_chars(url) for url in docs_urls]
+        fq = FQ_IDS_ARE % (' OR '.join(escaped_urls))
+        params = {'q': SOLR_QUERY, 'fq': fq, 'fl': 'url files_facsimile', 'rows': len(docs_urls), 'wt': 'json'}
+        solr_response = await self.solr_client.query(params)
+
+        # Index Solr results by URL
+        solr_by_url: Dict[str, bool] = {}
+        if solr_response and solr_response.get('responseHeader', {}).get('status') == 0:
+            for doc in solr_response['response']['docs']:
+                url = doc.get('url')
+                if url:
+                    solr_by_url[url] = bool(doc.get('files_facsimile'))
+
+        return {
+            url: self._formats_for_url(url, solr_by_url.get(url, False))
+            for url in docs_urls
+        }
+
     async def _fetch_accessible_documents(self, organization: Organization, docs_urls: List[str]) -> List[Dict[str, Any]]:
         """ Récupère les documents accessibles à l'organisation depuis Solr """
         
@@ -108,23 +139,27 @@ class DocsPermissionsClient:
         response_docs = solr_response['response']['docs']
         return self._extract_accessible_docs(response_docs)
 
-    def _format_response_docs(self, docs_urls: List[str], authorized_docs: List[Dict[str, Any]], organization: Optional[Organization]) -> List[Dict[str, Any]]:
-        """ Formate la réponse finale pour chaque URL demandée """
-        
-        authorized_urls = [doc['url'] for doc in authorized_docs]
+    def _format_response_docs(self, docs_urls: List[str], authorized_docs: Any, organization: Optional[Organization]) -> List[Dict[str, Any]]:
+        """ Formate la réponse finale pour chaque URL demandée.
+        authorized_docs peut être une liste de dicts {url,…} ou directement une liste d'URLs (str). """
+
+        authorized_urls = [d if isinstance(d, str) else d['url'] for d in authorized_docs]
         formatted_docs = []
         
+        org_formats = (organization.formats or []) if organization else []
+
         for url in docs_urls:
             is_permitted = url in authorized_urls
-            
+
             # Si l'organisation a purchased = true, alors isPermitted = true
             if organization and organization.purchased:
                 is_permitted = True
                 logger.info(f"Document {url} autorisé via purchased=true")
-            
+
             formatted_docs.append({
                 'isPermitted': is_permitted,
                 'url': url,
+                'formats': org_formats if is_permitted else [],
             })
         return formatted_docs
 
@@ -173,8 +208,10 @@ class DocsPermissionsClient:
     async def _get_organization(self, remote_ip: str, docs_urls: List[str]) -> Optional[Organization]:
         """ Appel l'API d'authentification pour obtenir les infos de l'organisation """
         
-        urls_str = quote_plus(','.join(docs_urls))
-        url = f"http://auth.openedition.org/auth_by_url/?ip={remote_ip}&url={urls_str}"
+        # L'API auth identifie l'organisation par l'IP — une seule URL suffit comme contexte.
+        # Passer plusieurs URLs (comma-join) supprime le champ `formats` de la réponse.
+        first_url = quote_plus(docs_urls[0])
+        url = f"{settings.auth_api_url}?ip={remote_ip}&url={first_url}"
         logger.info(f"Calling auth URL: {url}")
         
         async with httpx.AsyncClient() as client:
@@ -201,7 +238,10 @@ class DocsPermissionsClient:
                     'longname': user_data.get('long_name'),
                     'logoUrl': user_data.get('logo'),
                     'formats': user_data.get('formats'),
-                    'purchased': user_data.get('purchased', False),
+                    'purchased': bool(
+                        user_data.get('oef_service_rights') or
+                        user_data.get('oef_journals_rights')
+                    ),
                 }
                 return Organization(**organization_data)
                 
@@ -230,26 +270,43 @@ class DocsPermissionsClient:
         if not organization:
             logger.error("No organization found, returning empty response")
             return self._fill_up_response()
-        
-        # Vérifier si un document a des parents
+
+        # Court-circuit : purchased=true → tous les docs sont accessibles
+        if organization.purchased:
+            logger.info(f"[purchased=true] {len(docs_urls)} docs autorisés directement")
+            if organization.formats:
+                # Auth a retourné les formats (cas journals) → même liste pour tous les docs
+                formatted_docs = self._format_response_docs(docs_urls, docs_urls, organization)
+            else:
+                # Pas de formats auth (cas books) → une requête Solr pour files_facsimile
+                doc_formats_map = await self._fetch_doc_formats(docs_urls)
+                formatted_docs = []
+                for url in docs_urls:
+                    formatted_docs.append({
+                        'isPermitted': True,
+                        'url': url,
+                        'formats': doc_formats_map.get(url, ['html']),
+                    })
+            return self._fill_up_response(organization, formatted_docs)
+
+        # Sans purchased : vérifier si les documents ont des parents (logique abonnement Solr)
         parent_info = await self._check_if_documents_have_parents(docs_urls, organization)
         has_parent = parent_info['parentId'] is not None
- 
+
         logger.info(f"Documents avec parents détectés: {'oui (ID: ' + parent_info['parentId'] + ')' if has_parent else 'non'}")
-        
-        # Si il y a un parent, vérifier son organisation (logique complexe de l'application)
+
         effective_organization = organization
         if has_parent:
             parent_url = parent_info.get('parentUrl')
             if parent_url:
                 logger.info(f"Récupération de l'organisation du parent: {parent_url}")
-                
                 parent_organization = await self._get_organization(remote_ip, [parent_url])
                 if parent_organization:
+                    if not parent_organization.formats and organization.formats:
+                        parent_organization.formats = organization.formats
                     effective_organization = parent_organization
                     logger.info(f"Organisation du parent récupérée: {effective_organization.dict()}")
-        
-        # Récupérer les permissions avec l'organisation effective
+
         return await self._fetch_permissions(effective_organization, docs_urls)
 
     async def _fetch_permissions(self, organization: Organization, docs_urls: List[str]) -> DocsPermissionsResponse:

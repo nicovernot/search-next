@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Filter, LayoutGrid } from "lucide-react";
+import { X, Filter, LayoutGrid, Building2 } from "lucide-react";
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import ResultItem from "./ResultItem";
@@ -13,7 +13,8 @@ export default function ResultsList() {
   const t = useTranslations();
   const {
     results, total, loading, error, query, logicalQuery, searchMode,
-    filters, removeFilter, clearFilters, facetConfig, pagination
+    filters, removeFilter, clearFilters, facetConfig, pagination,
+    permissions, loadingPermissions, organization,
   } = useSearch();
 
   const activeFilters = Object.entries(filters).flatMap(([field, values]) =>
@@ -136,11 +137,31 @@ export default function ResultsList() {
             </div>
           )}
 
+          {!loading && !error && organization && (
+            <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/5 animate-in fade-in duration-500">
+              {organization.logoUrl ? (
+                <img src={organization.logoUrl} alt={organization.name ?? ""} className="h-7 w-auto object-contain shrink-0" />
+              ) : (
+                <Building2 size={18} className="text-blue-500 shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">
+                  {organization.longname ?? organization.name}
+                </p>
+              </div>
+            </div>
+          )}
+
           {!loading && !error && results.length > 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="space-y-4">
                 {results.map((doc, i) => (
-                  <ResultItem key={doc.url || i} doc={doc} />
+                  <ResultItem
+                    key={doc.url || i}
+                    doc={doc}
+                    permissionInfo={doc.url ? permissions[doc.url] : undefined}
+                    loadingPermissions={loadingPermissions}
+                  />
                 ))}
               </div>
               {total > pagination.size && (

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Any, Literal
+from app.models.logical_query import QueryGroup
 
 
 class SearchQuery(BaseModel):
@@ -76,7 +77,7 @@ class SearchRequest(BaseModel):
     """Modèle de requête compatible avec Searchkit et SearchBuilder"""
 
     query: QueryModel
-    logical_query: Optional[Any] = Field(None, description="Requête logique complexe (Phase 3)")
+    logical_query: Optional[QueryGroup] = Field(None, description="Requête logique complexe (AND/OR/NOT récursif)")
     filters: List[FilterModel] = Field(
         default=[], description="Liste des filtres actifs"
     )

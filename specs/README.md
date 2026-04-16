@@ -22,9 +22,9 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward
 │   └── spec.md
-├── 005-permissions/           🔲 Backlog — Badges d'accès sur résultats (endpoint backend ✅, UI à créer)
+├── 005-permissions/           ✅ Livré — Badges d'accès sur résultats (open/institutional/restricted/unknown, non-bloquant)
 │   └── spec.md
-├── 006-tech-debt/             🔲 Backlog — Corrections & fondations : token TTL, client API, champs QB depuis config
+├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
 └── README.md
 ```
@@ -62,8 +62,8 @@ specs/
 
 > Voir `docs/ARCHITECTURE.md` pour le bilan d'audit complet et l'ordre d'implémentation recommandé.
 
-| Priorité | Spec | Effort | Prérequis |
-|----------|------|--------|-----------|
-| 1 | [006-tech-debt](006-tech-debt/spec.md) — Token TTL, client API, champs QB depuis config | ~2j | — |
-| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~3j | 006 (client API) |
-| 3 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 006 (client API) |
+| Priorité | Spec | Effort | Prérequis | État |
+|----------|------|--------|-----------|------|
+| 1 | [006-tech-debt](006-tech-debt/spec.md) — Corrections & fondations techniques | — | — | ✅ Livré |
+| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | — | — | ✅ Livré |
+| 3 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 006 ✅ | 🔲 Backlog |
