@@ -208,7 +208,7 @@ async def perform_search(
             "facets": [{"identifier": f.identifier, "type": f.type} for f in search_request.facets],
             "sort": search_request.sort
         }
-        return await service.perform_search(request_dict)
+        return await service.execute_cached_search(request_dict)
     except Exception as e:
         logger.error(f"Search failed: {e}")
         error_msg = str(e)
@@ -252,7 +252,7 @@ async def search_via_get(
             "facets": facet_list
         }
         
-        return await service.perform_search(request_dict)
+        return await service.execute_cached_search(request_dict)
     except Exception as e:
         logger.error(f"Search via GET failed: {e}")
         error_msg = str(e)

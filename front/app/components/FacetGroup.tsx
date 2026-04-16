@@ -31,7 +31,7 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
   const visible = showAll ? filteredBuckets : filteredBuckets.slice(0, maxVisible);
 
   const isChecked = (value: string) =>
-    activeFilters.some((f) => f.identifier === field && f.value === value);
+    activeFilters.some((activeFilter) => activeFilter.identifier === field && activeFilter.value === value);
 
   return (
     <div className="group/facet border-b border-border pb-6 mb-2 last:border-0">

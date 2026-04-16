@@ -5,16 +5,16 @@
  * - Retourne des Response brutes (les appelants gèrent le JSON et les erreurs)
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8003";
+const API_API_BASE_URL_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8003";
 
-function jsonHeaders(token?: string | null): HeadersInit {
+function buildJsonAuthHeaders(token?: string | null): HeadersInit {
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
-function bearerHeaders(token: string): HeadersInit {
+function buildBearerAuthHeaders(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` };
 }
 
@@ -22,7 +22,7 @@ export const api = {
   // --- Search ---
 
   search(body: object, lang: string): Promise<Response> {
-    return fetch(`${BASE}/search`, {
+    return fetch(`${API_BASE_URL}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept-Language": lang },
       body: JSON.stringify(body),
@@ -30,27 +30,27 @@ export const api = {
   },
 
   suggest(q: string): Promise<Response> {
-    return fetch(`${BASE}/suggest?q=${encodeURIComponent(q)}`);
+    return fetch(`${API_BASE_URL}/suggest?q=${encodeURIComponent(q)}`);
   },
 
   facetsConfig(): Promise<Response> {
-    return fetch(`${BASE}/facets/config`);
+    return fetch(`${API_BASE_URL}/facets/config`);
   },
 
   // --- Auth ---
 
   login(email: string, password: string): Promise<Response> {
-    return fetch(`${BASE}/auth/login`, {
+    return fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
-      headers: jsonHeaders(),
+      headers: buildJsonAuthHeaders(),
       body: JSON.stringify({ email, password }),
     });
   },
 
   register(email: string, password: string): Promise<Response> {
-    return fetch(`${BASE}/auth/register`, {
+    return fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
-      headers: jsonHeaders(),
+      headers: buildJsonAuthHeaders(),
       body: JSON.stringify({ email, password }),
     });
   },
@@ -58,29 +58,29 @@ export const api = {
   // --- Saved searches ---
 
   getSavedSearches(token: string): Promise<Response> {
-    return fetch(`${BASE}/saved-searches`, {
-      headers: bearerHeaders(token),
+    return fetch(`${API_BASE_URL}/saved-searches`, {
+      headers: buildBearerAuthHeaders(token),
     });
   },
 
   createSavedSearch(token: string, body: object): Promise<Response> {
-    return fetch(`${BASE}/saved-searches`, {
+    return fetch(`${API_BASE_URL}/saved-searches`, {
       method: "POST",
-      headers: jsonHeaders(token),
+      headers: buildJsonAuthHeaders(token),
       body: JSON.stringify(body),
     });
   },
 
   deleteSavedSearch(token: string, id: number): Promise<Response> {
-    return fetch(`${BASE}/saved-searches/${id}`, {
+    return fetch(`${API_BASE_URL}/saved-searches/${id}`, {
       method: "DELETE",
-      headers: bearerHeaders(token),
+      headers: buildBearerAuthHeaders(token),
     });
   },
 
   // --- Permissions ---
 
   permissions(urls: string[]): Promise<Response> {
-    return fetch(`${BASE}/permissions?urls=${urls.map(encodeURIComponent).join(",")}`);
+    return fetch(`${API_BASE_URL}/permissions?urls=${urls.map(encodeURIComponent).join(",")}`);
   },
 };

@@ -266,7 +266,7 @@ class TestCacheIntegration:
             request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
             
             # Première recherche - pas de cache
-            result = await service.perform_search(request)
+            result = await service.execute_cached_search(request)
             
             # Vérifier que le cache a été consulté et mis à jour
             mock_cache.get_search_cache.assert_called_once_with(request)
@@ -298,7 +298,7 @@ class TestCacheIntegration:
             request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
             
             # Recherche avec cache hit
-            result = await service.perform_search(request)
+            result = await service.execute_cached_search(request)
             
             # Vérifier que le cache a été consulté
             mock_cache.get_search_cache.assert_called_once_with(request)

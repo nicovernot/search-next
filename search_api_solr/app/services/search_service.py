@@ -49,12 +49,12 @@ class SearchService(ISearchService):
         
         return normalized
     
-    async def perform_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_cached_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Effectue une recherche complète avec cache"""
         try:
             # Import local pour éviter les imports circulaires
             from app.services.cache_service import cache_service
-            
+
             # 1. Vérifier le cache d'abord
             cached_result = await cache_service.get_search_cache(request)
             if cached_result:
@@ -63,10 +63,10 @@ class SearchService(ISearchService):
                     extra={"context": {"query": request.get("query")}}
                 )
                 return cached_result
-            
+
             # 2. Construire l'URL de recherche
             search_url = self.builder.build_search_url(request)
-            
+
             # Logging structuré avec contexte
             self.logger.info(
                 "Starting search request",
@@ -78,37 +78,37 @@ class SearchService(ISearchService):
                     }
                 }
             )
-            
+
             # 3. Exécuter la recherche via le client Solr
             solr_data = await self.solr_client.search(search_url)
-            
+
             # 4. Normaliser le résultat pour le frontend
-            raw_facets = solr_data.get("facet_counts", {}).get("facet_fields", {})
-            normalized_facets = self._normalize_facets(raw_facets)
-            
-            result = {
+            solr_raw_facets = solr_data.get("facet_counts", {}).get("facet_fields", {})
+            frontend_normalized_facets = self._normalize_facets(solr_raw_facets)
+
+            search_result = {
                 "results": solr_data.get("response", {}).get("docs", []),
                 "total": solr_data.get("response", {}).get("numFound", 0),
-                "facets": normalized_facets,
+                "facets": frontend_normalized_facets,
                 "highlighting": solr_data.get("highlighting", {})
             }
-            
+
             # 5. Mettre en cache le résultat
-            await cache_service.set_search_cache(request, result)
-            
+            await cache_service.set_search_cache(request, search_result)
+
             # Logging structuré des résultats
             self.logger.info(
                 "Search completed successfully",
                 extra={
                     "context": {
                         "query": request.get("query"),
-                        "num_found": result.get("total"),
+                        "num_found": search_result.get("total"),
                         "processing_time": solr_data.get('responseHeader', {}).get('QTime', 0)
                     }
                 }
             )
-            
-            return result
+
+            return search_result
             
         except Exception as e:
             # Logging structuré des erreurs
@@ -133,18 +133,18 @@ class SuggestService:
         self.solr_client = solr_client
         self.logger = get_logger(__name__)
     
-    async def suggest(self, query: str) -> Dict[str, Any]:
+    async def fetch_autocomplete_suggestions(self, query: str) -> Dict[str, Any]:
         """Effectue une suggestion"""
         try:
             # Construire l'URL de suggestion
             suggest_url = self.builder.build_suggest_url(query)
             self.logger.debug(f"Suggest URL: {suggest_url}")
-            
+
             # Exécuter la suggestion via le client Solr
-            result = await self.solr_client.search(suggest_url)
-            
+            autocomplete_result = await self.solr_client.search(suggest_url)
+
             self.logger.info(f"Suggest completed for query: {query}")
-            return result
+            return autocomplete_result
             
         except Exception as e:
             self.logger.error(f"Suggest failed: {e}")

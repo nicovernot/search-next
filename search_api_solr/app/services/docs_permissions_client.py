@@ -16,7 +16,7 @@ class SolrClient:
     def __init__(self, base_url: str):
         self.base_url = base_url
     
-    async def query(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def execute_solr_query(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         url = f"{self.base_url}/select?{urlencode(params, doseq=True)}"
         logger.info(f"Requête Solr exécutée: {url}")
         
@@ -111,7 +111,7 @@ class DocsPermissionsClient:
         escaped_urls = [self._escape_url_chars(url) for url in docs_urls]
         fq = FQ_IDS_ARE % (' OR '.join(escaped_urls))
         params = {'q': SOLR_QUERY, 'fq': fq, 'fl': 'url files_facsimile', 'rows': len(docs_urls), 'wt': 'json'}
-        solr_response = await self.solr_client.query(params)
+        solr_response = await self.solr_client.execute_solr_query(params)
 
         # Index Solr results by URL
         solr_by_url: Dict[str, bool] = {}
@@ -130,7 +130,7 @@ class DocsPermissionsClient:
         """ Récupère les documents accessibles à l'organisation depuis Solr """
         
         params = self._create_solr_params(docs_urls, organization.shortname)
-        solr_response = await self.solr_client.query(params)
+        solr_response = await self.solr_client.execute_solr_query(params)
         
         if not solr_response or solr_response['responseHeader']['status'] != 0:
             logger.error("Échec de la requête Solr initiale")
@@ -183,7 +183,7 @@ class DocsPermissionsClient:
             params = self._create_solr_params(docs_urls, organization.shortname, fields=fields)
             
             logger.info(f"Recherche de parents pour URLs: {docs_urls}")
-            solr_response = await self.solr_client.query(params)
+            solr_response = await self.solr_client.execute_solr_query(params)
             
             if not solr_response or solr_response['responseHeader']['status'] != 0:
                 logger.error("Échec de la vérification des parents")

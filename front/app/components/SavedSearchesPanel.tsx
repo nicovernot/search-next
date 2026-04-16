@@ -47,59 +47,59 @@ export default function SavedSearchesPanel() {
   // Recalculer position si scroll/resize pendant que le panel est ouvert
   useEffect(() => {
     if (!open) return;
-    const update = () => {
+    const recalculateDropdownPosition = () => {
       if (buttonRef.current) {
         const rect = buttonRef.current.getBoundingClientRect();
         setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
       }
     };
-    window.addEventListener("scroll", update, true);
-    window.addEventListener("resize", update);
+    window.addEventListener("scroll", recalculateDropdownPosition, true);
+    window.addEventListener("resize", recalculateDropdownPosition);
     return () => {
-      window.removeEventListener("scroll", update, true);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", recalculateDropdownPosition, true);
+      window.removeEventListener("resize", recalculateDropdownPosition);
     };
   }, [open]);
 
-  const handleToggle = () => {
+  const toggleSavedSearchesPanel = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
     }
-    setOpen((v) => !v);
+    setOpen((prev) => !prev);
   };
 
-  const fetchSearches = useCallback(async () => {
+  const fetchSavedSearchesFromApi = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await api.getSavedSearches(token);
-      if (res.ok) {
-        const data: SavedSearchRecord[] = await res.json();
-        setSearches(data);
+      const savedSearchesResponse = await api.getSavedSearches(token);
+      if (savedSearchesResponse.ok) {
+        const savedSearches: SavedSearchRecord[] = await savedSearchesResponse.json();
+        setSearches(savedSearches);
       }
     } catch { /* silently fail */ }
   }, [token]);
 
-  useEffect(() => { if (open) fetchSearches(); }, [open, fetchSearches]);
+  useEffect(() => { if (open) fetchSavedSearchesFromApi(); }, [open, fetchSavedSearchesFromApi]);
 
-  const handleSave = async () => {
+  const saveCurrentSearch = async () => {
     if (!token || !newName.trim()) return;
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await api.createSavedSearch(token, {
+      const saveResponse = await api.createSavedSearch(token, {
         name: newName.trim(),
         query_json: { query, filters, searchMode, logicalQuery: searchMode === "advanced" ? logicalQuery : null },
       });
-      if (res.ok) {
+      if (saveResponse.ok) {
         setSaveSuccess(true);
         setNewName("");
         setShowSaveForm(false);
-        fetchSearches();
+        fetchSavedSearchesFromApi();
         setTimeout(() => setSaveSuccess(false), 2000);
       } else {
-        const detail = await res.json().then((d) => d.detail).catch(() => null);
-        setSaveError(detail || `Erreur ${res.status}`);
+        const apiErrorMessage = await saveResponse.json().then((d) => d.detail).catch(() => null);
+        setSaveError(apiErrorMessage || `Erreur ${saveResponse.status}`);
       }
     } catch {
       setSaveError("Impossible de joindre le serveur");
@@ -108,21 +108,21 @@ export default function SavedSearchesPanel() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const deleteSavedSearch = async (id: number) => {
     if (!token) return;
     try {
       await api.deleteSavedSearch(token, id);
-      setSearches((prev) => prev.filter((s) => s.id !== id));
+      setSearches((prev) => prev.filter((savedSearch) => savedSearch.id !== id));
     } catch { /* silently fail */ }
   };
 
-  const handleLoad = (s: SavedSearchRecord) => {
-    loadSearch(s.query_json);
+  const loadAndExecuteSavedSearch = (savedSearch: SavedSearchRecord) => {
+    loadSearch(savedSearch.query_json);
     setOpen(false);
   };
 
   const hasCurrentSearch =
-    query || Object.values(filters).some((v) => v.length > 0) || (Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0);
+    query || Object.values(filters).some((filterValues) => filterValues.length > 0) || (Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0);
 
   if (typeof document === "undefined") {
     return (
@@ -143,7 +143,7 @@ export default function SavedSearchesPanel() {
       <button
         ref={buttonRef}
         data-testid="btn-saved-searches"
-        onClick={handleToggle}
+        onClick={toggleSavedSearchesPanel}
         className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-foreground bg-secondary border border-border rounded-xl hover:bg-muted hover:border-highlight/50 transition-all premium-shadow"
       >
         <Bookmark size={15} className={saveSuccess ? "text-green-500" : ""} />
@@ -181,12 +181,12 @@ export default function SavedSearchesPanel() {
                         onChange={(e) => { setNewName(e.target.value); setSaveError(null); }}
                         placeholder={t("searchName")}
                         autoFocus
-                        onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                        onKeyDown={(e) => e.key === "Enter" && saveCurrentSearch()}
                         className={`flex-1 px-3 py-2 text-sm rounded-lg border bg-background text-foreground focus:outline-none focus:ring-1 transition-all ${saveError ? "border-red-400 focus:border-red-400 focus:ring-red-300" : "border-border focus:border-highlight focus:ring-highlight/30"}`}
                       />
                       <button
                         data-testid="btn-save-confirm"
-                        onClick={handleSave}
+                        onClick={saveCurrentSearch}
                         disabled={saving || !newName.trim()}
                         className="px-3 py-2 bg-highlight text-white text-xs font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-60"
                       >
@@ -220,22 +220,22 @@ export default function SavedSearchesPanel() {
                   {t("noSavedSearches")}
                 </p>
               ) : (
-                searches.map((s) => (
+                searches.map((savedSearch) => (
                   <div
-                    key={s.id}
+                    key={savedSearch.id}
                     className="group flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-secondary transition-all"
                   >
                     <button
-                      data-testid={`btn-load-search-${s.id}`}
-                      onClick={() => handleLoad(s)}
+                      data-testid={`btn-load-search-${savedSearch.id}`}
+                      onClick={() => loadAndExecuteSavedSearch(savedSearch)}
                       className="flex-1 text-left text-sm font-medium text-foreground hover:text-highlight transition-colors truncate"
-                      title={s.name}
+                      title={savedSearch.name}
                     >
-                      {s.name}
+                      {savedSearch.name}
                     </button>
                     <button
-                      data-testid={`btn-delete-search-${s.id}`}
-                      onClick={() => handleDelete(s.id)}
+                      data-testid={`btn-delete-search-${savedSearch.id}`}
+                      onClick={() => deleteSavedSearch(savedSearch.id)}
                       className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all"
                       title={t("deleteSavedSearch")}
                     >

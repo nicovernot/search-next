@@ -217,7 +217,7 @@ class SearchBuilder(ISearchBuilder):
         if hasattr(request, 'logical_query') and request.logical_query:
             from app.services.query_logic_parser import QueryLogicParser
             try:
-                logical_fq = QueryLogicParser.to_solr_query(request.logical_query)
+                logical_fq = QueryLogicParser.convert_to_solr_query_string(request.logical_query)
                 if logical_fq:
                     fq_list.append(logical_fq)
             except Exception as e:

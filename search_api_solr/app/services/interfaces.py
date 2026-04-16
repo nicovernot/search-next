@@ -9,8 +9,8 @@ class ISearchService(ABC):
     """Interface pour le service de recherche"""
     
     @abstractmethod
-    async def perform_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Effectue une recherche"""
+    async def execute_cached_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Effectue une recherche avec cache"""
         pass
 
 class ISolrClient(ABC):

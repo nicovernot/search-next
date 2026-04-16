@@ -13,7 +13,7 @@ async def test_search_get_endpoint():
     """Vérifie que l'endpoint GET construit correctement la SearchRequest"""
     
     # On mocke _execute_search pour vérifier les arguments passés
-    with patch("app.services.search_service.SearchService.perform_search", new_callable=AsyncMock) as mock_execute:
+    with patch("app.services.search_service.SearchService.execute_cached_search", new_callable=AsyncMock) as mock_execute:
         mock_execute.return_value = {"results": []}
         
         response = client.get(

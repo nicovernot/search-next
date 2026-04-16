@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-def load_facet_configs() -> dict:
+def load_facet_config_from_json() -> dict:
     config_dir = Path(__file__).parent / "facets_json"
     configs = {}
     if config_dir.exists():
@@ -13,33 +13,33 @@ def load_facet_configs() -> dict:
                 print(f"Error loading {file_path}: {e}")
     return configs
 
-FACET_CONFIG = load_facet_configs()
+FACET_CONFIG = load_facet_config_from_json()
 
-def build_common_facets_mapping() -> dict:
+def build_solr_to_frontend_facet_mapping() -> dict:
     """
     Construit le mapping des facettes à partir de common.json.
     Utilise le paramètre 'list' qui contient le nom du champ Solr.
     Gère les facettes qui n'ont pas de clé par défaut '' (ex: date avec clés OB/OJ/HO/CO).
     """
-    mapping = {}
+    solr_to_frontend_mapping = {}
     common_config = FACET_CONFIG.get('common', {})
-    
+
     for facet_name, facet_data in common_config.items():
         # Récupérer la configuration par défaut (clé vide "")
-        default_config = facet_data.get('', {})
-        if default_config and 'list' in default_config:
+        default_facet_config = facet_data.get('', {})
+        if default_facet_config and 'list' in default_facet_config:
             # Le champ Solr est le premier élément de la liste
-            solr_field = default_config['list'][0]
-            mapping[facet_name] = solr_field
+            solr_field_name = default_facet_config['list'][0]
+            solr_to_frontend_mapping[facet_name] = solr_field_name
         else:
             # Fallback: prendre la première config disponible (ex: date avec clés OB/OJ/HO/CO)
             for key, config in facet_data.items():
                 if isinstance(config, dict) and 'list' in config:
-                    solr_field = config['list'][0]
-                    mapping[facet_name] = solr_field
+                    solr_field_name = config['list'][0]
+                    solr_to_frontend_mapping[facet_name] = solr_field_name
                     break
-    
-    return mapping
+
+    return solr_to_frontend_mapping
 
 def build_facet_subcategories() -> dict:
     """
@@ -68,7 +68,7 @@ def build_facet_subcategories() -> dict:
 
 # Mapping des noms de facettes conviviales vers les champs Solr
 # Chargé dynamiquement depuis common.json
-COMMON_FACETS_MAPPING = build_common_facets_mapping()
+COMMON_FACETS_MAPPING = build_solr_to_frontend_facet_mapping()
 
 # Mapping des sous-catégories de facettes
 # Par exemple: {'type': {'livre': ['livre'], 'article': ['article', 'articlepdf'], ...}}

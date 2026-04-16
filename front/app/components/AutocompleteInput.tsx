@@ -33,8 +33,8 @@ export default function AutocompleteInput({
   // Recalcule la position du dropdown à chaque ouverture ou resize/scroll
   const updateDropdownRect = () => {
     if (inputRef.current) {
-      const r = inputRef.current.getBoundingClientRect();
-      setDropdownRect({ top: r.bottom + 6, left: r.left, width: r.width });
+      const inputBoundingRect = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: inputBoundingRect.bottom + 6, left: inputBoundingRect.left, width: inputBoundingRect.width });
     }
   };
 
@@ -69,8 +69,6 @@ export default function AutocompleteInput({
       debounceTimer.current = setTimeout(() => {
         fetchSuggestions(value);
       }, 300);
-    } else {
-      // setSuggestions([]); // Géré par fetchSuggestions si q court
     }
 
     return () => {
@@ -89,8 +87,8 @@ export default function AutocompleteInput({
     } else if (e.key === "Enter") {
       if (showSuggestions && activeIndex >= 0) {
         e.preventDefault();
-        const selected = suggestions[activeIndex];
-        onChange(selected);
+        const selectedSuggestion = suggestions[activeIndex];
+        onChange(selectedSuggestion);
         setShowSuggestions(false);
         if (onSearch) {
           // On attend le prochain tick pour lancer la recherche avec la nouvelle valeur
@@ -115,21 +113,21 @@ export default function AutocompleteInput({
 
   // Highlighting de la partie correspondante
   const renderSuggestion = (suggestion: string) => {
-    const index = suggestion.toLowerCase().indexOf(value.toLowerCase());
-    if (index === -1) return suggestion;
-    
+    const matchStartIndex = suggestion.toLowerCase().indexOf(value.toLowerCase());
+    if (matchStartIndex === -1) return suggestion;
+
     return (
       <>
-        {suggestion.substring(0, index)}
+        {suggestion.substring(0, matchStartIndex)}
         <span className="font-bold text-highlight">
-          {suggestion.substring(index, index + value.length)}
+          {suggestion.substring(matchStartIndex, matchStartIndex + value.length)}
         </span>
-        {suggestion.substring(index + value.length)}
+        {suggestion.substring(matchStartIndex + value.length)}
       </>
     );
   };
 
-  const suggestionList =
+  const suggestionPortal =
     typeof document !== "undefined" && showSuggestions && suggestions.length > 0
       ? createPortal(
           <ul
@@ -143,10 +141,10 @@ export default function AutocompleteInput({
             }}
             className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in premium-shadow"
           >
-            {suggestions.map((s, i) => (
+            {suggestions.map((suggestion, i) => (
               <li
                 key={i}
-                onClick={() => handleSelectSuggestion(s)}
+                onClick={() => handleSelectSuggestion(suggestion)}
                 onMouseEnter={() => setActiveIndex(i)}
                 className={`px-5 py-3.5 cursor-pointer transition-colors flex items-center gap-4 border-b border-border/50 last:border-0 ${
                   i === activeIndex ? "bg-highlight/10 text-highlight" : "text-foreground hover:bg-secondary"
@@ -191,7 +189,7 @@ export default function AutocompleteInput({
         </div>
       )}
 
-      {suggestionList}
+      {suggestionPortal}
     </div>
   );
 }
