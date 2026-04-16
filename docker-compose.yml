@@ -86,6 +86,8 @@ services:
     container_name: search-next_frontend
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8003}
+      # URL interne Docker pour les route handlers Next.js (server-side) → service name + port interne
+      - INTERNAL_API_URL=http://api:8007
       - HOSTNAME=0.0.0.0
     ports:
       - "${FRONTEND_PORT:-3003}:3000"
