@@ -41,22 +41,22 @@ export default function Pagination({ total }: { total: number }) {
       <button
         onClick={() => go(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-1.5 text-sm rounded border border-[#e6e4e2] disabled:opacity-40 hover:border-[#f03603] hover:text-[#f03603] transition-colors"
+        className="px-3 py-1.5 text-sm rounded border border-border disabled:opacity-40 hover:border-highlight hover:text-highlight transition-colors"
       >
         ← {t("previous")}
       </button>
 
       {getPages().map((page, i) =>
         page === "..." ? (
-          <span key={`e${i}`} className="px-2 text-[#969493]">…</span>
+          <span key={`e${i}`} className="px-2 text-muted-foreground">…</span>
         ) : (
           <button
             key={page}
             onClick={() => go(page as number)}
             className={`w-8 h-8 text-sm rounded border transition-colors ${
               currentPage === page
-                ? "bg-[#f03603] text-white border-[#f03603]"
-                : "border-[#e6e4e2] hover:border-[#f03603] hover:text-[#f03603]"
+                ? "bg-highlight text-white border-highlight"
+                : "border-border hover:border-highlight hover:text-highlight"
             }`}
           >
             {page}
@@ -67,7 +67,7 @@ export default function Pagination({ total }: { total: number }) {
       <button
         onClick={() => go(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="px-3 py-1.5 text-sm rounded border border-[#e6e4e2] disabled:opacity-40 hover:border-[#f03603] hover:text-[#f03603] transition-colors"
+        className="px-3 py-1.5 text-sm rounded border border-border disabled:opacity-40 hover:border-highlight hover:text-highlight transition-colors"
       >
         {t("next")} →
       </button>

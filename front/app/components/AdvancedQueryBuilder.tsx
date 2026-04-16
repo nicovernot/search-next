@@ -16,19 +16,8 @@ const DEFAULT_QUERY: RuleGroupType = {
 
 function QueryBuilderAutocompleteValueEditor(props: ValueEditorProps) {
   const currentValue = typeof props.value === "string" ? props.value : "";
-  const placeholder =
-    typeof props.schema === "object" &&
-    props.schema !== null &&
-    "translations" in props.schema &&
-    typeof props.schema.translations === "object" &&
-    props.schema.translations !== null &&
-    "value" in props.schema.translations &&
-    typeof props.schema.translations.value === "object" &&
-    props.schema.translations.value !== null &&
-    "label" in props.schema.translations.value &&
-    typeof props.schema.translations.value.label === "string"
-      ? props.schema.translations.value.label
-      : "Value";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const placeholder = (props.schema as any)?.translations?.value?.label ?? "Value";
 
   return (
     <AutocompleteInput
@@ -105,26 +94,6 @@ export default function AdvancedQueryBuilder() {
         />
       </div>
 
-      <style jsx global>{`
-        .query-builder-premium .ruleGroup {
-            position: relative;
-        }
-        .query-builder-premium .ruleGroup:before {
-            content: '';
-            position: absolute;
-            left: -20px;
-            top: 20px;
-            bottom: 20px;
-            width: 2px;
-            background: hsl(var(--border));
-        }
-        .query-builder-premium .rule {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0;
-        }
-      `}</style>
     </div>
   );
 }

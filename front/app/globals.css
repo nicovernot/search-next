@@ -168,3 +168,23 @@ option {
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
 }
+
+/* QueryBuilder premium styles */
+.query-builder-premium .ruleGroup {
+  position: relative;
+}
+.query-builder-premium .ruleGroup:before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: hsl(var(--border));
+}
+.query-builder-premium .rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}

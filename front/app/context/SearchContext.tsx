@@ -49,6 +49,10 @@ interface SearchContextValue {
   loadingPermissions: boolean;
   /** Organisation détectée pour l'IP courante (null si anonyme) */
   organization: Organization | null;
+  /** Filtres actifs sous forme de liste plate — calculé une seule fois */
+  activeFilters: { identifier: string; value: string }[];
+  /** Vrai si une recherche est active (query, filtres ou requête logique non vides) */
+  hasActiveSearch: boolean;
 }
 
 const SearchContext = createContext<SearchContextValue | null>(null);
@@ -286,6 +290,16 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.from, pagination.size]);
 
+  const activeFilters = React.useMemo(
+    () => Object.entries(filters).flatMap(([field, values]) => values.map((value) => ({ identifier: field, value }))),
+    [filters]
+  );
+
+  const hasActiveSearch = React.useMemo(
+    () => !!query || activeFilters.length > 0 || (searchMode === "advanced" && Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0),
+    [query, activeFilters, searchMode, logicalQuery]
+  );
+
   const fetchSuggestions = useCallback(async (q: string) => {
     if (!q || q.length < 2) {
       setSuggestions([]);
@@ -317,6 +331,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         logicalQuery, setLogicalQuery, searchMode, setSearchMode,
         facetConfig, searchFields,
         permissions, loadingPermissions, organization,
+        activeFilters, hasActiveSearch,
       }}
     >
       {children}

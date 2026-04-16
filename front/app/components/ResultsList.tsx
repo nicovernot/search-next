@@ -8,6 +8,7 @@ import ResultItem from "./ResultItem";
 import Facets from "./Facets";
 import Pagination from "./Pagination";
 import type { FacetConfig } from "../types";
+import { getFacetLabel } from "../lib/facet-i18n";
 
 export default function ResultsList() {
   const t = useTranslations();
@@ -21,17 +22,9 @@ export default function ResultsList() {
     values.map((value) => ({ identifier: field, value }))
   );
 
-  const FACET_I18N: Record<string, string> = {
-    platform: "platform", type: "documentType", access: "access",
-    translations: "languageFilter", author: "qb_fieldAuthor",
-    date: "facet_date", subscribers: "facet_subscribers",
-  };
-  const getFacetLabel = (identifier: string) => {
+  const getFacetLabelForFilter = (identifier: string) => {
     const config = facetConfig?.common?.[identifier] || facetConfig?.platform?.[identifier];
-    const configName = (config as Record<string, FacetConfig> | undefined)?.[""]?.name;
-    if (configName) return configName;
-    const i18nKey = FACET_I18N[identifier];
-    return i18nKey ? t(i18nKey) : identifier;
+    return getFacetLabel(identifier, t, config as Record<string, FacetConfig> | undefined);
   };
 
   const hasLogicalRules = Array.isArray(logicalQuery?.rules) && logicalQuery.rules.length > 0;
@@ -77,7 +70,7 @@ export default function ResultsList() {
               key={i}
               className="group flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-full text-[11px] hover:border-highlight/30 hover:shadow-sm transition-all"
             >
-              <span className="text-muted-foreground italic font-medium">{getFacetLabel(f.identifier)}</span>
+              <span className="text-muted-foreground italic font-medium">{getFacetLabelForFilter(f.identifier)}</span>
               <span className="font-bold text-foreground">{f.value}</span>
               <button
                 onClick={() => removeFilter(f.identifier, f.value)}

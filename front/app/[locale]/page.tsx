@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import AuthButtons from "../components/AuthButtons";
 import AuthModal from "../components/AuthModal";
 import SavedSearchesPanel from "../components/SavedSearchesPanel";
+import { PLATFORMS } from "../lib/platforms";
 
 const AdvancedQueryBuilder = dynamic(() => import("../components/AdvancedQueryBuilder"), {
   ssr: false,
@@ -25,14 +26,6 @@ const Facets = dynamic(() => import("../components/Facets"), {
   ssr: false,
   loading: () => <div className="h-96 bg-muted animate-pulse rounded-2xl w-full" />,
 });
-
-const PLATFORMS = [
-  { label: "OpenEdition Books", color: "#4da9e4" },
-  { label: "Revues.org", color: "#90c94d" },
-  { label: "Hypothèses", color: "#f03603" },
-  { label: "Calenda", color: "#f4ba41" },
-  { label: "OpenEdition Journals", color: "#969493" },
-];
 
 export default function Home() {
   const t = useTranslations();

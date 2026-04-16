@@ -94,15 +94,3 @@ export interface Organization {
   formats?: string[];
   purchased?: boolean;
 }
-
-export interface SearchState {
-  query: string;
-  results: SearchDoc[];
-  facets: Facets;
-  filters: Filters;
-  pagination: Pagination;
-  total: number;
-  loading: boolean;
-  error: string | null;
-  facetConfig: FullFacetConfig | null;
-}

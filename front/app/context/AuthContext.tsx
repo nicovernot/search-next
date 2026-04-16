@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { api } from "../lib/api";
+import { STORAGE_KEYS } from "../lib/storage-keys";
 
 interface AuthUser {
   id: number;
@@ -41,15 +42,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [modalTab, setModalTab] = useState<ModalTab>("login");
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
+    const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
       }
     }
   }, []);
@@ -69,8 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setToken(accessToken);
       setUser(authUser);
-      localStorage.setItem("auth_token", accessToken);
-      localStorage.setItem("auth_user", JSON.stringify(authUser));
+      localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authUser));
     } catch (err: unknown) {
       setError("auth_error");
       throw err;
@@ -104,8 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
