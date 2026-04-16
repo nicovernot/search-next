@@ -4,6 +4,8 @@ Ce dossier contient les spécifications Spec Kit du projet.
 
 La référence centrale des exigences techniques transverses est [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md). Les specs `008`, `009` et `010` en sont les déclinaisons opérationnelles pour la qualité, la simplicité et le nommage.
 
+L'historique des lots livrés est dans [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Structure
 
 ```
