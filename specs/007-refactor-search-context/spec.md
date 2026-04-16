@@ -6,7 +6,7 @@
 
 ## Overview
 
-`SearchContext.tsx` est actuellement un God Object de ~280 lignes qui cumule 5 responsabilités distinctes : état de recherche, appels API Solr, gestion des suggestions, chargement des permissions, et configuration des facettes. Cette concentration viole le Single Responsibility Principle et rend le contexte difficile à tester, à faire évoluer, et à déboguer.
+`SearchContext.tsx` est actuellement un God Object de ~306 lignes qui cumule 5 responsabilités distinctes : état de recherche, appels API Solr, gestion des suggestions, chargement des permissions, et configuration des facettes. Cette concentration viole le Single Responsibility Principle et rend le contexte difficile à tester, à faire évoluer, et à déboguer.
 
 Cette spec décrit le découpage en hooks spécialisés sans modifier l'interface publique du contexte (aucune régression sur les 29 tests E2E existants).
 

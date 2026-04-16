@@ -99,7 +99,8 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | Traductions 6 langues | FR-005 | ✅ Livré |
 | Route handler Next.js + X-Forwarded-For | FR-004 | ❌ Manquant |
 | Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ❌ Manquant |
-| Fallback explicite `unknown` sur erreur/réponse partielle | SC-003 | ❌ Manquant |
+| Fallback `unknown` sur `!docs` (erreur ou réponse vide) | SC-003 | ✅ Livré (SearchContext.tsx lignes 113-117) |
+| Fallback `unknown` sur réponse partielle (docs présent mais URL absente) | SC-003 | ❌ Manquant |
 | Tests Playwright | SC-001→004 | ❌ Manquants |
 
 ---
