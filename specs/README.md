@@ -2,10 +2,14 @@
 
 Ce dossier contient les spécifications Spec Kit du projet.
 
+La référence centrale des exigences techniques transverses est [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md). Les specs `008`, `009` et `010` en sont les déclinaisons opérationnelles pour la qualité, la simplicité et le nommage.
+
 ## Structure
 
 ```
 specs/
+├── TECHNICAL_REQUIREMENTS.md  📌 Référence canonique — exigences techniques transverses
+├── PLANNING.md                📌 Planning global — ordre, dépendances, cohérence
 ├── 001-search-core/           ✅ Livré — Recherche de base, facettes, pagination, i18n
 │   ├── spec.md
 │   ├── plan.md
@@ -72,6 +76,7 @@ specs/
 
 > Voir `docs/ARCHITECTURE.md` pour le bilan d'audit complet et l'ordre d'implémentation recommandé.
 > Voir aussi [`PLANNING.md`](PLANNING.md) pour le planning global consolidé et les points de cohérence entre specs.
+> Voir [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md) pour les exigences techniques applicables à toutes les specs.
 
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|

@@ -94,6 +94,8 @@ Backlog encore ouvert:
 ## Specs
 
 - Vue d'ensemble: [specs/README.md](./specs/README.md)
+- Exigences techniques: [specs/TECHNICAL_REQUIREMENTS.md](./specs/TECHNICAL_REQUIREMENTS.md)
+- Planning global: [specs/PLANNING.md](./specs/PLANNING.md)
 - Recherche coeur: [specs/001-search-core/spec.md](./specs/001-search-core/spec.md)
 - Recherche avancée: [specs/002-advanced-search-suite/spec.md](./specs/002-advanced-search-suite/spec.md)
 - Refonte UI: [specs/003-ux-ui-premium-overhaul/spec.md](./specs/003-ux-ui-premium-overhaul/spec.md)
