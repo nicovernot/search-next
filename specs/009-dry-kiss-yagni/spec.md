@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/009-dry-kiss-yagni` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: 🔲 Backlog — peut être traité en parallèle de `007`
+**Status**: ✅ Livré P0+P1 — violations corrigées (commit ffc7bb5) ; P2 (DRY-004/005, KISS-001/002) après spec 007
 
 ## Overview
 

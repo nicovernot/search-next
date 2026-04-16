@@ -3,7 +3,7 @@
 **Feature Branch**: `feature/005-permissions` (à créer depuis `feature/002-advanced-search-suite`)
 **Created**: 2026-04-13
 **Updated**: 2026-04-16
-**Status**: 🔶 Partiel — badges frontend livrés, proxy IP fiable, fallback `unknown` et tests Playwright manquants
+**Status**: 🔶 Partiel — badges livrés, proxy IP + fallback complet livrés, tests Playwright manquants
 
 ## Overview
 
@@ -97,10 +97,10 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | `AccessBadge` dans `ResultItem.tsx` | FR-002 | ✅ Livré |
 | Chargement non-bloquant (fire-and-forget) | FR-003 | ✅ Livré |
 | Traductions 6 langues | FR-005 | ✅ Livré |
-| Route handler Next.js + X-Forwarded-For | FR-004 | ❌ Manquant |
-| Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ❌ Manquant |
-| Fallback `unknown` sur `!docs` (erreur ou réponse vide) | SC-003 | ✅ Livré (SearchContext.tsx lignes 113-117) |
-| Fallback `unknown` sur réponse partielle (docs présent mais URL absente) | SC-003 | ❌ Manquant |
+| Route handler Next.js + X-Forwarded-For | FR-004 | ✅ Livré (`front/app/api/permissions/route.ts`) |
+| Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ✅ Livré (`main.py` — priorité sur `request.client.host`) |
+| Fallback `unknown` sur `!docs` (erreur ou réponse vide) | SC-003 | ✅ Livré |
+| Fallback `unknown` sur réponse partielle (docs présent mais URL absente) | SC-003 | ✅ Livré (toutes les URLs initialisées à unknown avant le parcours docs) |
 | Tests Playwright | SC-001→004 | ❌ Manquants |
 
 ---

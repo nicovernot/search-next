@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/010-naming-intention-result`
 **Created**: 2026-04-16
-**Status**: 🔲 Backlog — peut être traité en parallèle de `009`
+**Status**: ✅ Livré — renommages frontend + backend appliqués (commit d5f4946)
 
 ## Principe fondateur
 

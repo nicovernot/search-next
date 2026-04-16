@@ -28,7 +28,7 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
 │   └── spec.md
-├── 005-permissions/           🔶 Partiel — Badges frontend livrés, proxy IP fiable, fallback unknown et tests Playwright manquants
+├── 005-permissions/           🔶 Partiel — Proxy IP + fallback livrés, tests Playwright manquants
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
@@ -36,9 +36,9 @@ specs/
 │   └── spec.md
 ├── 008-code-quality-solid/    🔲 Backlog — Règles qualité, principes SOLID, checklist de revue de code
 │   └── spec.md
-├── 009-dry-kiss-yagni/        🔲 Backlog — Audit DRY/KISS/YAGNI, 10 violations identifiées, plan de correction
+├── 009-dry-kiss-yagni/        ✅ Livré P0+P1 — violations corrigées ; P2 après spec 007
 │   └── spec.md
-├── 010-naming-intention-result/ 🔲 Backlog — Principe Intention→Résultat dans les noms, audit complet frontend + backend
+├── 010-naming-intention-result/ ✅ Livré — renommages frontend + backend appliqués
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
@@ -86,6 +86,6 @@ specs/
 | 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | 🔶 Partiel |
 | 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | 🔲 Backlog |
 | 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 | 🔲 Backlog |
-| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | 🔲 Backlog |
-| 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | 🔲 Backlog |
+| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | ✅ Livré P0+P1 |
+| 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | ✅ Livré |
 | 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 🔲 | 🔲 Backlog |

@@ -19,6 +19,9 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-16 | docs | Création specs 007, 008, 009, 010 — audit technique complet | `61055a2` |
 | 2026-04-16 | docs | `TECHNICAL_REQUIREMENTS.md` et `PLANNING.md` créés | `e52b5df` |
 | 2026-04-16 | 005/007 | Corrections d'état après audit : fallback partiel isolé, taille SearchContext corrigée | `ae2f1a3` |
+| 2026-04-16 | 010 | Nommage Intention→Résultat — renommages frontend + backend, CONTRIBUTING.md, ESLint id-length | `d5f4946` |
+| 2026-04-16 | 009 | DRY/KISS/YAGNI P0+P1 — FACET_I18N, storage-keys, Pagination tokens, Spinner, useIsClient | `ffc7bb5` |
+| 2026-04-16 | 005 | Complétion permissions — route handler Next.js, X-Forwarded-For, fallback partiel | `76d4c1d` |
 
 ---
 
@@ -30,9 +33,9 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 002 | Advanced search suite — QB, auth, recherches sauvegardées | ✅ Livré |
 | 003 | UX/UI premium — dark mode, glassmorphism, animations | ✅ Livré |
 | 004 | URL sync — liens partageables, back/forward | 🔲 Backlog (prérequis : 007) |
-| 005 | Permissions — badges d'accès sur les résultats | 🔶 Partiel |
+| 005 | Permissions — badges d'accès sur les résultats | 🔶 Partiel (tests Playwright manquants) |
 | 006 | Tech debt — correctifs fondations techniques | ✅ Livré |
 | 007 | Refactor SearchContext — découpage en hooks SOLID | 🔲 Backlog (prérequis bloquant pour 004) |
 | 008 | Code quality SOLID — règles qualité, checklist | 🔲 Backlog (après 007) |
-| 009 | DRY/KISS/YAGNI — audit violations, corrections ciblées | 🔲 Backlog |
-| 010 | Naming intention→résultat — renommages frontend + backend | 🔲 Backlog |
+| 009 | DRY/KISS/YAGNI — P0+P1 livrés, P2 après 007 | ✅ Livré P0+P1 |
+| 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
