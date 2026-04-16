@@ -32,6 +32,8 @@ specs/
 │   └── spec.md
 ├── 009-dry-kiss-yagni/        🔲 Backlog — Audit DRY/KISS/YAGNI, 10 violations identifiées, plan de correction
 │   └── spec.md
+├── 010-naming-intention-result/ 🔲 Backlog — Principe Intention→Résultat dans les noms, audit complet frontend + backend
+│   └── spec.md
 └── README.md
 ```
 
@@ -75,4 +77,5 @@ specs/
 | 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | 🔲 Backlog |
 | 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 | 🔲 Backlog |
 | 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | 🔲 Backlog |
+| 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | 🔲 Backlog |
 | 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 🔲 | 🔲 Backlog |
