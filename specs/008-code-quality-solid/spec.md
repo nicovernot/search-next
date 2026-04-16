@@ -156,6 +156,12 @@ Pour chaque PR touchant `front/app/` :
 
 ---
 
+## Lien avec spec 009
+
+Les principes DRY, KISS et YAGNI sont couverts dans la spec `009-dry-kiss-yagni` qui liste les violations concrètes et le plan de correction. Les deux specs partagent la même checklist de revue de code et doivent être traitées ensemble.
+
+---
+
 ## Outils recommandés
 
 | Outil | Usage | Config |

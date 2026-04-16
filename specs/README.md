@@ -30,6 +30,8 @@ specs/
 │   └── spec.md
 ├── 008-code-quality-solid/    🔲 Backlog — Règles qualité, principes SOLID, checklist de revue de code
 │   └── spec.md
+├── 009-dry-kiss-yagni/        🔲 Backlog — Audit DRY/KISS/YAGNI, 10 violations identifiées, plan de correction
+│   └── spec.md
 └── README.md
 ```
 
@@ -72,4 +74,5 @@ specs/
 | 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | 🔶 Partiel |
 | 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | 🔲 Backlog |
 | 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 | 🔲 Backlog |
+| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | 🔲 Backlog |
 | 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 🔲 | 🔲 Backlog |
