@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/008-code-quality-solid` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: 🔲 Backlog — à traiter en parallèle de `007` ou après
+**Status**: ✅ Livré P0+P1 — useSavedSearches extrait, JSDoc hooks, SC-001/SC-004/SC-005/SC-006 verts
 
 ## Overview
 

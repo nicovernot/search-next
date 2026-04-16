@@ -1,3 +1,7 @@
+/**
+ * Orchestre les appels à /search : exécution, chargement d'une recherche sauvegardée, re-déclenchement sur filtre/page.
+ * Résultat : expose `executeSearch` et `loadSearch` — stables grâce au pattern latestRef/skipEffectRef.
+ */
 import { useCallback, useRef, useEffect } from "react";
 import { api } from "../lib/api";
 import type { FullFacetConfig, SavedSearchData, SearchDoc } from "../types";

@@ -1,3 +1,7 @@
+/**
+ * Gère l'autocomplétion : appelle /suggest dès que la requête atteint 2 caractères.
+ * Résultat : expose `suggestions` (liste de termes), `fetchSuggestions` (déclencheur), `loadingSuggestions`.
+ */
 import { useState, useCallback } from "react";
 import { api } from "../lib/api";
 

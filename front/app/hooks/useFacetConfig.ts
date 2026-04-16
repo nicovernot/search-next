@@ -1,3 +1,7 @@
+/**
+ * Charge la configuration des facettes et les champs de recherche avancée depuis /facets/config au démarrage.
+ * Résultat : expose `facetConfig` (groupes de facettes) et `searchFields` (champs QB) — null tant que non chargés.
+ */
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import type { FullFacetConfig, FacetsConfigResponse } from "../types";

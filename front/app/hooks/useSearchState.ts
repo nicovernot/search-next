@@ -1,3 +1,7 @@
+/**
+ * Centralise tout l'état de recherche (query, filters, pagination, mode, résultats) et ses mutateurs.
+ * Résultat : expose les valeurs + setters bruts pour useSearchApi, plus les dérivés publics (activeFilters, hasActiveSearch).
+ */
 import { useState, useCallback, useMemo } from "react";
 import type { SearchDoc, Facets, Filters, Pagination, LogicalQuery } from "../types";
 

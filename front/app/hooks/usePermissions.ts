@@ -1,3 +1,8 @@
+/**
+ * Charge les droits d'accès par URL via /permissions (batch, non-bloquant).
+ * Résultat : expose `permissions` (map URL→statut), `organization`, `loadingPermissions`,
+ * `fetchPermissions` (déclencheur fire-and-forget) et `resetPermissions` (appelé avant chaque nouvelle recherche).
+ */
 import { useState, useCallback } from "react";
 import { api } from "../lib/api";
 import type { PermissionsMap, PermissionStatus, Organization } from "../types";
