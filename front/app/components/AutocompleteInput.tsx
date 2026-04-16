@@ -154,7 +154,7 @@ export default function AutocompleteInput({
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.35-4.35" />
                 </svg>
-                <span className="truncate">{renderSuggestion(s)}</span>
+                <span className="truncate">{renderSuggestion(suggestion)}</span>
               </li>
             ))}
           </ul>,

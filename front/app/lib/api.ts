@@ -5,7 +5,7 @@
  * - Retourne des Response brutes (les appelants gèrent le JSON et les erreurs)
  */
 
-const API_API_BASE_URL_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8003";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8003";
 
 function buildJsonAuthHeaders(token?: string | null): HeadersInit {
   return {

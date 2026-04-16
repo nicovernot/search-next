@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/007-refactor-search-context` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: 🔲 Backlog — prérequis bloquant pour `004-url-sync`
+**Status**: ✅ Livré — 5 hooks SOLID + assembler <80 lignes, 29 tests verts
 
 ## Overview
 

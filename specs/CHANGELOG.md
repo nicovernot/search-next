@@ -22,6 +22,7 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-16 | 010 | Nommage Intention→Résultat — renommages frontend + backend, CONTRIBUTING.md, ESLint id-length | `d5f4946` |
 | 2026-04-16 | 009 | DRY/KISS/YAGNI P0+P1 — FACET_I18N, storage-keys, Pagination tokens, Spinner, useIsClient | `ffc7bb5` |
 | 2026-04-16 | 005 | Complétion permissions — route handler Next.js, X-Forwarded-For, fallback partiel | `76d4c1d` |
+| 2026-04-16 | 007 | Refactor SearchContext — 5 hooks SOLID (useFacetConfig, useSuggestions, usePermissions, useSearchState, useSearchApi), assembler <80 lignes, 29 tests verts | — |
 
 ---
 
@@ -32,10 +33,10 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 001 | Search core — facettes, pagination, i18n | ✅ Livré |
 | 002 | Advanced search suite — QB, auth, recherches sauvegardées | ✅ Livré |
 | 003 | UX/UI premium — dark mode, glassmorphism, animations | ✅ Livré |
-| 004 | URL sync — liens partageables, back/forward | 🔲 Backlog (prérequis : 007) |
+| 004 | URL sync — liens partageables, back/forward | 🔲 Backlog (prérequis 007 ✅) |
 | 005 | Permissions — badges d'accès sur les résultats | 🔶 Partiel (tests Playwright manquants) |
 | 006 | Tech debt — correctifs fondations techniques | ✅ Livré |
-| 007 | Refactor SearchContext — découpage en hooks SOLID | 🔲 Backlog (prérequis bloquant pour 004) |
-| 008 | Code quality SOLID — règles qualité, checklist | 🔲 Backlog (après 007) |
+| 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré |
+| 008 | Code quality SOLID — règles qualité, checklist | 🔲 Backlog (après 007 ✅) |
 | 009 | DRY/KISS/YAGNI — P0+P1 livrés, P2 après 007 | ✅ Livré P0+P1 |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
