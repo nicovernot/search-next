@@ -1,29 +1,35 @@
 # Feature Specification: Permissions & Accès aux Résultats
 
-**Feature Branch**: `feature/002-advanced-search-suite` (intégrée dans la branche courante)
+**Feature Branch**: `feature/005-permissions` (à créer depuis `feature/002-advanced-search-suite`)
 **Created**: 2026-04-13
-**Updated**: 2026-04-15
-**Status**: ✅ Livré — badges d'accès affichés sur chaque résultat, chargement non-bloquant, 6 langues
+**Updated**: 2026-04-16
+**Status**: 🔶 Partiel — badges frontend livrés, proxy X-Forwarded-For et tests Playwright manquants
 
 ## Overview
 
 Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de recherche, en s'appuyant sur le endpoint backend `GET /permissions` déjà exposé. L'objectif est de rendre visible, directement sur les cartes de résultats, si un document est accessible en lecture complète, en accès restreint (abonné), ou fermé.
 
-## Contexte technique (état au 2026-04-15)
+## Contexte technique (état au 2026-04-16)
 
 **Backend — complet** :
 - `GET /permissions` est exposé et rate-limité (15 req/min)
 - `PermissionsService` et `DocsPermissionsClient` existent dans `search_api_solr/app/services/`
 - Le service appelle `http://auth.openedition.org/auth_by_url/` avec les URLs de documents
-- L'IP de l'utilisateur final est attendue via header `X-Forwarded-For`
+- L'IP est lue depuis `request.client.host` — accepte aussi un param `?ip=` et `TEST_IP` en dev
 
-**Frontend — absent** :
-- `ResultItem.tsx` n'appelle pas `/permissions` et n'affiche aucun badge
-- Aucun mécanisme de batch des URLs par page
+**Frontend — partiellement livré** :
+- `ResultItem.tsx` : composant `AccessBadge` complet (4 statuts, skeleton, icônes, couleurs, formats html/epub/pdf) ✅
+- `ResultsList.tsx` : passe `permissionInfo` et `loadingPermissions` à chaque `ResultItem` ✅
+- `SearchContext.tsx` : `fetchPermissions` appelé en fire-and-forget après chaque page, `permissions`/`loadingPermissions`/`organization` exposés ✅
+- `ResultsList.tsx` : bandeau organisation institutionnelle affiché ✅
+- Traductions : clés `access_open/restricted/institutional/unknown` dans les 6 langues ✅
+- `lib/api.ts` : méthode `permissions(urls)` présente ✅
 
-**Dépendance** : spec 006 (client API centralisé) — l'appel `/permissions` doit s'intégrer dans `lib/api.ts` avant d'être utilisé ici.
+**Ce qui manque** :
+- Aucun route handler Next.js — l'appel `fetch` est direct browser → backend, l'IP reçue est celle du browser/proxy Docker, pas l'IP réelle de l'utilisateur en production ❌
+- Aucun test Playwright (`tests/permissions.spec.ts` inexistant) ❌
 
-L'IP de l'utilisateur final doit être transmise via header `X-Forwarded-For` depuis le serveur Next.js (route handler ou middleware) vers le backend FastAPI — le client browser ne la connaît pas directement.
+**Dépendance** : spec 006 ✅ (client API centralisé déjà livré dans `lib/api.ts`).
 
 ## User Scenarios & Testing (Playwright)
 
@@ -75,3 +81,40 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | Fichier | Cas à couvrir |
 |---|---|
 | `tests/permissions.spec.ts` | Badges présents après recherche (mock API), badge open/restricted/institutional corrects selon réponse mockée, chargement non-bloquant (résultats visibles avant badges), erreur /permissions → pas de crash + badge neutre, labels traduits en EN et FR |
+
+---
+
+## État d'avancement (2026-04-16)
+
+| Élément | FR | Statut |
+|---|---|---|
+| Backend `GET /permissions` | FR-001 | ✅ Livré |
+| `AccessBadge` dans `ResultItem.tsx` | FR-002 | ✅ Livré |
+| Chargement non-bloquant (fire-and-forget) | FR-003 | ✅ Livré |
+| Traductions 6 langues | FR-005 | ✅ Livré |
+| Route handler Next.js + X-Forwarded-For | FR-004 | ❌ Manquant |
+| Tests Playwright | SC-001→004 | ❌ Manquants |
+
+---
+
+## Plan de complétion
+
+### Étape 1 — Route handler Next.js (< 2h)
+
+Créer `front/app/api/permissions/route.ts` :
+- Reçoit les URLs en query string depuis le browser
+- Lit l'IP réelle depuis `request.headers.get('x-forwarded-for')` ou `request.ip`
+- Proxifie vers `GET {API_URL}/permissions` en injectant `X-Forwarded-For`
+- Retourne la réponse brute au browser
+
+Modifier `lib/api.ts` : `permissions()` appelle `/api/permissions` (route interne Next.js) au lieu de `{BASE}/permissions` directement.
+
+### Étape 2 — Tests Playwright (< 3h)
+
+Créer `front/tests/permissions.spec.ts` avec mock `page.route('**/api/permissions*', ...)` :
+- Badge `open` affiché si `isPermitted=true` et `purchased=false`
+- Badge `institutional` affiché si `isPermitted=true` et `purchased=true`
+- Badge `restricted` affiché si `isPermitted=false`
+- Résultats visibles avant les badges (non-bloquant)
+- Erreur `/permissions` → pas de crash, badge `unknown`
+- Labels traduits (vérification en `fr` et `en`)

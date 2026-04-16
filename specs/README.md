@@ -20,11 +20,15 @@ specs/
 │       └── requirements.md
 ├── 003-ux-ui-premium-overhaul/ ✅ Livré — Refonte visuelle, dark mode, glassmorphism, animations
 │   └── spec.md
-├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward
+├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
 │   └── spec.md
-├── 005-permissions/           ✅ Livré — Badges d'accès sur résultats (open/institutional/restricted/unknown, non-bloquant)
+├── 005-permissions/           🔶 Partiel — Badges frontend livrés, proxy X-Forwarded-For et tests Playwright manquants
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
+│   └── spec.md
+├── 007-refactor-search-context/ 🔲 Backlog — Découpage SearchContext en hooks SOLID (prérequis bloquant pour 004)
+│   └── spec.md
+├── 008-code-quality-solid/    🔲 Backlog — Règles qualité, principes SOLID, checklist de revue de code
 │   └── spec.md
 └── README.md
 ```
@@ -65,5 +69,7 @@ specs/
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
 | 1 | [006-tech-debt](006-tech-debt/spec.md) — Corrections & fondations techniques | — | — | ✅ Livré |
-| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | — | — | ✅ Livré |
-| 3 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 006 ✅ | 🔲 Backlog |
+| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | 🔶 Partiel |
+| 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | 🔲 Backlog |
+| 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 | 🔲 Backlog |
+| 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 🔲 | 🔲 Backlog |
