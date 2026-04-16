@@ -11,10 +11,10 @@
 
 ## Constitution Compliance
 
-- [x] Frontend Next.js 15 + TypeScript ✓
+- [x] Frontend Next.js 16 + TypeScript ✓
 - [x] Tailwind CSS uniquement ✓
 - [x] Pas de logique Solr dans le frontend ✓
-- [x] i18n 5 langues ✓
+- [x] i18n 6 langues ✓
 - [x] Frontend stateless ✓
 - [x] Container nommé `search_next` ✓
 - [x] Pas de secrets committés ✓

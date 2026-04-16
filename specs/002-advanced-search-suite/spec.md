@@ -25,7 +25,7 @@ En tant qu'utilisateur, je veux pouvoir me créer un compte avec email/mot de pa
 **Independent Test**: Création d'un compte, connexion JWT réussie, bouton "Sauvegarder", et menu affichant l'historique des requêtes enregistrées.
 
 ### User Story 4 - Traductions I18n (Priority: P2)
-En tant qu'utilisateur international, je veux que l'interface soit traduite dans les principales langues européennes (FR, EN, ES, DE, IT) afin de naviguer avec précision.
+En tant qu'utilisateur international, je veux que l'interface soit traduite dans les principales langues européennes supportées par le projet (FR, EN, ES, DE, IT, PT) afin de naviguer avec précision.
 **Why this priority**: Permet à OpenEdition Search d'étendre son aura.
 **Independent Test**: Un sélecteur de langue permet de changer dynamiquement la langue de l'interface complète (y compris les libellés de l'éditeur logique `react-querybuilder`).
 
@@ -78,7 +78,7 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | Chargement de recherche sans exécution | `loadSearch()` patche `latestRef` avant d'appeler `executeSearch()` |
 | Couleurs Tailwind v4 cassées | Bloc `@theme inline` dans `globals.css` mappant les variables CSS |
 | Token JWT expirant après 30 min | `ACCESS_TOKEN_EXPIRE_MINUTES=1440` dans les `.env` |
-| Clés i18n hardcodées | 69 clés × 6 langues synchronisées (facettes, QB, hero, hints) |
+| Clés i18n hardcodées | 75 clés × 6 langues synchronisées (facettes, permissions, QB, hero, hints) |
 | data-testid manquants pour les tests | Ajout sur `results-list`, `result-item`, `btn-load-search-*`, `btn-delete-search-*` |
 
 ### Tests Playwright

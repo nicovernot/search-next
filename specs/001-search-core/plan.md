@@ -42,4 +42,4 @@ docker-compose.yml
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_API_URL` | URL du backend FastAPI | `http://localhost:8007` |
+| `NEXT_PUBLIC_API_URL` | URL publique du backend FastAPI | `http://localhost:8003` |

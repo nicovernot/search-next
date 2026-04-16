@@ -264,9 +264,9 @@ const placeholder = (props.schema as any)?.translations?.value?.label ?? "Value"
 
 **Fichier** : `specs/005-permissions/spec.md` — Key Entities
 
-**Problème** : La spec 005 mentionne une `PermissionsCache: Map<url, PermissionStatus>` pour éviter les appels dupliqués lors d'un changement de page. Cette cache n'est pas implémentée et le comportement actuel (reset à chaque page) est fonctionnel. Implémenter une cache côté frontend avant de mesurer si c'est un problème réel serait du YAGNI.
+**Problème** : La spec 005 mentionnait une `PermissionsCache: Map<url, PermissionStatus>` pour éviter les appels dupliqués lors d'un changement de page. Cette cache n'est pas implémentée et le comportement actuel (reset à chaque page) est fonctionnel. Implémenter une cache côté frontend avant de mesurer si c'est un problème réel serait du YAGNI.
 
-**Décision** : Ne pas implémenter tant que les métriques de performance ne montrent pas un problème réel. Supprimer la mention de `PermissionsCache` des Key Entities de la spec 005.
+**Décision** : Ne pas implémenter tant que les métriques de performance ne montrent pas un problème réel. La mention de `PermissionsCache` a été supprimée des Key Entities de la spec 005 le 2026-04-16. Le cache existant côté backend Redis reste conservé.
 
 ---
 

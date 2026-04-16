@@ -44,9 +44,11 @@ front/app/
 │   ├── FacetGroup.tsx          # Groupe expand/collapse
 │   ├── Pagination.tsx          # Navigation pages
 │   └── LanguageSelector.tsx    # Sélecteur langue
-├── messages/                   # Traductions next-intl
-├── i18n/                       # Routing et navigation
+├── globals.css                 # Tokens CSS/Tailwind v4 et styles globaux
 └── [locale]/page.tsx           # Layout principal
+front/
+├── messages/                   # Traductions next-intl
+└── i18n/                       # Routing et navigation
 ```
 
 ## API Contract
@@ -83,7 +85,7 @@ front/app/
   debounce 300 ms, puis soumission explicite de la recherche.
 - Les facettes consommées par le frontend sont déjà normalisées au format
   `{ buckets: [{ key, doc_count }] }`.
-- Tailwind CSS 4 uniquement, pas de fichiers CSS séparés.
+- Tailwind CSS 4 avec `front/app/globals.css` pour les tokens et styles globaux.
 
 ## Test Cases (Playwright End-to-End)
 

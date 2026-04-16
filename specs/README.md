@@ -22,7 +22,7 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
 │   └── spec.md
-├── 005-permissions/           🔶 Partiel — Badges frontend livrés, proxy X-Forwarded-For et tests Playwright manquants
+├── 005-permissions/           🔶 Partiel — Badges frontend livrés, proxy IP fiable, fallback unknown et tests Playwright manquants
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md

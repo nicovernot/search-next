@@ -34,8 +34,9 @@
 - [x] Frontend : intégration dans le header (`[locale]/page.tsx`).
 
 ## Tests E2E (Playwright)
-- [x] `tests/auth.spec.ts` — 10 tests : inscription, connexion, déconnexion, erreurs, persistance session.
-- [x] `tests/saved-searches.spec.ts` — 8 tests : sauvegarder, charger, supprimer, persistance après reload.
+- [x] `tests/auth.spec.ts` — 15 tests : inscription, connexion, déconnexion, erreurs, persistance session.
+- [x] `tests/saved-searches.spec.ts` — 12 tests : sauvegarder, charger, supprimer, persistance après reload.
+- [x] `tests/search.spec.ts` — 2 tests : chargement page et recherche simple.
 
 ## Correctifs post-livraison (2026-04-13)
 
@@ -61,15 +62,15 @@
 - [x] `qb_fieldTitle`, `qb_fieldAuthor`, `qb_fieldFullText`, `qb_fieldKeywords` extraits de `AdvancedQueryBuilder.tsx`.
 - [x] `qb_addGroup`, `qb_addRule`, `qb_remove`, `qb_logic`, `qb_field`, `qb_operator`, `qb_value` extraits des `translations` du QueryBuilder.
 - [x] `noFacetResults`, `showMore`, `showLess` utilisés dans `FacetGroup.tsx`.
-- [x] 67 clés synchronisées dans les 6 fichiers (FR/EN/ES/DE/IT/PT).
+- [x] 75 clés synchronisées dans les 6 fichiers (FR/EN/ES/DE/IT/PT).
 
 ### Correctifs UI/Auth/i18n (2026-04-13 — round 2)
 - [x] **Tailwind v4 colors** : ajout d'un bloc `@theme inline` dans `globals.css` mappant `--card`, `--background`, `--border`, etc. vers `--color-*` → `bg-card`, `bg-secondary`, `text-foreground`, `border-border` fonctionnent enfin.
 - [x] **JWT expiry** : `ACCESS_TOKEN_EXPIRE_MINUTES=1440` ajouté dans `search_api_solr/.env` et `.env.development` (évite les 401 après 30 min).
-- [x] **Warnings traductions facettes** : remplacement de `t(key as any)` par une table de mapping `FACET_I18N` dans `Facets.tsx` et `ResultsList.tsx`; ajout de `facet_date` et `facet_subscribers` (69 clés × 6 langues).
+- [x] **Warnings traductions facettes** : remplacement de `t(key as any)` par une table de mapping `FACET_I18N` dans `Facets.tsx` et `ResultsList.tsx`; ajout de `facet_date`, `facet_subscribers` et des clés permissions (75 clés × 6 langues).
 
 ### Correctifs recherches sauvegardées — exécution réelle (2026-04-13 — round 3)
-- [x] **AdvancedQueryBuilder sync** : ajout d'un `useEffect` qui synchronise l'état local `query` (RuleGroupType) avec `logicalQuery` du context quand `loadSearch` restaure une recherche avancée.
+- [x] **AdvancedQueryBuilder sync** : composant contrôlé par `logicalQuery` du contexte (`query={contextLogicalQuery ?? DEFAULT_QUERY}`), ce qui restaure correctement une recherche avancée chargée.
 - [x] **data-testid** : `data-testid="results-list"` ajouté sur le container dans `ResultsList.tsx`; `data-testid="result-item"` ajouté sur `<article>` dans `ResultItem.tsx`.
 - [x] **Tests Playwright** : `waitForResults()` helper vérifiant la présence d'au moins un `result-item`; test "charger" étendu pour vérifier que les résultats s'affichent; nouveau test "charger depuis reload" vérifiant la persistance + exécution après rechargement de page.
 
@@ -77,5 +78,5 @@
 - [x] **AutocompleteInput portal** : la liste de suggestions est désormais rendue via `createPortal` sur `document.body` avec positionnement `fixed` via `getBoundingClientRect()`. Corrige l'affichage derrière le parent glassmorphism (`backdrop-filter` crée un stacking context qui piège les `z-index` enfants).
 - [x] **AutocompleteInput — inputRef** : ajout d'un `ref` sur l'`<input>` + `updateDropdownRect()` appelé sur `onFocus` pour calculer la position dès l'ouverture.
 - [x] **SavedSearchesPanel — feedback d'erreur** : ajout d'un état `saveError` + `catch` block dans `handleSave` → message d'erreur rouge visible sous le champ nom si le POST `/saved-searches` échoue (CORS, 401, réseau…). Avant ce correctif, les échecs étaient silencieux.
-- [x] **Tests Playwright** : `waitForResults` accepte un paramètre `timeout` (défaut 15 000 ms); `retries: 1` (local) dans `playwright.config.ts` pour les tests "charger" flaky sous charge Solr parallèle.
+- [x] **Tests Playwright** : `waitForResults` accepte un paramètre `timeout` (défaut 15 000 ms); `playwright.config.ts` garde `retries: 0` en local et `retries: 2` en CI.
 - [x] **search.spec.ts** : `page.goto('/')` → `page.goto('/fr/')` pour contourner la détection Accept-Language de Playwright Chrome qui routait vers `/en/` et ne trouvait pas le texte "Rechercher".

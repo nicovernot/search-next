@@ -14,7 +14,7 @@
 | Phase 1 — Backend Infrastructure & DB | ✅ Complète |
 | Phase 2 — Autocomplétion | ✅ Complète |
 | Phase 3 — Query Builder avancé | ✅ Complète |
-| Phase 4 — i18n (FR/EN/ES/DE/IT/PT) | ✅ Complète — 67 clés, 6 langues, 0 hardcodé |
+| Phase 4 — i18n (FR/EN/ES/DE/IT/PT) | ✅ Complète — 75 clés, 6 langues, 0 hardcodé critique |
 | Phase 5 — Saved Searches | ✅ Complète |
 | Spec 003 — UX Premium | ✅ Complète (dark mode, glassmorphism, animations) |
 | Correctifs CORS + pagination/filtres + i18n | ✅ Appliqués le 2026-04-13 |

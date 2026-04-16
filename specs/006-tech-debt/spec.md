@@ -69,8 +69,9 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 
 ### Key Entities
 
-- **`ApiClient`** (`front/app/lib/api.ts`) : module exportant des fonctions typées pour chaque endpoint (`search`, `suggest`, `login`, `register`, `getSavedSearches`, `createSavedSearch`, `deleteSavedSearch`, `getPermissions`, `getFacetsConfig`).
-- **`QB_FIELDS`** : liste de champs chargée depuis `/facets/config` et passée en prop au composant `AdvancedQueryBuilder`.
+- **`ApiClient`** (`front/app/lib/api.ts`) : module exportant des fonctions typées pour chaque endpoint (`search`, `suggest`, `facetsConfig`, `login`, `register`, `getSavedSearches`, `createSavedSearch`, `deleteSavedSearch`, `permissions`).
+- **`searchFields`** : liste de champs chargée depuis `/facets/config` et exposée par `SearchContext`.
+- **`QB_FIELDS`** : liste de fallback utilisée si `/facets/config` est indisponible.
 
 ---
 
@@ -80,16 +81,16 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 
 - **SC-001**: Le payload JWT émis en dev a `exp - iat = 86400s` (1440 min × 60).
 - **SC-002**: `POST /auth/register` avec email existant retourne HTTP 409, et l'UI affiche un message traduit.
-- **SC-003**: Aucune string d'erreur n'est hardcodée dans `AuthContext.tsx` — toutes passent par `t()` (next-intl).
+- **SC-003**: `AuthContext.tsx` ne renvoie que des codes d'erreur stables (`auth_error`, `email_exists`, `register_error`) ; `AuthModal.tsx` les mappe vers `t()` (next-intl).
 - **SC-004**: `grep -r "await fetch(" front/app/` ne retourne aucun résultat hors de `lib/api.ts`.
-- **SC-005**: Les champs du QueryBuilder sont absents de `AdvancedQueryBuilder.tsx` comme constantes hardcodées — ils proviennent de props.
+- **SC-005**: `AdvancedQueryBuilder.tsx` utilise `searchFields` depuis le contexte quand `/facets/config` répond, avec `QB_FIELDS` comme fallback documenté.
 
-### Tests Playwright (à créer)
+### Couverture de test
 
 | Fichier | Cas à couvrir |
 |---------|---------------|
-| `tests/auth.spec.ts` (compléter) | Register email existant → message 409 traduit, message login incorrect traduit (EN + FR) |
-| `tests/token-expiry.spec.ts` | Token émis avec exp correct (1440 min) |
+| `tests/auth.spec.ts` | Register email existant, login incorrect, persistance session et affichage d'erreur côté UI |
+| Test backend ou script de validation env | Token émis avec `exp - iat = 86400s` (1440 min) — à ajouter si on veut automatiser ce contrôle |
 
 ---
 
@@ -115,7 +116,7 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 
 ### Étape 2 — i18n erreurs auth (< 2h) ✅ FAIT
 
-- Clés `authError`, `emailAlreadyExists`, `registerError`, `passwordMismatch` dans les 6 fichiers `messages/*.json`
+- Clés `authError`, `emailAlreadyExists`, `registerError`, `passwordMismatch` dans les 6 fichiers `front/messages/*.json`
 - `AuthContext.tsx` : émet des codes (`"auth_error"`, `"email_exists"`, `"register_error"`)
 - `AuthModal.tsx` : mappe codes → `t()` (pattern adapté, fonctionnel)
 
@@ -124,12 +125,12 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 - `front/app/lib/api.ts` créé avec toutes les méthodes typées
 - `SearchContext.tsx`, `AuthContext.tsx`, `SavedSearchesPanel.tsx` utilisent tous `api.*`
 
-### Étape 4 — Champs QB depuis config (< 1 jour) ⚠️ RESTE À FAIRE
+### Étape 4 — Champs QB depuis config (< 1 jour) ✅ FAIT
 
-1. Backend : s'assurer que `GET /facets/config` expose les champs de recherche avancée (ou créer un endpoint dédié `GET /search-fields`)
-2. Frontend : charger les champs au montage dans `SearchContext` ou directement dans `AdvancedQueryBuilder`
-3. Passer les champs comme prop à `AdvancedQueryBuilder`
-4. Fallback si config indisponible : set minimal hardcodé
+1. Backend : `GET /facets/config` expose `search_fields` depuis `SEARCH_FIELDS_MAPPING`
+2. Frontend : `SearchContext` charge `search_fields` au montage et expose `searchFields`
+3. `AdvancedQueryBuilder` utilise `searchFields` si disponible
+4. Fallback si config indisponible : `QB_FIELDS` dans `front/app/lib/qb-fields.ts`
 
 ---
 
@@ -141,9 +142,10 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 | `search_api_solr/app/settings.py` | Token TTL par défaut 1440 min |
 | `scripts/sync_env.sh` | Ajouter ACCESS_TOKEN_EXPIRE_MINUTES |
 | `.env.development` | ACCESS_TOKEN_EXPIRE_MINUTES=1440 |
-| `front/app/messages/*.json` (×6) | Clés erreurs auth |
-| `front/app/context/AuthContext.tsx` | t() pour erreurs |
+| `front/messages/*.json` (×6) | Clés erreurs auth |
+| `front/app/context/AuthContext.tsx` | Codes d'erreur stables |
+| `front/app/components/AuthModal.tsx` | Mapping codes d'erreur → `t()` |
 | `front/app/lib/api.ts` | Nouveau fichier — client API |
 | `front/app/context/SearchContext.tsx` | Remplacer fetch() par api.* |
 | `front/app/components/SavedSearchesPanel.tsx` | Remplacer fetch() par api.* |
-| `front/app/components/AdvancedQueryBuilder.tsx` | Props fields au lieu de hardcode |
+| `front/app/components/AdvancedQueryBuilder.tsx` | Utilise `searchFields` depuis le contexte, fallback `QB_FIELDS` |

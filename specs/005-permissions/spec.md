@@ -3,7 +3,7 @@
 **Feature Branch**: `feature/005-permissions` (à créer depuis `feature/002-advanced-search-suite`)
 **Created**: 2026-04-13
 **Updated**: 2026-04-16
-**Status**: 🔶 Partiel — badges frontend livrés, proxy X-Forwarded-For et tests Playwright manquants
+**Status**: 🔶 Partiel — badges frontend livrés, proxy IP fiable, fallback `unknown` et tests Playwright manquants
 
 ## Overview
 
@@ -11,11 +11,13 @@ Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de re
 
 ## Contexte technique (état au 2026-04-16)
 
-**Backend — complet** :
+**Backend — endpoint fonctionnel, proxy IP incomplet** :
 - `GET /permissions` est exposé et rate-limité (15 req/min)
-- `PermissionsService` et `DocsPermissionsClient` existent dans `search_api_solr/app/services/`
-- Le service appelle `http://auth.openedition.org/auth_by_url/` avec les URLs de documents
+- `PermissionsService` existe dans `search_api_solr/app/services/search_service.py`
+- `DocsPermissionsClient` existe dans `search_api_solr/app/services/docs_permissions_client.py`
+- Le service appelle `https://auth.openedition.org/auth_by_url/` avec les URLs de documents
 - L'IP est lue depuis `request.client.host` — accepte aussi un param `?ip=` et `TEST_IP` en dev
+- Le cache permissions existe côté backend via Redis (`cache_service.get_permissions_cache` / `set_permissions_cache`)
 
 **Frontend — partiellement livré** :
 - `ResultItem.tsx` : composant `AccessBadge` complet (4 statuts, skeleton, icônes, couleurs, formats html/epub/pdf) ✅
@@ -27,6 +29,8 @@ Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de re
 
 **Ce qui manque** :
 - Aucun route handler Next.js — l'appel `fetch` est direct browser → backend, l'IP reçue est celle du browser/proxy Docker, pas l'IP réelle de l'utilisateur en production ❌
+- Le backend FastAPI ne lit pas encore `X-Forwarded-For` — injecter ce header côté Next.js seul ne suffira pas tant que `/permissions` ne le prend pas en compte ❌
+- Les erreurs ou réponses partielles de `/permissions` ne créent pas encore explicitement de statut `unknown` pour les URLs concernées ; le badge disparaît actuellement si aucun statut n'est renseigné ❌
 - Aucun test Playwright (`tests/permissions.spec.ts` inexistant) ❌
 
 **Dépendance** : spec 006 ✅ (client API centralisé déjà livré dans `lib/api.ts`).
@@ -67,7 +71,8 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 
 ### Key Entities
 - **PermissionStatus**: `open | restricted | institutional | unknown`
-- **PermissionsCache**: Cache côté frontend (Map<url, PermissionStatus>) pour éviter les appels dupliqués lors d'un changement de page.
+- **PermissionInfo**: statut d'accès et formats disponibles (`html`, `epub`, `pdf`) pour une URL.
+- **Organization**: institution détectée pour l'IP courante, utilisée pour distinguer accès institutionnel et accès ouvert.
 
 ## Success Criteria
 
@@ -93,23 +98,31 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | Chargement non-bloquant (fire-and-forget) | FR-003 | ✅ Livré |
 | Traductions 6 langues | FR-005 | ✅ Livré |
 | Route handler Next.js + X-Forwarded-For | FR-004 | ❌ Manquant |
+| Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ❌ Manquant |
+| Fallback explicite `unknown` sur erreur/réponse partielle | SC-003 | ❌ Manquant |
 | Tests Playwright | SC-001→004 | ❌ Manquants |
 
 ---
 
 ## Plan de complétion
 
-### Étape 1 — Route handler Next.js (< 2h)
+### Étape 1 — Proxy IP fiable (< 3h)
 
 Créer `front/app/api/permissions/route.ts` :
 - Reçoit les URLs en query string depuis le browser
-- Lit l'IP réelle depuis `request.headers.get('x-forwarded-for')` ou `request.ip`
+- Lit l'IP réelle depuis `x-forwarded-for`, `x-real-ip`, ou les headers fournis par l'infra
 - Proxifie vers `GET {API_URL}/permissions` en injectant `X-Forwarded-For`
 - Retourne la réponse brute au browser
 
 Modifier `lib/api.ts` : `permissions()` appelle `/api/permissions` (route interne Next.js) au lieu de `{BASE}/permissions` directement.
 
-### Étape 2 — Tests Playwright (< 3h)
+Modifier `search_api_solr/app/main.py` : `/permissions` garde `?ip=` comme override explicite pour les tests, puis lit `X-Forwarded-For`, puis `TEST_IP` en dev, puis `request.client.host`.
+
+### Étape 2 — Robustesse du statut neutre (< 1h)
+
+Modifier `SearchContext.tsx` ou le futur `usePermissions.ts` pour mapper les erreurs, les réponses sans `docs`, et les URLs absentes d'une réponse partielle vers `{ status: "unknown", formats: [] }`.
+
+### Étape 3 — Tests Playwright (< 3h)
 
 Créer `front/tests/permissions.spec.ts` avec mock `page.route('**/api/permissions*', ...)` :
 - Badge `open` affiché si `isPermitted=true` et `purchased=false`
