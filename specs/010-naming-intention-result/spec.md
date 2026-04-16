@@ -10,6 +10,8 @@ Une IA lit le code comme un texte. Plus le sens est explicite dans les noms, mie
 
 **Règle d'or** : chaque nom (classe, fonction, variable, paramètre) doit répondre à deux questions simultanément :
 
+Cette notation doit être utilisée par le développeur et le modèle d'assistance (IA) pour garantir que le projet est solide techniquement et facile d'accès.
+
 - **Intention** : que veut-on faire ?
 - **Résultat** : qu'obtient-on en retour ?
 

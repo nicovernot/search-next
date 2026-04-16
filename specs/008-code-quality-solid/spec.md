@@ -6,7 +6,17 @@
 
 ## Overview
 
-Cette spec formalise les règles de qualité de code et les principes SOLID appliqués au projet. Elle sert à la fois de référence pour les revues de code, de guide pour les nouvelles contributions, et de backlog de corrections sur le code existant.
+Cette spec formalise les piliers de qualité logicielle du projet. Elle repose sur l'application stricte des principes **Clean Code**, **SOLID**, **DRY**, **KISS** et **YAGNI**. 
+
+L'objectif est double :
+1. **Robustesse technique** : Minimiser la dette technique et faciliter les évolutions.
+2. **Accessibilité IA/Dev** : Rendre le code auto-explicatif pour qu'un développeur humain ou un assistant IA puisse comprendre immédiatement la logique sans ambiguïté.
+
+### Piliers de Qualité (Core Principles)
+- **Clean Code** : Code lisible, typage exhaustif, pas de code mort.
+- **SOLID** : Responsabilité unique, extensibilité sans modification, inversion des dépendances.
+- **DRY/KISS/YAGNI** (voir [spec 009](../009-dry-kiss-yagni/spec.md)) : Pas de duplication, simplicité maximale, pas de sur-ingénierie.
+- **Intention → Résultat** (voir [spec 010](../010-naming-intention-result/spec.md)) : Le nommage et la documentation doivent exprimer "Pourquoi ?" et "Quoi ?".
 
 L'objectif n'est pas la perfection académique mais la **maintenabilité pratique** : chaque violation listée ici a un impact mesurable sur la capacité à faire évoluer le code sans régression.
 
@@ -71,6 +81,12 @@ Pas de violation identifiée — pas d'héritage de classes dans le codebase Rea
 ## Règles de contribution (à appliquer dès maintenant)
 
 ### Règle 1 — Un hook = une responsabilité
+
+### Règle 6 — Documentation par l'Intention et le Résultat
+
+Tout nouveau bloc de logique complexe ou composant doit être introduit (en commentaire JSDoc ou dans la PR) par une explication suivant le schéma :
+- **Intention** : Ce que le code essaie d'accomplir (ex: "Synchroniser l'état local avec l'URL").
+- **Résultat** : L'effet concret attendu (ex: "L'URL est mise à jour avec les filtres encodés sans recharger la page").
 
 ```
 ✅ usePermissions.ts  → uniquement : fetch /permissions, mapper la réponse, exposer l'état

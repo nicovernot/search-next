@@ -33,7 +33,9 @@ specs/
 ├── 009-dry-kiss-yagni/        🔲 Backlog — Audit DRY/KISS/YAGNI, 10 violations identifiées, plan de correction
 │   └── spec.md
 ├── 010-naming-intention-result/ 🔲 Backlog — Principe Intention→Résultat dans les noms, audit complet frontend + backend
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 └── README.md
 ```
 
@@ -69,6 +71,7 @@ specs/
 ## Backlog priorisé
 
 > Voir `docs/ARCHITECTURE.md` pour le bilan d'audit complet et l'ordre d'implémentation recommandé.
+> Voir aussi [`PLANNING.md`](PLANNING.md) pour le planning global consolidé et les points de cohérence entre specs.
 
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
