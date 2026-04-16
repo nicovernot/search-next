@@ -143,9 +143,16 @@ async def get_document_permissions(
     service: PermissionsService = Depends(get_permissions_service)
 ) -> DocsPermissionsResponse:
     """ Endpoint de permissions decouple """
+    # Priorité : ?ip= explicite → X-Forwarded-For (injecté par le route handler Next.js) → TEST_IP dev → client direct
+    forwarded_for_header = request.headers.get("x-forwarded-for")
+    forwarded_user_ip = forwarded_for_header.split(",")[0].strip() if forwarded_for_header else None
+
     remote_ip = request.client.host if request.client else None
     if ip:
         remote_ip = ip
+    elif forwarded_user_ip:
+        remote_ip = forwarded_user_ip
+        logger.info(f"IP lue depuis X-Forwarded-For: {remote_ip}")
     elif settings.dev and settings.test_ip:
         remote_ip = settings.test_ip
         logger.info(f"[DEV] IP simulée depuis TEST_IP: {remote_ip}")

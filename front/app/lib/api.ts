@@ -81,6 +81,7 @@ export const api = {
   // --- Permissions ---
 
   permissions(urls: string[]): Promise<Response> {
-    return fetch(`${API_BASE_URL}/permissions?urls=${urls.map(encodeURIComponent).join(",")}`);
+    // Passe par le route handler Next.js pour transmettre l'IP réelle via X-Forwarded-For
+    return fetch(`/api/permissions?urls=${urls.map(encodeURIComponent).join(",")}`);
   },
 };
