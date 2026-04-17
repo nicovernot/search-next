@@ -47,9 +47,13 @@ export default function AdvancedQueryBuilder() {
 
   const operators = [
     { name: "=", label: t("qb_opEquals") },
+    { name: "!=", label: t("qb_opNotEquals") },
     { name: "contains", label: t("qb_opContains") },
+    { name: "doesNotContain", label: t("qb_opNotContains") },
     { name: "beginsWith", label: t("qb_opBeginsWith") },
+    { name: "doesNotBeginWith", label: t("qb_opNotBeginsWith") },
     { name: "endsWith", label: t("qb_opEndsWith") },
+    { name: "doesNotEndWith", label: t("qb_opNotEndsWith") },
   ];
 
   const handleSearch = () => {
