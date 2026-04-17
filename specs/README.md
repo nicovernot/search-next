@@ -42,6 +42,8 @@ specs/
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
+├── 011-auth-ldap-sso/         🔲 Backlog — Authentification LDAP + SSO (OIDC/SAML/CAS), provisionnement JIT
+│   └── spec.md
 └── README.md
 ```
 
@@ -89,3 +91,4 @@ specs/
 | 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | ✅ Livré complet |
 | 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | ✅ Livré |
 | 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 ✅ | 🔲 Backlog |
+| 6 | [011-auth-ldap-sso](011-auth-ldap-sso/spec.md) — Authentification LDAP + SSO institutionnel | ~5j | 002 ✅ | 🔲 Backlog |

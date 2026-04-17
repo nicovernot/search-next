@@ -39,13 +39,14 @@ Pourquoi cet ordre : ces trois lots réduisent le bruit et les risques avant le 
 
 Pourquoi cet ordre : `007` crée la structure qui rend `008` beaucoup plus facile à appliquer sans multiplier les retouches.
 
-### Lot 3 — Feature à risque plus élevé
+### Lot 3 — Features à risque plus élevé
 
 | Ordre | Spec | Objectif | Effort | Dépendance |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 6 | `004-url-sync` | Synchroniser query/filtres/page/mode avec l'URL | ~4j | `007` livrée |
+| 7 | `011-auth-ldap-sso` | Authentification LDAP + SSO institutionnel (OIDC/SAML/CAS) | ~5j | `002` livrée |
 
-Pourquoi cet ordre : `004` touche le cycle de vie de la recherche et l'historique navigateur. Elle sera nettement plus sûre après découpage de `SearchContext`.
+Pourquoi cet ordre : `004` touche le cycle de vie de la recherche et l'historique navigateur. `011` est indépendante de `004` mais suppose le modèle User stable (`002` livrée).
 
 ---
 
