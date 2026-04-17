@@ -6,7 +6,7 @@ import AutocompleteInput from "./AutocompleteInput";
 
 export default function SearchBar() {
   const t = useTranslations();
-  const { query, setQuery, executeSearch } = useSearch();
+  const { query, setQuery, executeSearch, suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,11 +16,14 @@ export default function SearchBar() {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div className="flex gap-2 w-full max-w-3xl mx-auto items-center">
-        <AutocompleteInput 
+        <AutocompleteInput
           value={query}
           onChange={setQuery}
           onSearch={executeSearch}
           placeholder={t("searchPlaceholder")}
+          suggestions={suggestions}
+          onFetchSuggestions={fetchSuggestions}
+          loadingSuggestions={loadingSuggestions}
         />
         <button
           type="submit"

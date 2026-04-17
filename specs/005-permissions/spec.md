@@ -2,8 +2,8 @@
 
 **Feature Branch**: `feature/005-permissions` (à créer depuis `feature/002-advanced-search-suite`)
 **Created**: 2026-04-13
-**Updated**: 2026-04-16
-**Status**: 🔶 Partiel — badges livrés, proxy IP + fallback complet livrés, tests Playwright manquants
+**Updated**: 2026-04-17
+**Status**: ✅ Livré — badges, proxy IP, fallback unknown, tests Playwright (117 lignes, commit 34cf91e)
 
 ## Overview
 
@@ -101,7 +101,7 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ✅ Livré (`main.py` — priorité sur `request.client.host`) |
 | Fallback `unknown` sur `!docs` (erreur ou réponse vide) | SC-003 | ✅ Livré |
 | Fallback `unknown` sur réponse partielle (docs présent mais URL absente) | SC-003 | ✅ Livré (toutes les URLs initialisées à unknown avant le parcours docs) |
-| Tests Playwright | SC-001→004 | ❌ Manquants |
+| Tests Playwright | SC-001→004 | ✅ Livré (`front/tests/permissions.spec.ts`, 117 lignes, commit 34cf91e) |
 
 ---
 

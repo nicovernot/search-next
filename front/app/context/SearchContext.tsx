@@ -12,42 +12,63 @@ import { usePermissions } from "../hooks/usePermissions";
 import { useSearchState } from "../hooks/useSearchState";
 import { useSearchApi } from "../hooks/useSearchApi";
 
-interface SearchContextValue {
+// Sous-interfaces par domaine — permet aux composants de dépendre uniquement du sous-ensemble qu'ils consomment.
+
+interface SearchQuerySlice {
   query: string;
   setQuery: (q: string) => void;
+  searchMode: "simple" | "advanced";
+  setSearchMode: (m: "simple" | "advanced") => void;
+  logicalQuery: LogicalQuery | null;
+  setLogicalQuery: (q: LogicalQuery | null) => void;
+  /** Vrai si une recherche est active (query, filtres ou requête logique non vides) */
+  hasActiveSearch: boolean;
+  executeSearch: () => Promise<void>;
+  loadSearch: (data: SavedSearchData) => void;
+}
+
+interface SearchResultsSlice {
   results: SearchDoc[];
+  total: number;
+  loading: boolean;
+  error: string | null;
+  pagination: Pagination;
+  setPage: (page: number) => void;
+}
+
+interface SearchFiltersSlice {
   facets: Facets;
   filters: Filters;
   addFilter: (field: string, value: string) => void;
   removeFilter: (field: string, value: string) => void;
   clearFilters: () => void;
-  pagination: Pagination;
-  setPage: (page: number) => void;
-  total: number;
-  loading: boolean;
-  error: string | null;
-  executeSearch: () => Promise<void>;
-  loadSearch: (data: SavedSearchData) => void;
-  suggestions: string[];
-  fetchSuggestions: (q: string) => Promise<void>;
-  loadingSuggestions: boolean;
-  logicalQuery: LogicalQuery | null;
-  setLogicalQuery: (q: LogicalQuery | null) => void;
-  searchMode: "simple" | "advanced";
-  setSearchMode: (m: "simple" | "advanced") => void;
+  /** Filtres actifs sous forme de liste plate — calculé une seule fois depuis useSearchState */
+  activeFilters: { identifier: string; value: string }[];
   facetConfig: FullFacetConfig | null;
   /** Champs de recherche avancée chargés depuis /facets/config (null = pas encore chargé) */
   searchFields: string[] | null;
+}
+
+interface SearchSuggestionsSlice {
+  suggestions: string[];
+  fetchSuggestions: (q: string) => Promise<void>;
+  loadingSuggestions: boolean;
+}
+
+interface SearchPermissionsSlice {
   /** Statut d'accès par URL — chargé de façon asynchrone après les résultats */
   permissions: PermissionsMap;
   loadingPermissions: boolean;
   /** Organisation détectée pour l'IP courante (null si anonyme) */
   organization: Organization | null;
-  /** Filtres actifs sous forme de liste plate — calculé une seule fois */
-  activeFilters: { identifier: string; value: string }[];
-  /** Vrai si une recherche est active (query, filtres ou requête logique non vides) */
-  hasActiveSearch: boolean;
 }
+
+interface SearchContextValue
+  extends SearchQuerySlice,
+    SearchResultsSlice,
+    SearchFiltersSlice,
+    SearchSuggestionsSlice,
+    SearchPermissionsSlice {}
 
 const SearchContext = createContext<SearchContextValue | null>(null);
 

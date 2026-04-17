@@ -11,9 +11,17 @@ venv/
 .pytest_cache
 htmlcov/
 .coverage
+node_modules/
+front/node_modules/
+front/.next/
+front/.pnpm-store/
+front/.env.local
+search_api_solr/.env.local
 
 # Recursive ignores
 **/venv/
 **/__pycache__/
 **/.pytest_cache/
 **/*.pyc
+**/node_modules/
+**/.env.local

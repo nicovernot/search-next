@@ -14,8 +14,9 @@ Frontend Next.js du projet OpenEdition Search.
 ## Démarrage
 
 ```bash
-npm install
-npm run dev
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Le frontend écoute sur `http://localhost:3000` en local simple, et sur `http://localhost:3003` quand il est lancé via Docker Compose.
@@ -28,20 +29,20 @@ NEXT_PUBLIC_API_URL=http://localhost:8003
 
 Via Docker (`make dev`, `make prod`), le fichier `front/.env` est généré automatiquement par `scripts/sync_env.sh`.
 
-Pour un démarrage manuel sans Docker, créer `front/.env` manuellement :
+Pour un démarrage manuel sans Docker, créer `front/.env.local` manuellement :
 
 ```bash
-echo "NEXT_PUBLIC_API_URL=http://localhost:8003" > .env
+echo "NEXT_PUBLIC_API_URL=http://localhost:8007" > .env.local
 ```
 
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-npm run test:e2e
+pnpm dev
+pnpm build
+pnpm start
+pnpm lint
+pnpm test:e2e
 ```
 
 ## Fonctionnalités UI

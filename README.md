@@ -52,12 +52,36 @@ Frontend:
 
 ```bash
 cd front
-echo "NEXT_PUBLIC_API_URL=http://localhost:8003" > .env
-npm install
-npm run dev
+# Créer un .env.local qui pointe sur uvicorn directement (port 8007)
+echo "NEXT_PUBLIC_API_URL=http://localhost:8007" > .env.local
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Le fichier `front/.env` est généré automatiquement par `make dev` / `make sync-env`. En démarrage manuel, il faut le créer. Le frontend s'attend à une API sur `NEXT_PUBLIC_API_URL`, avec repli local sur `http://localhost:8003`.
+### Production Sans Docker
+
+Le déploiement sans Docker est supporté si PostgreSQL, Redis et le reverse proxy sont fournis par l'hôte:
+
+```bash
+ENVIRONMENT=production RUN_MIGRATIONS=true ./scripts/install_no_docker.sh
+```
+
+Voir [docs/INSTALL_PROD_NO_DOCKER.md](./docs/INSTALL_PROD_NO_DOCKER.md).
+
+### Architecture des ports
+
+| Service | Port hôte | Port interne | Note |
+|---|---|---|---|
+| API FastAPI | 8003 | 8007 | Docker mappe `8003:8007` |
+| Frontend Next.js | 3003 | 3000 | Docker mappe `3003:3000` |
+| PostgreSQL | 5435 | 5432 | Docker mappe `5435:5432` |
+| Redis | 6376 | 6379 | Docker mappe `6376:6379` |
+
+**Mode Docker** (`make dev`) : `NEXT_PUBLIC_API_URL=http://localhost:8003`
+**Mode direct** (uvicorn + npm) : `NEXT_PUBLIC_API_URL=http://localhost:8007`
+
+`front/.env` contient la valeur mode Docker (committée). `front/.env.local` (git-ignoré) contient l'override mode direct.
 
 ## Commandes utiles
 

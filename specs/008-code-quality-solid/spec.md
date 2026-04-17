@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/008-code-quality-solid` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré P0+P1 — useSavedSearches extrait, JSDoc hooks, SC-001/SC-004/SC-005/SC-006 verts
+**Status**: ✅ Livré complet — P0+P1 livrés + P2 : SearchContextValue segmentée en 5 sous-interfaces, KISS-002 (état modal sorti d'AuthContext vers useAuthModal)
 
 ## Overview
 

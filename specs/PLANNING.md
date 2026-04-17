@@ -9,8 +9,8 @@
 
 | Sujet | Constat | Action |
 |---|---|---|
-| Specs livrées | `001`, `002`, `003`, `006` sont marquées livrées dans `specs/README.md` | Cohérent côté specs |
-| Permissions | `005` est partielle : UI badges livrée, proxy IP fiable/fallback `unknown`/tests manquants | À finir avant de considérer la feature complète |
+| Specs livrées | `001`, `002`, `003`, `005`, `006`, `007`, `008` P0+P1, `009` P0+P1, `010` livrées | Cohérent côté specs |
+| Permissions | `005` complète : badges, proxy IP, fallback `unknown`, tests Playwright verts (commit 34cf91e) | ✅ Terminé |
 | URL sync | `004` dépend de `007` car `SearchContext` est trop central | Garder `004` après le refactor |
 | Qualité code | `008`, `009`, `010` se recoupent volontairement | Les traiter comme un chantier de maintenabilité coordonné |
 | Planning fichier | Seules `001`, `002` avaient historiquement un `plan.md`; `010` en a maintenant un | Ajouter des `plan.md` dédiés aux autres specs seulement au moment de leur démarrage |
@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | 1 | `010-naming-intention-result` | Renommer les symboles opaques et documenter la règle | ~1j | Aucune |
 | 2 | `009-dry-kiss-yagni` | Supprimer duplications et complexité basse/moyenne | ~1j | Aucune |
-| 3 | `005-permissions` | Terminer proxy IP, fallback `unknown`, tests Playwright | ~1j | `006` livrée |
+| 3 | `005-permissions` | ✅ Livré — proxy IP, fallback `unknown`, tests Playwright | ~1j | `006` livrée |
 
 Pourquoi cet ordre : ces trois lots réduisent le bruit et les risques avant le gros refactor `007`, sans bloquer l'application.
 
@@ -55,7 +55,7 @@ Pourquoi cet ordre : `004` touche le cycle de vie de la recherche et l'historiqu
 |---|---|---|
 | J1 | Spec `010` | Renommages frontend/backend, règles documentées, lint warning |
 | J2 | Spec `009` P0/P1 | Duplications évidentes supprimées, hooks utilitaires simples créés |
-| J3 | Spec `005` fin | Permissions robustes, proxy IP, fallback `unknown`, tests Playwright |
+| J3 | Spec `005` ✅ | Permissions robustes, proxy IP, fallback `unknown`, tests Playwright — livré |
 | J4-J6 | Spec `007` | `SearchContext` réduit à un assembleur, hooks testables |
 | J7 | Spec `008` | Checklist qualité appliquée aux points restants |
 | J8-J11 | Spec `004` | URL shareable, back/forward, restauration QueryBuilder, tests E2E |

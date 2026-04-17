@@ -9,8 +9,6 @@ interface AuthUser {
   email: string;
 }
 
-type ModalTab = "login" | "register";
-
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
@@ -20,11 +18,6 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   clearError: () => void;
-  // Modal state (géré ici pour que le portal puisse être hors du header)
-  modalOpen: boolean;
-  modalTab: ModalTab;
-  openModal: (tab?: ModalTab) => void;
-  closeModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -38,8 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalTab, setModalTab] = useState<ModalTab>("login");
 
   useEffect(() => {
     const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
@@ -111,24 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => setError(null), []);
 
-  const openModal = useCallback((tab: ModalTab = "login") => {
-    setModalTab(tab);
-    setModalOpen(true);
-    setError(null);
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setModalOpen(false);
-    setError(null);
-  }, []);
-
   return (
     <AuthContext.Provider
-      value={{
-        user, token, login, register, logout,
-        loading, error, clearError,
-        modalOpen, modalTab, openModal, closeModal,
-      }}
+      value={{ user, token, login, register, logout, loading, error, clearError }}
     >
       {children}
     </AuthContext.Provider>

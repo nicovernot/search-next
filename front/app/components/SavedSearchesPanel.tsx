@@ -7,6 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { useSearch } from "../context/SearchContext";
 import { Bookmark, Trash2, ChevronDown, Plus, Check } from "lucide-react";
 import { useSavedSearches } from "../hooks/useSavedSearches";
+import { useClickOutside } from "../hooks/useClickOutside";
+import { useAnchoredPortal } from "../hooks/useAnchoredPortal";
 import type { SavedSearchRecord } from "../types";
 
 export default function SavedSearchesPanel() {
@@ -17,7 +19,6 @@ export default function SavedSearchesPanel() {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -27,46 +28,11 @@ export default function SavedSearchesPanel() {
     fetchSearches, saveSearch, deleteSearch,
   } = useSavedSearches(token);
 
-  // Fermer au clic en dehors — vérifie le bouton ET le panel portal
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (!target.isConnected) return;
-      if (buttonRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    // Délai pour ne pas capturer le clic d'ouverture
-    const id = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
-    return () => {
-      clearTimeout(id);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open]);
-
-  // Recalculer position si scroll/resize pendant que le panel est ouvert
-  useEffect(() => {
-    if (!open) return;
-    const recalculateDropdownPosition = () => {
-      if (buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
-      }
-    };
-    window.addEventListener("scroll", recalculateDropdownPosition, true);
-    window.addEventListener("resize", recalculateDropdownPosition);
-    return () => {
-      window.removeEventListener("scroll", recalculateDropdownPosition, true);
-      window.removeEventListener("resize", recalculateDropdownPosition);
-    };
-  }, [open]);
+  const { style: portalStyle, update: updatePos } = useAnchoredPortal(buttonRef, open, { align: "right", gap: 8 });
+  useClickOutside([buttonRef, panelRef], () => setOpen(false), open);
 
   const toggleSavedSearchesPanel = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
-    }
+    updatePos(); // batch avec setOpen pour positionner avant le premier rendu
     setOpen((prev) => !prev);
   };
 
@@ -129,10 +95,7 @@ export default function SavedSearchesPanel() {
             ref={panelRef}
             data-testid="saved-searches-panel"
             style={{
-              position: "fixed",
-              top: dropdownPos.top,
-              right: dropdownPos.right,
-              zIndex: 2147483647,
+              ...portalStyle,
               width: "320px",
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",

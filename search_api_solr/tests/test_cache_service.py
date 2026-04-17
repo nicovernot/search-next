@@ -5,6 +5,7 @@ Tests pour le service de cache Redis
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
+from app.models.logical_query import QueryGroup
 from app.services.cache_service import CacheService
 from app.settings import Settings
 
@@ -33,7 +34,7 @@ class TestCacheService:
     @pytest.fixture
     async def mock_redis(self):
         """Fixture pour mocker Redis"""
-        with patch('aioredis.from_url') as mock_from_url:
+        with patch('app.services.cache_service.Redis.from_url') as mock_from_url:
             mock_redis = AsyncMock()
             mock_from_url.return_value = mock_redis
             yield mock_redis
@@ -46,11 +47,11 @@ class TestCacheService:
     
     async def test_connect_success(self):
         """Test la connexion réussie à Redis"""
-        with patch('aioredis.from_url', new_callable=AsyncMock) as mock_from_url:
+        with patch('app.services.cache_service.Redis.from_url') as mock_from_url:
             mock_redis = AsyncMock()
             # Configurer ping comme une coroutine qui retourne "PONG"
             mock_redis.ping = AsyncMock(return_value="PONG")
-            # from_url est awaitable et retourne le mock redis
+            # from_url retourne le client Redis, puis ping vérifie la connexion
             mock_from_url.return_value = mock_redis
             
             service = CacheService()
@@ -86,6 +87,25 @@ class TestCacheService:
         data2 = {"query": "test2", "filters": [{"type": "article"}]}
         key3 = cache_service._generate_cache_key("search", data2)
         assert key != key3
+
+    async def test_generate_cache_key_with_logical_query_model(self, cache_service):
+        """Test la génération de clé avec une recherche avancée Pydantic."""
+        logical_query = QueryGroup(
+            combinator="and",
+            rules=[
+                {"field": "titre", "operator": "contains", "value": "paris"},
+                {"field": "titre", "operator": "contains", "value": "marseille"},
+            ],
+        )
+        data = {
+            "query": "science ouverte",
+            "logical_query": logical_query,
+            "filters": [],
+        }
+
+        key = cache_service._generate_cache_key("search", data)
+
+        assert key.startswith("search:")
     
     async def test_get_cache_miss(self, cache_service, mock_redis):
         """Test récupération cache - miss"""

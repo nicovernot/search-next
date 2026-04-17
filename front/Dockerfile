@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY front/package.json ./
 COPY front/pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN corepack enable && pnpm install --frozen-lockfile
 
 COPY front/. .
 

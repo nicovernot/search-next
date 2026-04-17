@@ -1,6 +1,18 @@
 from typing import Union
 from app.models.logical_query import QueryRule, QueryGroup
 
+# Normalise les noms d'opérateurs envoyés par react-querybuilder (camelCase) vers les noms internes
+_OPERATOR_ALIASES: dict[str, str] = {
+    "beginswith": "begins_with",
+    "endswith": "ends_with",
+    "doesnotcontain": "does_not_contain",
+    "doesnotbeginwith": "does_not_begin_with",
+    "doesnotendwith": "does_not_end_with",
+    "!=": "not_equal",
+    "isnot": "not_equal",
+}
+
+
 class QueryLogicParser:
     @staticmethod
     def convert_to_solr_query_string(item: Union[QueryRule, QueryGroup, dict]) -> str:
@@ -23,34 +35,34 @@ class QueryLogicParser:
     @staticmethod
     def _build_solr_rule_fragment(rule: QueryRule) -> str:
         from app.services.facet_config import SEARCH_FIELDS_MAPPING, COMMON_FACETS_MAPPING
-        
-        # 1. Priorité au mapping des champs de recherche (Advanced Search)
-        # 2. Repli vers le mapping des facettes
-        field = SEARCH_FIELDS_MAPPING.get(rule.field, 
+
+        field = SEARCH_FIELDS_MAPPING.get(rule.field,
                 COMMON_FACETS_MAPPING.get(rule.field, rule.field))
-        
-        op = rule.operator.lower()
+
+        op = _OPERATOR_ALIASES.get(rule.operator.lower(), rule.operator.lower())
         val = rule.value
 
-        # Échappement des caractères spéciaux si nécessaire (simplifié ici)
-        # On entoure de guillemets pour les recherches exactes sur champs de facettes
-        if op == "=" or op == "is":
+        if op in ("=", "is"):
             return f'{field}:"{val}"'
-        
+        elif op == "not_equal":
+            return f'-{field}:"{val}"'
         elif op == "contains":
-            # Si le champ est un champ de recherche tokenisé (mappé), 
-            # une recherche par terme simple est plus efficace qu'un wildcard.
             if rule.field in SEARCH_FIELDS_MAPPING:
                 return f'{field}:{val}'
-            # Sinon, pour les champs de facettes ou littéraux, wildcard.
             return f'{field}:*{val}*'
-            
+        elif op == "does_not_contain":
+            if rule.field in SEARCH_FIELDS_MAPPING:
+                return f'-{field}:{val}'
+            return f'-{field}:*{val}*'
         elif op == "begins_with":
             return f'{field}:{val}*'
+        elif op == "does_not_begin_with":
+            return f'-{field}:{val}*'
         elif op == "ends_with":
             return f'{field}:*{val}'
+        elif op == "does_not_end_with":
+            return f'-{field}:*{val}'
         else:
-            # Par défaut, recherche par terme
             return f'{field}:{val}'
 
     @staticmethod

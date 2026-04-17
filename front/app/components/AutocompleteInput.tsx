@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useSearch } from "../context/SearchContext";
+import { useClickOutside } from "../hooks/useClickOutside";
+import { useAnchoredPortal } from "../hooks/useAnchoredPortal";
 
 interface AutocompleteInputProps {
   value: string;
@@ -11,6 +12,9 @@ interface AutocompleteInputProps {
   placeholder?: string;
   inputClassName?: string;
   wrapperClassName?: string;
+  suggestions?: string[];
+  onFetchSuggestions?: (q: string) => void;
+  loadingSuggestions?: boolean;
 }
 
 export default function AutocompleteInput({
@@ -20,61 +24,34 @@ export default function AutocompleteInput({
   placeholder,
   inputClassName,
   wrapperClassName,
+  suggestions = [],
+  onFetchSuggestions,
+  loadingSuggestions = false,
 }: AutocompleteInputProps) {
-  const { suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Recalcule la position du dropdown à chaque ouverture ou resize/scroll
-  const updateDropdownRect = () => {
-    if (inputRef.current) {
-      const inputBoundingRect = inputRef.current.getBoundingClientRect();
-      setDropdownRect({ top: inputBoundingRect.bottom + 6, left: inputBoundingRect.left, width: inputBoundingRect.width });
-    }
-  };
-
-  useEffect(() => {
-    if (!showSuggestions) return;
-    updateDropdownRect();
-    window.addEventListener("resize", updateDropdownRect);
-    window.addEventListener("scroll", updateDropdownRect, true);
-    return () => {
-      window.removeEventListener("resize", updateDropdownRect);
-      window.removeEventListener("scroll", updateDropdownRect, true);
-    };
-  }, [showSuggestions]);
-
-  // Fermer au clic en dehors — exclut le wrapper ET la liste portal
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (wrapperRef.current?.contains(target)) return;
-      if (listRef.current?.contains(target)) return;
-      setShowSuggestions(false);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const { style: dropdownStyle } = useAnchoredPortal(inputRef, showSuggestions, { align: "left", gap: 6 });
+  useClickOutside([wrapperRef, listRef], () => setShowSuggestions(false));
 
   // Debounce pour la récupération des suggestions
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    
+
     if (value.length >= 2) {
       debounceTimer.current = setTimeout(() => {
-        fetchSuggestions(value);
+        onFetchSuggestions?.(value);
       }, 300);
     }
 
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
-  }, [value, fetchSuggestions]);
+  }, [value, onFetchSuggestions]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -91,7 +68,7 @@ export default function AutocompleteInput({
         onChange(selectedSuggestion);
         setShowSuggestions(false);
         if (onSearch) {
-          // On attend le prochain tick pour lancer la recherche avec la nouvelle valeur
+          // Attend le prochain tick pour lancer la recherche avec la nouvelle valeur
           setTimeout(() => onSearch(), 0);
         }
       } else {
@@ -132,13 +109,7 @@ export default function AutocompleteInput({
       ? createPortal(
           <ul
             ref={listRef}
-            style={{
-              position: "fixed",
-              top: dropdownRect.top,
-              left: dropdownRect.left,
-              width: dropdownRect.width,
-              zIndex: 2147483647,
-            }}
+            style={dropdownStyle}
             className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in premium-shadow"
           >
             {suggestions.map((suggestion, i) => (
@@ -158,7 +129,7 @@ export default function AutocompleteInput({
               </li>
             ))}
           </ul>,
-          document.body
+          document.body,
         )
       : null;
 
@@ -173,10 +144,7 @@ export default function AutocompleteInput({
           setShowSuggestions(true);
           setActiveIndex(-1);
         }}
-        onFocus={() => {
-          updateDropdownRect();
-          setShowSuggestions(true);
-        }}
+        onFocus={() => setShowSuggestions(true)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"

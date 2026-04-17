@@ -56,4 +56,7 @@ search_api_solr/venv/
 search_api_solr/env/
 search_api_solr/.venv/
 front/.next/
+front/.next.previous.*/
 front/node_modules/
+front/.pnpm-store/
+.pnpm-store/

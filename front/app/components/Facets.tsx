@@ -3,16 +3,11 @@
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
 import FacetGroup from "./FacetGroup";
-import type { FacetConfig } from "../types";
 import { getFacetLabel } from "../lib/facet-i18n";
 
 export default function Facets() {
-  const { facets, filters, addFilter, removeFilter, clearFilters, facetConfig } = useSearch();
+  const { facets, addFilter, removeFilter, clearFilters, facetConfig, activeFilters } = useSearch();
   const t = useTranslations();
-
-  const activeFilters = Object.entries(filters).flatMap(([field, values]) =>
-    values.map((value) => ({ identifier: field, value }))
-  );
 
   // Générer les configurations de facettes dynamiquement à partir du backend
   const dynamicFacetConfigs = facetConfig?.common

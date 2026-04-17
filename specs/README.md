@@ -28,15 +28,15 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
 │   └── spec.md
-├── 005-permissions/           🔶 Partiel — Proxy IP + fallback livrés, tests Playwright manquants
+├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (29+N tests verts)
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
 ├── 007-refactor-search-context/ ✅ Livré — 5 hooks SOLID + assembler, 29 tests verts (débloque 004)
 │   └── spec.md
-├── 008-code-quality-solid/    ✅ Livré P0+P1 — useSavedSearches, JSDoc hooks, 0 appel api.* dans composants
+├── 008-code-quality-solid/    ✅ Livré complet — sous-interfaces SearchContext, useAuthModal, KISS-002
 │   └── spec.md
-├── 009-dry-kiss-yagni/        ✅ Livré P0+P1 — violations corrigées ; P2 après spec 007
+├── 009-dry-kiss-yagni/        ✅ Livré complet — useClickOutside, useAnchoredPortal, AutocompleteInput découplé
 │   └── spec.md
 ├── 010-naming-intention-result/ ✅ Livré — renommages frontend + backend appliqués
 │   ├── spec.md
@@ -83,9 +83,9 @@ specs/
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
 | 1 | [006-tech-debt](006-tech-debt/spec.md) — Corrections & fondations techniques | — | — | ✅ Livré |
-| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | 🔶 Partiel |
+| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | ✅ Livré |
 | 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | ✅ Livré |
-| 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 ✅ | ✅ Livré P0+P1 |
-| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | ✅ Livré P0+P1 |
+| 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 ✅ | ✅ Livré complet |
+| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | ✅ Livré complet |
 | 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | ✅ Livré |
-| 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 🔲 | 🔲 Backlog |
+| 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 ✅ | 🔲 Backlog |

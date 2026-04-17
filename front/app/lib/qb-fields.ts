@@ -20,7 +20,6 @@ export const QB_LABELS_MAP: Record<string, string> = {
   titre: "qb_fieldTitle",
   author: "qb_fieldAuthor",
   naked_texte: "qb_fieldFullText",
-  disciplinary_field: "qb_fieldKeywords",
 };
 
 export const QB_FIELDS: QBFieldDef[] = Object.entries(QB_LABELS_MAP).map(

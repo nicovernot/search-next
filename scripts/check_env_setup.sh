@@ -16,7 +16,14 @@ REQUIRED_FILES=(
     "scripts/sync_env.sh"
     "scripts/run_tests.sh"
     "search_api_solr/app/core/env_validation.py"
-    "front/src/utils/envValidation.js"
+    "front/app/lib/api.ts"
+    "front/app/api/permissions/route.ts"
+    "front/package.json"
+    "front/pnpm-lock.yaml"
+    "docker-compose.yml"
+    "docker-compose.dev.yml"
+    "docker-compose.staging.yml"
+    "docker-compose.prod.yml"
 )
 
 MISSING_FILES=()
@@ -68,10 +75,19 @@ echo "✓ .env files structure verified"
 
 # Vérifier l'intégration avec docker-compose
 echo "Checking docker-compose integration..."
-if grep -q ".env.shared" docker-compose.yml && grep -q ".env.development" docker-compose.yml; then
-    echo "✓ docker-compose.yml is properly configured"
+if grep -q ".env.shared" docker-compose.yml && grep -q "search_api_solr/.env.local" docker-compose.yml; then
+    echo "✓ docker-compose.yml loads shared and generated backend env files"
 else
-    echo "WARNING: docker-compose.yml may not be using the new environment files"
+    echo "WARNING: docker-compose.yml may not be using the expected environment files"
+fi
+
+if docker compose version >/dev/null 2>&1; then
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet
+    docker compose -f docker-compose.yml -f docker-compose.staging.yml config --quiet
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+    echo "✓ docker-compose dev/staging/prod configs are valid"
+else
+    echo "WARNING: docker compose is not available; skipped compose config validation"
 fi
 
 echo ""

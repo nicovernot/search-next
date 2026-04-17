@@ -2,8 +2,7 @@
 import json
 import hashlib
 from typing import Any, Optional, Dict
-import aioredis
-from aioredis import Redis
+from redis.asyncio import Redis
 from app.core.logging import get_logger
 from app.settings import settings
 
@@ -24,7 +23,7 @@ class CacheService:
             return
             
         try:
-            self.redis = await aioredis.from_url(
+            self.redis = Redis.from_url(
                 settings.redis_url,
                 encoding="utf-8",
                 decode_responses=True,
@@ -46,16 +45,33 @@ class CacheService:
     async def disconnect(self):
         """Ferme la connexion à Redis"""
         if self.redis:
-            await self.redis.close()
+            await self.redis.aclose()
             logger.info("Redis connection closed")
     
     def _generate_cache_key(self, prefix: str, data: Dict[str, Any]) -> str:
         """Génère une clé de cache unique basée sur les données"""
         # Sérialiser les données de manière déterministe
-        serialized = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        serialized = json.dumps(
+            self._make_json_safe(data),
+            sort_keys=True,
+            separators=(',', ':'),
+            default=str,
+        )
         # Créer un hash pour éviter les clés trop longues
         hash_key = hashlib.md5(serialized.encode()).hexdigest()
         return f"{prefix}:{hash_key}"
+
+    def _make_json_safe(self, value: Any) -> Any:
+        """Convertit les modèles Pydantic imbriqués avant sérialisation JSON."""
+        if hasattr(value, "model_dump"):
+            return self._make_json_safe(value.model_dump(by_alias=True))
+        if isinstance(value, dict):
+            return {key: self._make_json_safe(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [self._make_json_safe(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(self._make_json_safe(item) for item in value)
+        return value
     
     async def get(self, key: str) -> Optional[Dict[str, Any]]:
         """Récupère une valeur du cache"""

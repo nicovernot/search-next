@@ -31,17 +31,18 @@ export async function GET(request: NextRequest) {
     request.headers.get("x-real-ip");
   const isNonRoutableIp = (ip: string | null | undefined): boolean => {
     if (!ip) return true;
+    const normalizedIp = ip.startsWith("::ffff:") ? ip.slice("::ffff:".length) : ip;
     return (
-      ip === "127.0.0.1" ||
-      ip === "::1" ||
-      ip.startsWith("10.") ||
-      ip.startsWith("172.16.") || ip.startsWith("172.17.") || ip.startsWith("172.18.") ||
-      ip.startsWith("172.19.") || ip.startsWith("172.20.") || ip.startsWith("172.21.") ||
-      ip.startsWith("172.22.") || ip.startsWith("172.23.") || ip.startsWith("172.24.") ||
-      ip.startsWith("172.25.") || ip.startsWith("172.26.") || ip.startsWith("172.27.") ||
-      ip.startsWith("172.28.") || ip.startsWith("172.29.") || ip.startsWith("172.30.") ||
-      ip.startsWith("172.31.") ||
-      ip.startsWith("192.168.")
+      normalizedIp === "127.0.0.1" ||
+      normalizedIp === "::1" ||
+      normalizedIp.startsWith("10.") ||
+      normalizedIp.startsWith("172.16.") || normalizedIp.startsWith("172.17.") || normalizedIp.startsWith("172.18.") ||
+      normalizedIp.startsWith("172.19.") || normalizedIp.startsWith("172.20.") || normalizedIp.startsWith("172.21.") ||
+      normalizedIp.startsWith("172.22.") || normalizedIp.startsWith("172.23.") || normalizedIp.startsWith("172.24.") ||
+      normalizedIp.startsWith("172.25.") || normalizedIp.startsWith("172.26.") || normalizedIp.startsWith("172.27.") ||
+      normalizedIp.startsWith("172.28.") || normalizedIp.startsWith("172.29.") || normalizedIp.startsWith("172.30.") ||
+      normalizedIp.startsWith("172.31.") ||
+      normalizedIp.startsWith("192.168.")
     );
   };
   const isLoopback = isNonRoutableIp(rawIp);

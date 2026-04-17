@@ -36,7 +36,7 @@ def get_cors_origins(environment: str) -> List[str]:
 
 class Settings(BaseSettings):
     """Configuration de l'application chargée depuis les variables d'environnement"""
-    
+
     # Environnement
     environment: str = get_environment()
     
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     
     # Configuration de l'API
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = 8007
     api_reload: bool = True
     
     # Auth API
@@ -337,10 +337,11 @@ class Settings(BaseSettings):
         )
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=[".env", ".env.local"],  # .env.local surcharge .env pour le développement local
         env_file_encoding="utf-8",
         case_sensitive=False,
         env_parse_enums=None,  # Désactive le parsing automatique pour permettre au validator de gérer
+        extra="ignore",
     )
 
 
@@ -359,4 +360,3 @@ FQ_IDS_ARE = 'url:(%s)'
 FQ_SUBSCRIBERS_IS = 'subscribers:%s'
 FQ_TYPE_IS = 'type:(%s)'
 SOLR_QUERY = '*:*'
-

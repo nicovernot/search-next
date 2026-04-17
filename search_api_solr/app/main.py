@@ -209,7 +209,11 @@ async def perform_search(
         # Convertir la requête SearchRequest en dictionnaire pour le service
         request_dict = {
             "query": search_request.query.query,
-            "logical_query": search_request.logical_query,
+            "logical_query": (
+                search_request.logical_query.model_dump(by_alias=True)
+                if search_request.logical_query
+                else None
+            ),
             "filters": [{"identifier": f.identifier, "value": f.value} for f in search_request.filters],
             "pagination": {"from": search_request.pagination.from_, "size": search_request.pagination.size},
             "facets": [{"identifier": f.identifier, "type": f.type} for f in search_request.facets],

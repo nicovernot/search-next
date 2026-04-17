@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { QueryBuilder, RuleGroupType, Field, type ValueEditorProps } from "react-querybuilder";
 import "react-querybuilder/dist/query-builder.css";
 import { useSearch } from "../context/SearchContext";
@@ -15,6 +14,7 @@ const DEFAULT_QUERY: RuleGroupType = {
 };
 
 function QueryBuilderAutocompleteValueEditor(props: ValueEditorProps) {
+  const { suggestions, fetchSuggestions, loadingSuggestions } = useSearch();
   const currentValue = typeof props.value === "string" ? props.value : "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const placeholder = (props.schema as any)?.translations?.value?.label ?? "Value";
@@ -26,6 +26,9 @@ function QueryBuilderAutocompleteValueEditor(props: ValueEditorProps) {
       placeholder={placeholder}
       wrapperClassName="relative w-full max-w-xs group"
       inputClassName="w-full rounded-md border border-border bg-card py-1 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30 focus:border-highlight transition-all"
+      suggestions={suggestions}
+      onFetchSuggestions={fetchSuggestions}
+      loadingSuggestions={loadingSuggestions}
     />
   );
 }
@@ -35,10 +38,20 @@ export default function AdvancedQueryBuilder() {
   const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery, searchFields } = useSearch();
 
   // Champs depuis l'API si disponibles, fallback sur QB_FIELDS hardcodés
-  const fields: Field[] = (searchFields ?? QB_FIELDS.map((f) => f.name)).map((name) => ({
-    name,
-    label: QB_LABELS_MAP[name] ? t(QB_LABELS_MAP[name]) : name,
-  }));
+  const fields: Field[] = (searchFields ?? QB_FIELDS.map((f) => f.name))
+    .filter((name) => name in QB_LABELS_MAP)
+    .map((name) => ({
+      name,
+      label: QB_LABELS_MAP[name] ? t(QB_LABELS_MAP[name]) : name,
+    }));
+
+  const operators = [
+    { name: "=", label: t("qb_opEquals") },
+    { name: "contains", label: t("qb_opContains") },
+    { name: "beginsWith", label: t("qb_opBeginsWith") },
+    { name: "endsWith", label: t("qb_opEndsWith") },
+  ];
+
   const handleSearch = () => {
     // setLogicalQuery synced via onQueryChange — executeSearch lit depuis latestRef
     executeSearch();
@@ -51,6 +64,7 @@ export default function AdvancedQueryBuilder() {
           {t("queryBuilderTitle")}
         </h3>
         <button
+          type="button"
           onClick={handleSearch}
           className="flex items-center gap-2 px-6 py-2.5 bg-highlight text-white rounded-xl font-bold hover:brightness-110 transition-all premium-shadow active:scale-95"
         >
@@ -62,6 +76,7 @@ export default function AdvancedQueryBuilder() {
       <div className="query-builder-premium">
         <QueryBuilder
           fields={fields}
+          operators={operators}
           query={contextLogicalQuery ?? DEFAULT_QUERY}
           onQueryChange={(q) => {
             setLogicalQuery(q);

@@ -33,7 +33,7 @@
             "datemisenligne",
             "monograph_volume"
         ],
-        "df": "titre",
+        "df": "naked_titre",
         "hl_fl": [
             "titre",
             "resume"

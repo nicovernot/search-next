@@ -13,13 +13,16 @@ export default defineConfig({
     trace: 'off',
     actionTimeout: 10000,
     navigationTimeout: 20000,
+    launchOptions: {
+      args: ['--disable-crash-reporter', '--disable-crashpad'],
+    },
   },
   projects: [
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        channel: 'chrome',
+        channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
       },
     },
   ],

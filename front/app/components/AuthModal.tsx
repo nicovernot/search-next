@@ -1,55 +1,63 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useAuth } from "../context/AuthContext";
 import { X, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+import type { ModalTab } from "../hooks/useAuthModal";
+
+interface AuthModalProps {
+  open: boolean;
+  initialTab: ModalTab;
+  onClose: () => void;
+}
 
 /**
  * Modal login/register rendue via createPortal sur document.body.
  * Cela échappe à tout stacking context (header z-10, search z-30, etc.)
  * et garantit que z-[9999] est relatif au root stacking context.
+ * L'état ouvert/onglet initial est géré par useAuthModal dans le composant parent.
  */
-export default function AuthModal() {
+export default function AuthModal({ open, initialTab, onClose }: AuthModalProps) {
   const t = useTranslations();
-  const { login, register, loading, error, clearError, modalOpen, modalTab, closeModal } =
-    useAuth();
+  const { login, register, loading, error, clearError } = useAuth();
 
-  const [tab, setTab] = useState<"login" | "register">(modalTab);
+  const [tab, setTab] = useState<ModalTab>(initialTab);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+
   const handleClose = useCallback(() => {
     clearError();
-    closeModal();
-  }, [clearError, closeModal]);
+    onClose();
+  }, [clearError, onClose]);
 
-  // Synchronise l'onglet quand le contexte change
-  useEffect(() => { setTab(modalTab); }, [modalTab]);
+  // Synchronise l'onglet quand le parent change l'onglet initial (ex: bouton "S'inscrire")
+  useEffect(() => { setTab(initialTab); }, [initialTab]);
 
   // Réinitialise le formulaire à la fermeture
   useEffect(() => {
-    if (!modalOpen) {
+    if (!open) {
       setEmail("");
       setPassword("");
       setConfirm("");
       setLocalError(null);
       setShowPwd(false);
     }
-  }, [modalOpen]);
+  }, [open]);
 
   // Fermer au clavier Échap
   useEffect(() => {
-    if (!modalOpen) return;
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [modalOpen, handleClose]);
+  }, [open, handleClose]);
 
-  const switchTab = (next: "login" | "register") => {
+  const switchTab = (next: ModalTab) => {
     setTab(next);
     setLocalError(null);
     clearError();
@@ -86,7 +94,7 @@ export default function AuthModal() {
       ? t("registerError")
       : null);
 
-  if (typeof document === "undefined" || !modalOpen) return null;
+  if (typeof document === "undefined" || !open) return null;
 
   return createPortal(
     // Container : fixed inset-0, z-[9999] relatif au ROOT stacking context

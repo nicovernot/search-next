@@ -9,6 +9,7 @@ services:
     ports:
       - "${API_PORT:-8003}:8007"
     env_file:
+      - .env.shared
       - search_api_solr/.env.local
     environment:
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
@@ -25,10 +26,11 @@ services:
       - /app/.pytest_cache
       # Note: ./search_api_solr/.env est un répertoire, le fichier de config vient des env vars ci-dessus
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
-    restart: unless-stopped
     depends_on:
-      - redis
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8007/health" ]
       interval: 30s
@@ -95,7 +97,7 @@ services:
     depends_on:
       - api
     healthcheck:
-      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))" ]
+      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode >= 200 && r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))" ]
       interval: 30s
       timeout: 5s
       retries: 3

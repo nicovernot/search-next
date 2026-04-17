@@ -16,8 +16,8 @@ echo "Backend checks..."
 echo "Frontend checks..."
 (
   cd front
-  npm run lint
-  npm run test:e2e
+  corepack pnpm run lint
+  corepack pnpm run test:e2e
 )
 
 echo "=== All Checks Completed ==="

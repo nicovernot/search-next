@@ -147,5 +147,4 @@ SEARCH_FIELDS_MAPPING = {
     "titre": "naked_titre",
     "author": "contributeur_auteur",
     "naked_texte": "naked_texte",
-    "disciplinary_field": "platformIndex_*"
 }

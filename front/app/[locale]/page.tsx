@@ -11,6 +11,7 @@ import AuthButtons from "../components/AuthButtons";
 import AuthModal from "../components/AuthModal";
 import SavedSearchesPanel from "../components/SavedSearchesPanel";
 import { PLATFORMS } from "../lib/platforms";
+import { useAuthModal } from "../hooks/useAuthModal";
 
 const AdvancedQueryBuilder = dynamic(() => import("../components/AdvancedQueryBuilder"), {
   ssr: false,
@@ -31,6 +32,7 @@ export default function Home() {
   const t = useTranslations();
   const { results, loading, query, searchMode, setSearchMode } = useSearch();
   const { user, logout } = useAuth();
+  const { open: modalOpen, tab: modalTab, openModal, closeModal } = useAuthModal();
   const hasContent = loading || results.length > 0 || query.length > 0;
 
   return (
@@ -74,7 +76,7 @@ export default function Home() {
               </button>
             </>
           ) : (
-            <AuthButtons />
+            <AuthButtons onLogin={() => openModal("login")} onRegister={() => openModal("register")} />
           )}
         </div>
       </header>
@@ -179,7 +181,7 @@ export default function Home() {
       </footer>
 
       {/* Modal auth — rendue via createPortal sur document.body, hors de tout stacking context */}
-      <AuthModal />
+      <AuthModal open={modalOpen} initialTab={modalTab} onClose={closeModal} />
     </div>
   );
 }
