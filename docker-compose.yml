@@ -79,8 +79,8 @@ services:
   # Frontend Next.js
   frontend:
     build:
-      context: ./front
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./front/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-8003}
     container_name: search-next_frontend
