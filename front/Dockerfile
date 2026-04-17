@@ -2,15 +2,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm install --legacy-peer-deps
+COPY front/package.json ./
+COPY front/pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
-COPY . .
+COPY front/. .
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:8003
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN npm run build
+
+# Dereference pnpm symlinks so Docker COPY doesn't choke on them
+RUN cp -rL /app/.next/standalone /app/.next/standalone-resolved
 
 # Production
 FROM node:20-alpine AS runner
@@ -19,7 +23,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/standalone-resolved ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
