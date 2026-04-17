@@ -116,7 +116,9 @@ export function useSearchApi({
         const pageUrls = pageResults
           .map((doc) => doc.url)
           .filter((url): url is string => !!url);
-        if (pageUrls.length > 0) fetchPermissions(pageUrls);
+        if (pageUrls.length > 0) {
+          fetchPermissions(pageUrls);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Search failed");
         setResults([]);
