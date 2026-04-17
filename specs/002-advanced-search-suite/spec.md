@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/002-advanced-search-suite`  
 **Created**: 2026-04-03  
-**Updated**: 2026-04-13  
+**Updated**: 2026-04-17  
 **Status**: Complete — toutes les phases livrées + correctifs post-livraison intégrés  
 
 ## User Scenarios & Testing (Playwright) *(mandatory)*
@@ -67,6 +67,26 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 - Nom de sauvegarde vide → bouton confirmation désactivé.
 - Chargement d'une recherche sauvegardée → restitue le terme ET déclenche la recherche (résultats visibles) via `loadSearch()` atomique.
 - Rechargement de page → session JWT persistée via `localStorage`, recherches sauvegardées rechargées depuis l'API.
+
+### Correctifs post-livraison (2026-04-17) — recherche avancée
+
+| Problème | Solution |
+|---|---|
+| Opérateurs `beginsWith`/`endsWith` ignorés par le backend | `query_logic_parser.py` normalise camelCase→snake_case via `_OPERATOR_ALIASES` |
+| Opérateurs négatifs (`!=`, `doesNotContain`, etc.) non gérés | Ajout des branches NOT dans `_build_solr_rule_fragment` |
+| Champ `disciplinary_field` → `platformIndex_*` invalide en Solr | Supprimé de `SEARCH_FIELDS_MAPPING` et de `QB_LABELS_MAP` / `QB_FIELDS` |
+| QB affichait ~10 opérateurs dont la plupart non supportés | `operators` restreint à 4 dans `AdvancedQueryBuilder.tsx` (`=`, `contains`, `beginsWith`, `endsWith`) |
+| `df=titre` (champ brut) dans la config Solr | Remplacé par `df=naked_titre` (champ tokenisé) dans `fields_json/common.json` |
+| Clés i18n opérateurs manquantes | `qb_opEquals/Contains/BeginsWith/EndsWith` ajoutées dans les 6 langues |
+
+### Correctifs cohérence environnements (2026-04-17)
+
+| Problème | Solution |
+|---|---|
+| `CORS_ALLOWED_ORIGINS` renommé en `CORS_ORIGINS` mais `env_validation.py` pas mis à jour | Renommage du champ `cors_allowed_origins` → `cors_origins` |
+| `model_config` déclaré deux fois dans `settings.py` | Suppression du doublon ligne 40 |
+| `REACT_APP_API_URL` (CRA obsolète) dans `.env.test` | Remplacé par `NEXT_PUBLIC_API_URL` |
+| `entrypoint.sh` absent du build Docker | Ajouté dans `Dockerfile` + `docker-compose.dev.yml` ; attend PostgreSQL puis exécute Alembic |
 
 ### Correctifs post-livraison intégrés (2026-04-13)
 

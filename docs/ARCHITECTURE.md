@@ -1,8 +1,8 @@
 # Architecture — OpenEdition Search
 
-**Dernier audit**: 2026-04-15 (mis à jour après commit f5297ac)
+**Dernier audit**: 2026-04-17 (mis à jour après commit 87ccb7c)
 **Branch active**: `feature/002-advanced-search-suite`
-**État global**: Application fonctionnelle, 29 tests E2E verts, spec 006 quasi-complète.
+**État global**: Application fonctionnelle, 29 tests E2E verts, specs 001–003/005–010 livrées. Prochaine : 004-url-sync.
 
 ---
 
@@ -32,9 +32,20 @@
 │                                                              │
 │  App Router: /[locale]/page.tsx (6 locales)                 │
 │                                                              │
-│  Contextes:                                                  │
+│  Contextes (assembleurs — logique dans les hooks):           │
 │  ├── AuthProvider    — JWT, session utilisateur             │
-│  └── SearchProvider  — état de recherche, executeSearch()   │
+│  └── SearchProvider  — assemble 5 hooks SOLID              │
+│       ├── useFacetConfig  /facets/config + searchFields    │
+│       ├── useSuggestions  /suggest                         │
+│       ├── usePermissions  /permissions                     │
+│       ├── useSearchState  état local (query/filters/page)  │
+│       └── useSearchApi    executeSearch, loadSearch        │
+│                                                              │
+│  Hooks utilitaires:                                         │
+│  ├── useAuthModal      état modal auth (open/tab)          │
+│  ├── useClickOutside   fermeture dropdown générique        │
+│  ├── useAnchoredPortal positionnement dropdown via portal  │
+│  └── useIsClient       SSR guard                           │
 │                                                              │
 │  Composants:                                                 │
 │  ├── SearchBar / AutocompleteInput                          │
@@ -46,7 +57,7 @@
 │                                                              │
 │  Lib:                                                        │
 │  ├── lib/api.ts     — client API centralisé (tous fetch)   │
-│  └── lib/qb-fields.ts — définition des champs QueryBuilder │
+│  └── lib/qb-fields.ts — champs QB (titre, author, texte)  │
 └─────────────────────┬────────────────────────────────────────┘
                       │ fetch() via lib/api.ts — REST JSON
                       │ http://localhost:8003
@@ -95,10 +106,12 @@ SearchBar → SearchContext.executeSearch()
 ### Recherche avancée
 ```
 AdvancedQueryBuilder → setLogicalQuery(RuleGroupType)
-  → POST /search { logical_query: {...} }
-  → QueryLogicParser.to_solr_query()
-     ex: { AND: [titre:histoire, OR: [author:Smith, author:Dupont]] }
-     →   titre:*histoire* AND (author:"Smith" OR author:"Dupont")
+  opérateurs supportés : =, contains, beginsWith, endsWith
+  (react-querybuilder envoie camelCase → normalisé par _OPERATOR_ALIASES)
+  → POST /search { logical_query: {...}, query: { query: "*" } }
+  → QueryLogicParser.convert_to_solr_query_string()
+     ex: { combinator:"and", rules:[{field:"titre", op:"contains", value:"histoire"}] }
+     →   fq=naked_titre:histoire
   → [suite identique à recherche simple]
 ```
 
@@ -113,23 +126,22 @@ AuthModal → api.login(email, password) → POST /auth/login
 
 ---
 
-## État des features (2026-04-15)
+## État des features (2026-04-17)
 
 | Feature | Statut | Tests |
 |---------|--------|-------|
 | Recherche simple + facettes + pagination | ✅ Complet | 2 E2E |
 | Autocomplétion | ✅ Complet | — |
-| Recherche avancée (QueryBuilder AND/OR/NOT) | ✅ Complet | inclus dans 29 |
+| Recherche avancée (QB AND/OR, opérateurs normalisés) | ✅ Complet | inclus dans 29 |
 | i18n 6 langues (FR/EN/ES/DE/IT/PT) | ✅ Complet | — |
 | Thème clair/sombre | ✅ Complet | — |
 | Authentification JWT (1440 min) | ✅ Complet | 15 E2E |
 | Recherches sauvegardées | ✅ Complet | 12 E2E |
 | Client API centralisé (`lib/api.ts`) | ✅ Complet | — |
-| HTTP 409 pour email existant | ✅ Complet | — |
-| Erreurs auth traduites (6 langues) | ✅ Complet | — |
-| Badges d'accès (permissions) | ⚠️ Partiel — endpoint OK, UI absente | — |
-| Champs QB depuis config API | ⚠️ Partiel — fichier dédié, mais toujours hardcodé | — |
-| Sync état ↔ URL | 🔲 Absent | — |
+| Badges d'accès (permissions) | ✅ Complet | E2E permissions.spec.ts |
+| Champs QB depuis config API (`/facets/config`) | ✅ Complet | — |
+| SearchContext découpé en 5 hooks SOLID | ✅ Complet | — |
+| Sync état ↔ URL | 🔲 Backlog (spec 004) | — |
 
 ---
 
@@ -149,10 +161,10 @@ AuthModal → api.login(email, password) → POST /auth/login
 
 | # | Problème | Fichier | Impact |
 |---|---------|---------|--------|
-| D1 | Champs QB encore hardcodés dans `qb-fields.ts` (pas depuis `/facets/config`) | `lib/qb-fields.ts` | Ajout d'un champ nécessite un commit frontend |
 | D2 | `logical_query: Optional[Any]` dans Pydantic | `search_models.py:79` | Pas de validation schema de la requête avancée |
-| D3 | Timestamp hardcodé `"2024-01-01T00:00:00Z"` dans `/health` | `main.py:342` | Health check retourne une date fixe |
+| D3 | Timestamp hardcodé `"2024-01-01T00:00:00Z"` dans `/health` | `main.py` | Health check retourne une date fixe |
 | D4 | `solr_connector.py` et `document_mapper.py` potentiellement orphelins | `services/` | Code mort possible |
+| D5 | Champ `disciplinary_field` supprimé mais pas encore remplacé | `facet_config.py` | La recherche sur sujet/mots-clés n'est pas supportée |
 
 ---
 
@@ -170,26 +182,22 @@ AuthModal → api.login(email, password) → POST /auth/login
 
 ## Plan d'action prioritaire (état actuel)
 
-### Priorité 1 — Compléter spec 006 (< 1 jour)
-1. **Champs QB depuis config** (D1) : Charger les champs depuis `GET /facets/config` dans `SearchContext`, passer en prop à `AdvancedQueryBuilder`, fallback sur `QB_FIELDS` si config indisponible
-2. **Typer `logical_query`** (D2) : Remplacer `Optional[Any]` par un modèle Pydantic récursif
-3. **Fix timestamp `/health`** (D3) : `datetime.utcnow().isoformat()` au lieu de la string fixe
-4. **Vérifier orphelins** (D4) : Confirmer si `solr_connector.py` et `document_mapper.py` sont importés quelque part
+### Priorité 1 — Spec 004 URL Sync (~4 jours)
+1. **Sync état ↔ URL** : Encoder `q=`, `f[]=`, `page=`, `mode=` dans les query params, gérer back/forward, restaurer le QueryBuilder depuis l'URL
+   - Prérequis : spec 007 ✅ (SearchContext découplé en hooks)
 
-### Priorité 2 — Spec 005 Permissions (~3 jours)
-5. **Badges d'accès** : Appeler `GET /permissions?urls=...` depuis `ResultsList`, afficher badges sur `ResultItem`
-
-### Priorité 3 — Spec 004 URL Sync (~4 jours)
-6. **Sync état ↔ URL** : Encoder query/filters/page dans les query params, gérer back/forward, générer des liens partageables
+### Corrections mineures à adresser au fil de l'eau
+1. **Typer `logical_query`** (D2) — Remplacer `Optional[Any]` par le modèle `QueryGroup` Pydantic déjà défini dans `logical_query.py`
+2. **Fix timestamp `/health`** (D3) — `datetime.now(timezone.utc).isoformat()` (déjà utilisé par le reste de l'endpoint)
+3. **Vérifier orphelins** (D4) — Confirmer si `solr_connector.py` et `document_mapper.py` sont importés
+4. **Champ disciplinary** (D5) — Identifier le champ Solr correct pour les mots-clés et le rajouter dans `SEARCH_FIELDS_MAPPING`
 
 ---
 
 ## Ordre d'implémentation recommandé
 
 ```
-[006 restant] → [005-permissions] → [004-url-sync]
-     <1j              ~3j                ~4j
+[004-url-sync ~4j] → corrections mineures D2-D5 au fil de l'eau
 ```
 
-La spec 005 bénéficie du client API centralisé (déjà en place).
-La spec 004 est la plus complexe (touche `SearchContext` en profondeur) — à faire en dernier.
+La spec 004 est la seule feature majeure restante. Les corrections D2-D5 peuvent être groupées dans un commit de maintenance.

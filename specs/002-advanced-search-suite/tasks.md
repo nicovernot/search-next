@@ -12,7 +12,7 @@
 - [x] Intégration dans la barre de recherche principale.
 
 ## Phase 3: Construction Avancée de Requête
-- [x] Backend : parser récursif `query_logic_parser.py` qui convertit la structure JSON de la requête logique en chaîne Solr valide (AND/OR/NOT récursif, opérateurs contains/begins_with/ends_with).
+- [x] Backend : parser récursif `query_logic_parser.py` qui convertit la structure JSON de la requête logique en chaîne Solr valide (AND/OR/NOT récursif, opérateurs contains/begins_with/ends_with/not_equal/does_not_*).
 - [x] Frontend : Installation de `react-querybuilder` (v8.14.4).
 - [x] Frontend : Composant `AdvancedQueryBuilder.tsx` avec toggle simple/avancé et champs configurés.
 
@@ -80,3 +80,18 @@
 - [x] **SavedSearchesPanel — feedback d'erreur** : ajout d'un état `saveError` + `catch` block dans `handleSave` → message d'erreur rouge visible sous le champ nom si le POST `/saved-searches` échoue (CORS, 401, réseau…). Avant ce correctif, les échecs étaient silencieux.
 - [x] **Tests Playwright** : `waitForResults` accepte un paramètre `timeout` (défaut 15 000 ms); `playwright.config.ts` garde `retries: 0` en local et `retries: 2` en CI.
 - [x] **search.spec.ts** : `page.goto('/')` → `page.goto('/fr/')` pour contourner la détection Accept-Language de Playwright Chrome qui routait vers `/en/` et ne trouvait pas le texte "Rechercher".
+
+### Correctifs recherche avancée (2026-04-17)
+- [x] **query_logic_parser.py — normalisation opérateurs** : table `_OPERATOR_ALIASES` pour mapper camelCase react-querybuilder (`beginsWith`→`begins_with`, `endsWith`→`ends_with`) vers les noms internes.
+- [x] **query_logic_parser.py — opérateurs négatifs** : branches `not_equal`, `does_not_contain`, `does_not_begin_with`, `does_not_end_with` produisant des fragments Solr `-field:value`.
+- [x] **facet_config.py — champ invalide** : suppression de `"disciplinary_field": "platformIndex_*"` (`platformIndex_*` est un pattern de schéma Solr, non utilisable comme nom de champ dans les requêtes).
+- [x] **qb-fields.ts** : suppression de `disciplinary_field` du registre frontend (aligne sur backend).
+- [x] **AdvancedQueryBuilder.tsx — opérateurs restreints** : prop `operators` limitée à `=`, `contains`, `beginsWith`, `endsWith`; `type="button"` ajouté sur le bouton Rechercher.
+- [x] **fields_json/common.json** : `df=naked_titre` (champ tokenisé, boosté à ×8 dans `qf`) au lieu de `df=titre` (champ brut).
+- [x] **messages/*.json (6 langues)** : clés `qb_opEquals`, `qb_opContains`, `qb_opBeginsWith`, `qb_opEndsWith` ajoutées ; `qb_fieldKeywords` conservée (clé orpheline inoffensive).
+
+### Correctifs cohérence environnements (2026-04-17)
+- [x] **env_validation.py** : renommage `cors_allowed_origins` → `cors_origins` (aligne sur la var `CORS_ORIGINS` de `.env.shared`).
+- [x] **settings.py** : suppression du `model_config = SettingsConfigDict(extra='ignore')` doublon (ligne 40 écrasée silencieusement par celui de la fin de classe).
+- [x] **.env.test** : remplacement de `REACT_APP_API_URL` (variable CRA, non lue par Next.js) par `NEXT_PUBLIC_API_URL`.
+- [x] **entrypoint.sh** : script ajouté — attend PostgreSQL (`pg_isready`) puis applique les migrations Alembic avant de lancer uvicorn ; intégré dans `Dockerfile` et `docker-compose.dev.yml`.

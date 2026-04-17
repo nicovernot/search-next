@@ -24,6 +24,8 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-16 | 005 | Complétion permissions — route handler Next.js, X-Forwarded-For, fallback partiel | `76d4c1d` |
 | 2026-04-16 | 007 | Refactor SearchContext — 5 hooks SOLID (useFacetConfig, useSuggestions, usePermissions, useSearchState, useSearchApi), assembler <80 lignes, 29 tests verts | — |
 | 2026-04-16 | 008 | Code quality SOLID P0+P1 — useSavedSearches extrait, JSDoc hooks, SC-001/SC-004/SC-005 verts | — |
+| 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
+| 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
 
 ---
 
@@ -35,9 +37,9 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 002 | Advanced search suite — QB, auth, recherches sauvegardées | ✅ Livré |
 | 003 | UX/UI premium — dark mode, glassmorphism, animations | ✅ Livré |
 | 004 | URL sync — liens partageables, back/forward | 🔲 Backlog (prérequis 007 ✅) |
-| 005 | Permissions — badges d'accès sur les résultats | 🔶 Partiel (tests Playwright manquants) |
+| 005 | Permissions — badges d'accès sur les résultats | ✅ Livré |
 | 006 | Tech debt — correctifs fondations techniques | ✅ Livré |
 | 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré |
-| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré P0+P1 |
-| 009 | DRY/KISS/YAGNI — P0+P1 livrés, P2 après 007 | ✅ Livré P0+P1 |
+| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré complet |
+| 009 | DRY/KISS/YAGNI — P0+P1 livrés, P2 après 007 | ✅ Livré complet |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |

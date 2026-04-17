@@ -1,5 +1,26 @@
 # Changelog
 
+## [2026-04-17] - Correctifs recherche avancée + cohérence multi-environnements
+
+### Recherche avancée (commit `87ccb7c`)
+
+- **Opérateurs QueryBuilder** : `query_logic_parser.py` normalise désormais les opérateurs camelCase envoyés par react-querybuilder (`beginsWith`→`begins_with`, `endsWith`→`ends_with`) via une table `_OPERATOR_ALIASES`. Ajout des branches NOT (`!=`, `doesNotContain`, `doesNotBeginWith`, `doesNotEndWith`).
+- **Champ Solr invalide supprimé** : `disciplinary_field → platformIndex_*` retiré de `SEARCH_FIELDS_MAPPING` (backend) et de `QB_LABELS_MAP` / `QB_FIELDS` (frontend) — `platformIndex_*` est un pattern de schéma dynamique Solr, non utilisable comme nom de champ dans les requêtes.
+- **Opérateurs UI restreints** : `AdvancedQueryBuilder.tsx` passe désormais `operators={[=, contains, beginsWith, endsWith]}` à react-querybuilder. Avant, ~10 opérateurs non supportés étaient affichés.
+- **Champ de recherche par défaut** : `df=naked_titre` (champ tokenisé, boost ×8 dans `qf`) au lieu de `df=titre` (champ brut non analysé) dans `fields_json/common.json`.
+- **i18n opérateurs** : clés `qb_opEquals`, `qb_opContains`, `qb_opBeginsWith`, `qb_opEndsWith` ajoutées dans les 6 langues (fr/en/de/es/it/pt).
+
+### Cohérence environnements (commit `87ccb7c`)
+
+- **`CORS_ORIGINS`** : renommage complété dans `env_validation.py` (`cors_allowed_origins` → `cors_origins`), aligné sur `settings.py` et `.env.shared`.
+- **`model_config` doublon** : suppression de la déclaration redondante ligne 40 dans `settings.py` (écrasée silencieusement par celle de fin de classe).
+- **`.env.test`** : remplacement de `REACT_APP_API_URL` (CRA obsolète) par `NEXT_PUBLIC_API_URL`.
+- **`entrypoint.sh`** : nouveau script Docker — attend PostgreSQL (`pg_isready`) puis applique les migrations Alembic avant de démarrer uvicorn. Intégré dans `Dockerfile` et `docker-compose.dev.yml`.
+- **Docker Compose** : `docker-compose.prod.yml` et `docker-compose.staging.yml` utilisent `ports: !reset []` / `volumes: !reset []` pour effacer proprement les valeurs héritées ; `docker-compose.yml` ajoute la condition `service_healthy` sur postgres et redis.
+- **`sync_env.sh`** : résout `NEXT_PUBLIC_API_URL` depuis les vars chargées plutôt qu'en dur ; ajoute `DATABASE_URL` dans `search_api_solr/.env.local`.
+
+---
+
 ## [2026-04-15] - Correction environnement frontend Docker
 
 ### Correction
