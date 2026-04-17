@@ -75,7 +75,7 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | Opérateurs `beginsWith`/`endsWith` ignorés par le backend | `query_logic_parser.py` normalise camelCase→snake_case via `_OPERATOR_ALIASES` |
 | Opérateurs négatifs (`!=`, `doesNotContain`, etc.) non gérés | Ajout des branches NOT dans `_build_solr_rule_fragment` |
 | Champ `disciplinary_field` → `platformIndex_*` invalide en Solr | Supprimé de `SEARCH_FIELDS_MAPPING` et de `QB_LABELS_MAP` / `QB_FIELDS` |
-| QB affichait ~10 opérateurs dont la plupart non supportés | `operators` restreint à 4 dans `AdvancedQueryBuilder.tsx` (`=`, `contains`, `beginsWith`, `endsWith`) |
+| QB affichait des opérateurs non supportés | Backend aligné sur les 8 opérateurs exposés par `AdvancedQueryBuilder.tsx` (`=`, `!=`, `contains`, `doesNotContain`, `beginsWith`, `doesNotBeginWith`, `endsWith`, `doesNotEndWith`) |
 | `df=titre` (champ brut) dans la config Solr | Remplacé par `df=naked_titre` (champ tokenisé) dans `fields_json/common.json` |
 | Clés i18n opérateurs manquantes | `qb_opEquals/Contains/BeginsWith/EndsWith` ajoutées dans les 6 langues |
 
@@ -87,12 +87,13 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | `model_config` déclaré deux fois dans `settings.py` | Suppression du doublon ligne 40 |
 | `REACT_APP_API_URL` (CRA obsolète) dans `.env.test` | Remplacé par `NEXT_PUBLIC_API_URL` |
 | `entrypoint.sh` absent du build Docker | Ajouté dans `Dockerfile` + `docker-compose.dev.yml` ; attend PostgreSQL puis exécute Alembic |
+| Origine Docker `http://0.0.0.0:3003` absente de `CORS_ORIGINS` | Ajoutée dans `.env.shared`, `.env.example` et `search_api_solr/.env.example` |
 
 ### Correctifs post-livraison intégrés (2026-04-13)
 
 | Problème | Solution |
 |---|---|
-| CORS 8003/3003 manquant | Ajout des origines dans `.env` et `.env.development` |
+| CORS 8003/3003 manquant | Ajout des origines `localhost`, `127.0.0.1` et `0.0.0.0` pour le frontend local/Docker |
 | Pagination/filtres sans refresh | `useEffect` dans `SearchContext` sur `filters` / `pagination.from` |
 | Stale closure dans `executeSearch` | Pattern `latestRef` (useRef synchronisé après chaque render) |
 | Chargement de recherche sans exécution | `loadSearch()` patche `latestRef` avant d'appeler `executeSearch()` |
@@ -107,5 +108,6 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | `tests/auth.spec.ts` | **15 tests** — header buttons (1), modal tabs / fermeture / bascule (6), inscription ok/mdp≠/email dupliqué (3), connexion ok/mauvais mdp/email inexistant (3), déconnexion + persistance session (2) |
 | `tests/saved-searches.spec.ts` | **12 tests** — panneau visible/ouverture/fermeture/vide (3), sauvegarder ok/via Enter/bouton désactivé si nom vide/absent si pas de recherche active (4+1), charger + résultats visibles / charger après reload (2), supprimer (1), persistance après reload (1) |
 | `tests/search.spec.ts` | **2 tests** — chargement page, recherche simple |
+| `tests/permissions.spec.ts` | **4 tests** — badge open access, restricted, institutional, dégradé silencieux si l'API permissions échoue |
 
-**Total : 29 tests E2E verts** (suite au 2026-04-13)
+**Total : 33 tests E2E** documentés dans `front/tests` (15 auth + 12 saved-searches + 2 search + 4 permissions)

@@ -2,17 +2,17 @@
 
 **Feature Branch**: `feature/007-refactor-search-context` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré — 5 hooks SOLID + assembler <80 lignes, 29 tests verts
+**Status**: ✅ Livré — 5 hooks SOLID + assembler <80 lignes, 33 tests Playwright existants
 
 ## Overview
 
 `SearchContext.tsx` est actuellement un God Object de ~306 lignes qui cumule 5 responsabilités distinctes : état de recherche, appels API Solr, gestion des suggestions, chargement des permissions, et configuration des facettes. Cette concentration viole le Single Responsibility Principle et rend le contexte difficile à tester, à faire évoluer, et à déboguer.
 
-Cette spec décrit le découpage en hooks spécialisés sans modifier l'interface publique du contexte (aucune régression sur les 29 tests E2E existants).
+Cette spec décrit le découpage en hooks spécialisés sans modifier l'interface publique du contexte (aucune régression sur les 33 tests E2E existants).
 
 ## Contraintes
 
-- **Aucune régression** : les 29 tests Playwright (auth, saved-searches, search) doivent rester verts après refactorisation.
+- **Aucune régression** : les 33 tests Playwright (auth, saved-searches, search, permissions) doivent rester verts après refactorisation.
 - **Interface publique inchangée** : `useSearch()` expose exactement les mêmes propriétés et fonctions — les composants consommateurs ne sont pas modifiés.
 - **Pas de nouvelle dépendance** : uniquement React hooks natifs.
 
@@ -57,7 +57,7 @@ front/app/
 ## Success Criteria
 
 ### Measurable Outcomes
-- **SC-001**: Les 29 tests Playwright existants passent sans modification après refactorisation.
+- **SC-001**: Les 33 tests Playwright existants passent sans modification après refactorisation.
 - **SC-002**: `SearchContext.tsx` fait moins de 60 lignes après refactorisation.
 - **SC-003**: Aucun hook individuel ne dépasse 120 lignes.
 - **SC-004**: `grep -n "useState\|useCallback\|useRef\|useEffect" front/app/context/SearchContext.tsx` retourne 0 résultat (toute la logique est dans les hooks).
@@ -92,7 +92,7 @@ Déplacer `runSearch`, `executeSearch`, `loadSearch`, `latestRef`, `skipEffectRe
 ### Étape 7 — Vérification (obligatoire)
 
 ```bash
-npm run test:e2e   # 29 tests doivent passer
+npm run test:e2e   # 33 tests doivent passer
 ```
 
 ## Fichiers à créer / modifier

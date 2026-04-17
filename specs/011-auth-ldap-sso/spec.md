@@ -156,7 +156,7 @@ python3-saml>=1.16  # SAML 2.0 (optionnel, lourd — uniquement si requis)
 - [ ] Un utilisateur local existant peut toujours se connecter par email/password.
 - [ ] Un utilisateur fédéré sans compte préexistant voit son compte créé automatiquement à la première connexion.
 - [ ] `hashed_password=null` pour un utilisateur fédéré n'empêche pas l'accès aux fonctionnalités authentifiées.
-- [ ] Aucune régression sur les 29 tests E2E Playwright existants.
+- [ ] Aucune régression sur les 33 tests E2E Playwright existants.
 - [ ] Les credentials LDAP et SSO ne sont jamais loggués ni exposés dans les erreurs HTTP.
 
 ---

@@ -7,7 +7,7 @@
 
 ---
 
-## Avancement au 2026-04-13
+## Avancement au 2026-04-17
 
 | Phase | Statut |
 |---|---|
@@ -19,6 +19,7 @@
 | Spec 003 — UX Premium | ✅ Complète (dark mode, glassmorphism, animations) |
 | Correctifs CORS + pagination/filtres + i18n | ✅ Appliqués le 2026-04-13 |
 | Refactor SearchContext (latest ref) + loadSearch | ✅ Appliqué le 2026-04-13 |
+| Correctifs recherche avancée + cohérence env/docker | ✅ Appliqués le 2026-04-17 |
 
 ---
 
@@ -60,6 +61,14 @@ class SavedSearch(Base):
 - [x] `app/api/v1/saved_searches.py`
 - [x] `app/core/dependencies.py` avec `get_current_user`
 - [x] Router enregistré dans `main.py`
+
+## 2. Correctifs post-livraison intégrés
+
+- [x] Backend QueryBuilder aligné sur les 8 opérateurs exposés côté frontend.
+- [x] `GET /facets/config` expose `search_fields`; le QueryBuilder les consomme avec fallback `QB_FIELDS`.
+- [x] CORS local Docker aligné sur les origines `localhost`, `127.0.0.1` et `0.0.0.0` pour le frontend `3003`.
+- [x] Variables frontend alignées sur Next.js : `NEXT_PUBLIC_API_URL` remplace les anciens noms CRA.
+- [x] Entrypoint Docker applique les migrations Alembic après readiness PostgreSQL.
 
 ### Frontend (Next.js)
 

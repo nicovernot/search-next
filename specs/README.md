@@ -18,7 +18,7 @@ specs/
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (29 tests E2E verts)
+├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (33 tests E2E documentés)
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
@@ -28,11 +28,11 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
 │   └── spec.md
-├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (29+N tests verts)
+├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (4 tests dédiés, 33 tests E2E au total)
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
-├── 007-refactor-search-context/ ✅ Livré — 5 hooks SOLID + assembler, 29 tests verts (débloque 004)
+├── 007-refactor-search-context/ ✅ Livré — 5 hooks SOLID + assembler, 33 tests existants (débloque 004)
 │   └── spec.md
 ├── 008-code-quality-solid/    ✅ Livré complet — sous-interfaces SearchContext, useAuthModal, KISS-002
 │   └── spec.md

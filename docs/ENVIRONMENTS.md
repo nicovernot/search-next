@@ -170,7 +170,8 @@ Le `Dockerfile` utilise `entrypoint.sh` qui, avant de lancer uvicorn :
 ### CORS bloqué
 
 - Vérifier que l'origine du navigateur est dans `CORS_ORIGINS` de `search_api_solr/.env.local`
-- En développement : `http://localhost:3003` et `http://localhost:3000` doivent être présents
+- En développement : `http://localhost:3003`, `http://127.0.0.1:3003` et `http://0.0.0.0:3003` doivent être présents si ces URLs peuvent être utilisées dans le navigateur
+- Après modification d'une variable CORS Docker, recréer le conteneur API pour relire l'environnement : `docker compose up -d --force-recreate --no-deps api`
 
 ### Conflits de variables
 

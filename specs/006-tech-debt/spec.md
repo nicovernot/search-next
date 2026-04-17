@@ -42,7 +42,7 @@ En tant qu'utilisateur en mode FR/ES/DE/IT/PT, je veux voir les messages d'erreu
 ### User Story 4 — Client API centralisé (Priority: P2, fondation)
 En tant que développeur, je veux que tous les appels à l'API backend passent par un client unique qui gère automatiquement les headers d'authentification, la base URL et les erreurs réseau.
 **Why**: 7 appels `fetch()` dispersés rendent l'ajout d'un header ou le changement de base URL fastidieux et source d'oublis.
-**Independent Test**: (pas de test E2E visible, validation par revue de code) — tous les appels fetch passent par `lib/api.ts`.
+**Independent Test**: (pas de test E2E visible, validation par revue de code) — tous les appels navigateur passent par `lib/api.ts`; les route handlers Next.js peuvent proxifier côté serveur quand ils doivent injecter des headers non accessibles au navigateur.
 
 ### User Story 5 — Champs QueryBuilder depuis la config (Priority: P2, fondation)
 En tant que développeur, je veux que les champs du QueryBuilder soient chargés depuis la configuration backend plutôt que hardcodés, afin de pouvoir ajouter un champ de recherche avancée sans modifier le code frontend.
@@ -82,7 +82,7 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 - **SC-001**: Le payload JWT émis en dev a `exp - iat = 86400s` (1440 min × 60).
 - **SC-002**: `POST /auth/register` avec email existant retourne HTTP 409, et l'UI affiche un message traduit.
 - **SC-003**: `AuthContext.tsx` ne renvoie que des codes d'erreur stables (`auth_error`, `email_exists`, `register_error`) ; `AuthModal.tsx` les mappe vers `t()` (next-intl).
-- **SC-004**: `grep -r "await fetch(" front/app/` ne retourne aucun résultat hors de `lib/api.ts`.
+- **SC-004**: les appels navigateur à l'API backend sont centralisés dans `front/app/lib/api.ts`; l'appel serveur de `front/app/api/permissions/route.ts` est une exception documentée pour injecter `X-Forwarded-For`.
 - **SC-005**: `AdvancedQueryBuilder.tsx` utilise `searchFields` depuis le contexte quand `/facets/config` répond, avec `QB_FIELDS` comme fallback documenté.
 
 ### Couverture de test
@@ -101,7 +101,7 @@ En tant que développeur, je veux que les champs du QueryBuilder soient chargés
 | Token JWT 1440 min | FR-001 | ✅ Livré — `settings.py` default=1440, `.env.development` confirmé |
 | HTTP 409 email existant | FR-002 | ✅ Livré — `api/auth.py` retourne `HTTP_409_CONFLICT` |
 | Erreurs auth traduites | FR-003 | ✅ Livré — codes → `t()` dans AuthModal, 6 langues |
-| Client API centralisé | FR-004/005 | ✅ Livré — `lib/api.ts`, tous contextes migrés |
+| Client API centralisé | FR-004/005 | ✅ Livré — `lib/api.ts`, tous contextes migrés ; exception serveur documentée pour le proxy `/api/permissions` |
 | Champs QB depuis config | FR-006 | ✅ Livré — `GET /facets/config` expose `search_fields`, `SearchContext` le charge dans `searchFields`, fallback sur `QB_FIELDS` si API indisponible |
 
 ---

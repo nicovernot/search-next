@@ -157,7 +157,7 @@ const data = await res.json() as any;
 - **SC-003**: `grep -rn ": any" front/app/` (hors `node_modules`) retourne 0 résultat hors adaptateurs tiers documentés.
 - **SC-004**: `grep -rn "style jsx global" front/app/components/` retourne 0 résultat.
 - **SC-005**: Chaque fichier dans `front/app/hooks/` commence par un commentaire JSDoc décrivant sa responsabilité unique.
-- **SC-006**: Les 29 tests Playwright existants restent verts après toutes les corrections.
+- **SC-006**: Les 33 tests Playwright existants restent verts après toutes les corrections.
 
 ### Checklist de revue de code
 

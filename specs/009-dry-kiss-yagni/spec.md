@@ -320,7 +320,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Aucune régression sur les 29 tests Playwright existants.
+- **NFR-001**: Aucune régression sur les 33 tests Playwright existants.
 - **NFR-002**: `grep -rn "FACET_I18N" front/app/components/` retourne 0 résultat après correction.
 - **NFR-003**: `grep -rn "#f03603\|#e6e4e2\|#969493" front/app/components/` retourne 0 résultat après correction.
 - **NFR-004**: `grep -rn "style jsx global" front/app/components/` retourne 0 résultat après correction.
@@ -371,7 +371,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 - **SC-004**: `grep -rn "SearchState" front/app/` → 0 résultat hors `types.ts` (supprimé).
 - **SC-005**: `grep -rn "auth_token\|auth_user" front/app/` → 0 résultat hors `lib/storage-keys.ts`.
 - **SC-006**: `AutocompleteInput.tsx` ne contient plus d'import `useSearch`.
-- **SC-007**: Les 29 tests Playwright restent verts.
+- **SC-007**: Les 33 tests Playwright restent verts.
 
 ### Checklist de revue de code (DRY/KISS/YAGNI)
 

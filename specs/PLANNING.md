@@ -67,7 +67,7 @@ Pourquoi cet ordre : `004` touche le cycle de vie de la recherche et l'historiqu
 
 - Vérifier l'état réel du code avant chaque spec : certains éléments listés comme backlog peuvent déjà avoir été partiellement livrés.
 - Ne pas mélanger `007` et `004` dans une même PR : les risques de régression seraient difficiles à isoler.
-- Conserver les 29 tests Playwright comme garde-fou minimal après chaque lot frontend.
+- Conserver les 33 tests Playwright comme garde-fou minimal après chaque lot frontend.
 - Synchroniser `docs/ARCHITECTURE.md` après `005` et `007`, pas avant, pour éviter de réécrire la doc deux fois.
 
 ---

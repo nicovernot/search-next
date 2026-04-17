@@ -41,7 +41,7 @@
 ## Correctifs post-livraison (2026-04-13)
 
 ### CORS
-- [x] Ajout de `http://localhost:3003` et `http://127.0.0.1:3003` dans `CORS_ORIGINS` (`search_api_solr/.env` et `.env.development`).
+- [x] Ajout de `http://localhost:3003`, `http://127.0.0.1:3003` et `http://0.0.0.0:3003` dans `CORS_ORIGINS` (`.env.shared`, `.env.example`, `search_api_solr/.env.example` et fichiers `.env.local` générés).
 - [x] Correction de `API_BASE_URL` (8000→8003) et `FRONTEND_URL` (3000→3003) dans `.env.shared`.
 
 ### Pagination & Filtres — auto-refresh
@@ -86,7 +86,7 @@
 - [x] **query_logic_parser.py — opérateurs négatifs** : branches `not_equal`, `does_not_contain`, `does_not_begin_with`, `does_not_end_with` produisant des fragments Solr `-field:value`.
 - [x] **facet_config.py — champ invalide** : suppression de `"disciplinary_field": "platformIndex_*"` (`platformIndex_*` est un pattern de schéma Solr, non utilisable comme nom de champ dans les requêtes).
 - [x] **qb-fields.ts** : suppression de `disciplinary_field` du registre frontend (aligne sur backend).
-- [x] **AdvancedQueryBuilder.tsx — opérateurs restreints** : prop `operators` limitée à `=`, `contains`, `beginsWith`, `endsWith`; `type="button"` ajouté sur le bouton Rechercher.
+- [x] **AdvancedQueryBuilder.tsx — opérateurs alignés backend** : prop `operators` expose les 8 opérateurs supportés (`=`, `!=`, `contains`, `doesNotContain`, `beginsWith`, `doesNotBeginWith`, `endsWith`, `doesNotEndWith`); `type="button"` ajouté sur le bouton Rechercher.
 - [x] **fields_json/common.json** : `df=naked_titre` (champ tokenisé, boosté à ×8 dans `qf`) au lieu de `df=titre` (champ brut).
 - [x] **messages/*.json (6 langues)** : clés `qb_opEquals`, `qb_opContains`, `qb_opBeginsWith`, `qb_opEndsWith` ajoutées ; `qb_fieldKeywords` conservée (clé orpheline inoffensive).
 
@@ -95,3 +95,4 @@
 - [x] **settings.py** : suppression du `model_config = SettingsConfigDict(extra='ignore')` doublon (ligne 40 écrasée silencieusement par celui de la fin de classe).
 - [x] **.env.test** : remplacement de `REACT_APP_API_URL` (variable CRA, non lue par Next.js) par `NEXT_PUBLIC_API_URL`.
 - [x] **entrypoint.sh** : script ajouté — attend PostgreSQL (`pg_isready`) puis applique les migrations Alembic avant de lancer uvicorn ; intégré dans `Dockerfile` et `docker-compose.dev.yml`.
+- [x] **CORS_ORIGINS local Docker** : ajout de `http://0.0.0.0:3003` dans la source commune `.env.shared` et les exemples pour couvrir le cas où le navigateur ouvre le frontend via `0.0.0.0`.
