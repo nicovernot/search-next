@@ -16,7 +16,7 @@
 | Qualité code | `008` P0+P1+P2 livrés, `009` P0+P1+P2 livrés, `010` livré | ✅ Terminé |
 | Tech debt `006` | searchFields depuis `/facets/config` livré via `useFacetConfig` | ✅ Terminé |
 | Auth LDAP/SSO | `011` ✅ livré — backend, frontend, i18n, tests E2E | Terminé |
-| Architecture doc | `docs/ARCHITECTURE.md` à synchroniser | À faire lors du démarrage de `011` |
+| Architecture doc | `docs/ARCHITECTURE.md` synchronisé 2026-04-19 | ✅ Terminé |
 
 ### Écarts mineurs connus (non bloquants)
 
