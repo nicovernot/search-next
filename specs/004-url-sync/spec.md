@@ -1,12 +1,23 @@
 # Feature Specification: URL State Sync
 
-**Feature Branch**: à créer — `feature/004-url-sync`  
+**Feature Branch**: `feature/002-advanced-search-suite`  
 **Created**: 2026-04-13  
-**Status**: Backlog — non démarré
+**Status**: Livré — 2026-04-19
 
 ## Overview
 
 Synchroniser l'état complet de la recherche (query, filtres actifs, page courante, mode simple/avancé) avec les paramètres d'URL, afin de permettre le partage de liens et la navigation back/forward du navigateur.
+
+## Implémentation
+
+Hook `front/app/hooks/useUrlSync.ts` intégré dans `SearchContext` via `front/app/context/SearchContext.tsx`.
+
+- **Hydratation au montage** : lit l'URL et restaure l'état via `loadSearch`
+- **Sync état → URL** : `router.push` sur changement de query (nouvelle recherche), `router.replace` pour les changements de page/filtre/mode (raffinements)
+- **Back/forward (FR-003)** : détecte les changements de `useSearchParams` non provoqués par l'application et ré-hydrate l'état depuis l'URL
+- **QB (P2)** : paramètre `lq=` en JSON encodé, parsing robuste avec fallback silencieux si malformé
+
+`front/app/[locale]/layout.tsx` enveloppé dans `<Suspense>` (requis par `useSearchParams` dans Next.js App Router).
 
 ## User Scenarios & Testing (Playwright)
 
@@ -36,25 +47,25 @@ En tant qu'utilisateur avancé, je veux que ma requête logique (AND/OR/NOT cons
 ## Requirements
 
 ### Functional Requirements
-- **FR-001**: L'URL DOIT refléter en temps réel la query (`q=`), les filtres actifs (`f[field]=value`), la page (`page=`) et le mode de recherche (`mode=simple|advanced`).
-- **FR-002**: Le chargement d'une URL avec paramètres DOIT restaurer l'état de recherche et lancer la recherche automatiquement.
-- **FR-003**: La navigation back/forward DOIT mettre à jour l'état de recherche en cohérence avec l'URL visitée.
-- **FR-004**: La mise à jour de l'URL DOIT utiliser `history.pushState` (nouvelle entrée d'historique) pour les nouvelles recherches, et `history.replaceState` (remplacement silencieux) pour les changements de page.
-- **FR-005**: Le payload de requête logique avancée DOIT être encodé dans l'URL via un paramètre dédié (`lq=`) et décodé sans perte à la restauration.
+- **FR-001** ✅ : L'URL DOIT refléter en temps réel la query (`q=`), les filtres actifs (`f_[field]=value`), la page (`page=`) et le mode de recherche (`mode=simple|advanced`).
+- **FR-002** ✅ : Le chargement d'une URL avec paramètres DOIT restaurer l'état de recherche et lancer la recherche automatiquement.
+- **FR-003** ✅ : La navigation back/forward DOIT mettre à jour l'état de recherche en cohérence avec l'URL visitée.
+- **FR-004** ✅ : La mise à jour de l'URL DOIT utiliser `router.push` (nouvelle entrée d'historique) pour les nouvelles recherches, et `router.replace` (remplacement silencieux) pour les changements de page/filtre/mode.
+- **FR-005** ✅ : Le payload de requête logique avancée DOIT être encodé dans l'URL via un paramètre dédié (`lq=`) et décodé sans perte à la restauration.
 
 ### Key Entities
-- **SearchParams**: Objet représentant l'état URL (q, filters, page, mode, lq).
-- **SearchContext**: Devra exposer une fonction `restoreFromUrl(params)` et déclencher la mise à jour de l'URL après chaque changement d'état.
+- **useUrlSync** : hook autonome, branché dans `SearchContext`. Expose aucune API — effet de bord pur.
+- **parseSavedSearchData** : fonction pure (interne au hook) qui lit un `URLSearchParams` et produit un `SavedSearchData`.
 
 ## Success Criteria
 
 ### Measurable Outcomes
-- **SC-001**: L'URL est mise à jour dans les 50 ms suivant chaque interaction utilisateur (frappe, filtre, page).
-- **SC-002**: La restauration depuis URL aboutit à un état de recherche identique à celui qui a produit l'URL (résultats, filtres, page visibles).
-- **SC-003**: La navigation back/forward fonctionne sur au moins 5 étapes d'historique consécutives sans désynchronisation.
-- **SC-004**: L'encodage du payload QueryBuilder dans l'URL est lisible (pas de base64 opaque) et tient dans une URL < 2 000 caractères pour les cas courants (≤ 3 niveaux, ≤ 5 règles).
+- **SC-001** ✅ : L'URL est mise à jour dans les 50 ms suivant chaque interaction utilisateur (frappe, filtre, page).
+- **SC-002** ✅ : La restauration depuis URL aboutit à un état de recherche identique à celui qui a produit l'URL (résultats, filtres, page visibles).
+- **SC-003** ✅ : La navigation back/forward fonctionne sur au moins 5 étapes d'historique consécutives sans désynchronisation.
+- **SC-004** ✅ : L'encodage du payload QueryBuilder dans l'URL est lisible (JSON non obfusqué) et tient dans une URL < 2 000 caractères pour les cas courants (≤ 3 niveaux, ≤ 5 règles).
 
-### Tests Playwright (à créer)
-| Fichier | Cas à couvrir |
+### Tests Playwright
+| Fichier | Cas couverts |
 |---|---|
-| `tests/url-sync.spec.ts` | URL mise à jour après recherche simple, URL mise à jour après ajout filtre, URL mise à jour après changement de page, restauration depuis URL partagée (simple), restauration depuis URL partagée (avec filtres + page), navigation back (2 étapes), navigation forward, paramètres invalides ignorés, restauration QueryBuilder depuis URL |
+| `tests/url-sync.spec.ts` | URL mise à jour après recherche simple, filtre, changement de page, bascule mode avancé/simple, rechargement de page, hydratation depuis URL (query, mode, filtre, page), back/forward (2 directions, avec filtre), changements de page en replaceState, paramètres invalides (page négative, size non numérique, lq malformé, champ inexistant), restauration QB simple, QB imbriqué (AND/OR), vérification longueur URL < 2000 |

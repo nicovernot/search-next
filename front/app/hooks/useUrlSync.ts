@@ -41,53 +41,96 @@ function readFiltersFromParams(params: URLSearchParams): Filters {
   return filters;
 }
 
+function parseSavedSearchData(params: URLSearchParams): SavedSearchData {
+  const q = params.get("q") ?? "";
+  const mode = params.get("mode") === "advanced" ? "advanced" : "simple";
+  const lqRaw = params.get("lq");
+  const page = Math.max(1, parseInt(params.get("page") ?? "1", 10));
+  const size = Math.max(1, parseInt(params.get("size") ?? "10", 10));
+  const filters = readFiltersFromParams(params);
+
+  let logicalQuery: LogicalQuery | null = null;
+  if (lqRaw) {
+    try {
+      logicalQuery = JSON.parse(lqRaw);
+    } catch {
+      // malformed lq param — ignore
+    }
+  }
+
+  return {
+    query: q,
+    searchMode: mode,
+    logicalQuery,
+    filters,
+    pagination: { from: (page - 1) * size, size },
+  };
+}
+
 export function useUrlSync({ searchState, loadSearch }: UrlSyncParams) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isHydrated = useRef(false);
+  // Tracks the last QS string we wrote, to distinguish our writes from back/forward
+  const lastWrittenQsRef = useRef<string>("");
+  // Tracks previous query to decide push vs replace
+  const prevQueryRef = useRef<string>("");
+  // Set before calling loadSearch from back/forward, prevents spurious push
+  const skipNextPushRef = useRef(false);
 
   // Hydrate state from URL on mount — runs only once
   useEffect(() => {
-    const q = searchParams.get("q") ?? "";
-    const mode = searchParams.get("mode") === "advanced" ? "advanced" : "simple";
-    const lqRaw = searchParams.get("lq");
-    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
-    const size = Math.max(1, parseInt(searchParams.get("size") ?? "10", 10));
-    const filters = readFiltersFromParams(searchParams);
-
+    const data = parseSavedSearchData(searchParams);
     const hasUrlState =
-      q || mode === "advanced" || lqRaw || Object.keys(filters).length > 0 || page > 1;
+      data.query ||
+      data.searchMode === "advanced" ||
+      data.logicalQuery ||
+      Object.keys(data.filters ?? {}).length > 0 ||
+      (data.pagination?.from ?? 0) > 0;
+
+    lastWrittenQsRef.current = searchParams.toString();
+    prevQueryRef.current = data.query ?? "";
 
     if (hasUrlState) {
-      let logicalQuery: LogicalQuery | null = null;
-      if (lqRaw) {
-        try {
-          logicalQuery = JSON.parse(lqRaw);
-        } catch {
-          // malformed lq param — ignore
-        }
-      }
-      loadSearch({
-        query: q,
-        searchMode: mode,
-        logicalQuery,
-        filters,
-        pagination: { from: (page - 1) * size, size },
-      });
+      skipNextPushRef.current = true;
+      loadSearch(data);
     }
 
     isHydrated.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep URL in sync with state — skipped until after hydration
+  // Back/forward: re-hydrate when the URL changes externally (not by us)
+  useEffect(() => {
+    if (!isHydrated.current) return;
+    const currentQs = searchParams.toString();
+    if (currentQs === lastWrittenQsRef.current) return;
+
+    skipNextPushRef.current = true;
+    loadSearch(parseSavedSearchData(searchParams));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Keep URL in sync with state after any state change
+  // New search (query changed) → pushState; refinements (filter, page, mode) → replaceState
   useEffect(() => {
     if (!isHydrated.current) return;
     const { query, searchMode, logicalQuery, filters, pagination } = searchState;
     const params = buildUrlParams(query, searchMode, logicalQuery, filters, pagination.from, pagination.size);
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    const url = qs ? `${pathname}?${qs}` : pathname;
+
+    const isNewSearch = !skipNextPushRef.current && query !== prevQueryRef.current;
+    skipNextPushRef.current = false;
+    prevQueryRef.current = query;
+    lastWrittenQsRef.current = qs;
+
+    if (isNewSearch) {
+      router.push(url, { scroll: false });
+    } else {
+      router.replace(url, { scroll: false });
+    }
   }, [
     searchState.query,
     searchState.searchMode,
