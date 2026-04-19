@@ -47,6 +47,7 @@ export default function Facets() {
           {activeFilters.map((f, i) => (
             <span
               key={i}
+              data-testid="active-filter-chip"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-highlight/30 text-highlight text-xs font-bold shadow-sm animate-fade-in hover:scale-105 transition-transform"
             >
               {f.value}

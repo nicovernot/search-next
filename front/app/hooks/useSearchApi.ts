@@ -144,7 +144,7 @@ export function useSearchApi({
       const restoredFilters = data.filters ?? {};
       const restoredSearchMode = data.searchMode ?? "simple";
       const restoredLogicalQuery = data.logicalQuery ?? null;
-      const resetPagination = { ...latestRef.current.pagination, from: 0 };
+      const resetPagination = data.pagination ?? { ...latestRef.current.pagination, from: 0 };
 
       // Prevent the filters/pagination useEffect from firing a redundant executeSearchWithOverrides
       skipEffectRef.current = true;

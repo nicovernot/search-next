@@ -37,7 +37,7 @@ export default function Pagination({ total }: { total: number }) {
   };
 
   return (
-    <nav className="flex items-center justify-center gap-1 mt-6">
+    <nav data-testid="pagination" className="flex items-center justify-center gap-1 mt-6">
       <button
         onClick={() => go(currentPage - 1)}
         disabled={currentPage === 1}
@@ -52,6 +52,7 @@ export default function Pagination({ total }: { total: number }) {
         ) : (
           <button
             key={page}
+            data-testid={`pagination-page-${page}`}
             onClick={() => go(page as number)}
             className={`w-8 h-8 text-sm rounded border transition-colors ${
               currentPage === page

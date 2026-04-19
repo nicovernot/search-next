@@ -20,7 +20,7 @@ const FAKE_DOC = {
 };
 
 const FAKE_SEARCH_RESPONSE = {
-  hits: [FAKE_DOC],
+  results: [FAKE_DOC],
   total: 1,
   facets: {},
 };

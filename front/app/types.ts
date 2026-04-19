@@ -68,6 +68,7 @@ export interface SavedSearchData {
   filters?: Filters;
   searchMode?: "simple" | "advanced";
   logicalQuery?: LogicalQuery | null;
+  pagination?: Pagination;
 }
 
 export interface SavedSearchRecord {

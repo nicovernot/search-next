@@ -11,6 +11,7 @@ import { useSuggestions } from "../hooks/useSuggestions";
 import { usePermissions } from "../hooks/usePermissions";
 import { useSearchState } from "../hooks/useSearchState";
 import { useSearchApi } from "../hooks/useSearchApi";
+import { useUrlSync } from "../hooks/useUrlSync";
 
 // Sous-interfaces par domaine — permet aux composants de dépendre uniquement du sous-ensemble qu'ils consomment.
 
@@ -81,6 +82,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const { executeSearch, loadSearch } = useSearchApi({
     searchState, facetConfig, locale, fetchPermissions, resetPermissions,
   });
+  useUrlSync({ searchState, loadSearch });
 
   return (
     <SearchContext.Provider

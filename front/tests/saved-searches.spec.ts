@@ -65,11 +65,9 @@ test.describe("Panneau Mes Recherches", () => {
     await page.getByTestId("btn-saved-searches").click();
     await expect(page.getByTestId("saved-searches-panel")).toBeVisible();
 
-    // Fermer via backdrop
-    await page.keyboard.press("Escape");
-    // ou clic ailleurs
-    await page.mouse.click(10, 10);
-    await expect(page.getByTestId("saved-searches-panel")).not.toBeVisible();
+    // Fermer via clic à l'extérieur du panel (sur le logo dans le header)
+    await page.locator("header").click({ position: { x: 20, y: 20 } });
+    await expect(page.getByTestId("saved-searches-panel")).not.toBeVisible({ timeout: 5000 });
   });
 
   test("affiche le message 'aucune recherche' par défaut", async ({ page }) => {

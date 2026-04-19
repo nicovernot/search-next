@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { hasLocale } from "next-intl";
+import { Suspense } from "react";
 import { routing } from "../../i18n/routing";
 import { SearchProvider } from "../context/SearchContext";
 import { ThemeProvider } from "../components/ThemeProvider";
@@ -35,7 +36,9 @@ export default async function LocaleLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>
-              <SearchProvider>{children}</SearchProvider>
+              <Suspense>
+                <SearchProvider>{children}</SearchProvider>
+              </Suspense>
             </AuthProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
