@@ -55,6 +55,18 @@ export const api = {
     });
   },
 
+  ldapLogin(username: string, password: string): Promise<Response> {
+    return fetch(`${API_BASE_URL}/auth/ldap/login`, {
+      method: "POST",
+      headers: buildJsonAuthHeaders(),
+      body: JSON.stringify({ username, password }),
+    });
+  },
+
+  ssoLoginUrl(): string {
+    return `${API_BASE_URL}/auth/sso/login`;
+  },
+
   // --- Saved searches ---
 
   getSavedSearches(token: string): Promise<Response> {

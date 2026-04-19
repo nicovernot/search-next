@@ -107,6 +107,29 @@ class Settings(BaseSettings):
     secret_key: str = "your-secret-key-for-development" # À changer en production !
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440  # 24h
+
+    # URL frontend (utilisée pour les redirections SSO callback)
+    frontend_url: str = "http://localhost:3000"
+
+    # LDAP
+    ldap_enabled: bool = False
+    ldap_url: str = "ldaps://ldap.example.org:636"
+    ldap_base_dn: str = "dc=example,dc=org"
+    ldap_bind_dn: str = "cn=service,dc=example,dc=org"
+    ldap_bind_password: str = ""
+    ldap_user_filter: str = "(uid={username})"
+    ldap_email_attr: str = "mail"
+    ldap_firstname_attr: str = "givenName"
+    ldap_lastname_attr: str = "sn"
+    ldap_email_conflict_strategy: str = "reject"  # reject | merge
+
+    # SSO OIDC
+    sso_oidc_enabled: bool = False
+    sso_oidc_issuer: str = ""
+    sso_oidc_client_id: str = ""
+    sso_oidc_client_secret: str = ""
+    sso_oidc_redirect_uri: str = "http://localhost:8003/auth/sso/callback"
+    sso_oidc_scopes: str = "openid email profile"
     
     @model_validator(mode='after')
     def set_default_log_level(self):
