@@ -2,7 +2,7 @@
 
 **Dernier audit**: 2026-04-19  
 **Branch active**: `feature/002-advanced-search-suite`  
-**État global**: Specs 001–011 toutes livrées. 33+ tests E2E Playwright verts.
+**État global**: Specs 001–011 livrées fonctionnellement. Dette résiduelle P0/P1/P2 planifiée dans `specs/PLANNING.md`.
 
 ---
 
@@ -77,7 +77,7 @@
 │  ├── POST /auth/login, POST /auth/register                  │
 │  ├── POST /auth/ldap/login                                  │
 │  ├── GET  /auth/sso/login  (redirect → IdP)                │
-│  ├── GET  /auth/sso/callback  (token → JWT → redirect)     │
+│  ├── GET  /auth/sso/callback  (JWT en query — à durcir P0) │
 │  └── GET/POST/DELETE /saved-searches                        │
 │                                                              │
 │  Services (DI via Depends()):                               │
@@ -162,7 +162,7 @@ IdP callback → GET /auth/sso/callback?code=...&state=...
   → OidcService.exchange_code() : validation state + échange code → ID token
   → Validation JWKS (RS256/ES256), issuer, audience
   → _provision_federated_user() : upsert User(auth_provider='oidc')
-  → 302 → frontend/?auth_token=<JWT>
+  → 302 → frontend/?auth_token=<JWT>  [dette P0 : remplacer par cookie HttpOnly ou code court]
 
 Frontend AuthContext (useEffect) → detecte ?auth_token= → loginWithToken()
   → supprime param de l'URL (replaceState) → session active
@@ -187,26 +187,39 @@ Frontend AuthContext (useEffect) → detecte ?auth_token= → loginWithToken()
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
 | Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (19) |
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
-| Authentification SSO OIDC | ✅ Complet | auth-ldap-sso.spec.ts |
+| Authentification SSO OIDC | ✅ Fonctionnel, durcissement transport JWT requis | auth-ldap-sso.spec.ts |
 
 ---
 
 ## Maintenabilité
 
 ### Points forts
-- **DI backend** : Services injectés via `Depends()`, interfaces définies (`ISearchService`, `ISearchBuilder`). Facile à mocker.
+- **DI backend partielle** : Services injectés via `Depends()`, interfaces définies (`ISearchService`, `ISearchBuilder`). La recherche principale passe par les services ; `/suggest` garde encore de la logique dans l'endpoint.
 - **Config JSON** : Facettes et champs Solr en JSON (`facets_json/`, `fields_json/`). Pas de recompilation pour modifier une facette.
-- **Hooks SOLID** : `SearchContext` est un assembleur pur — logique dans 6 hooks spécialisés testables indépendamment.
+- **Hooks SOLID** : `SearchContext` est un assembleur — logique dans 6 hooks spécialisés. `useSearchApi` et `useUrlSync` restent volontairement plus longs que le seuil initial et sont planifiés en P2.
 - **latestRef pattern** : Évite les stale closures dans `executeSearch` sans useCallback instable.
 - **Client API centralisé** : `lib/api.ts` — base URL, headers, auth en un seul endroit.
 - **Types centralisés** : `front/app/types.ts` — interfaces partagées entre composants et contextes.
 - **Auth fédérée sans friction** : just-in-time provisioning LDAP/SSO — aucun formulaire d'inscription pour les comptes institutionnels.
-- **Tests E2E** : 33+ tests Playwright couvrent les flux critiques.
+- **Tests E2E** : tests Playwright couvrant les flux critiques. Dernière vérification complète à relancer dans l'environnement cible.
 - **i18n** : 6 langues, gérées via next-intl. Ajout d'une langue = 1 fichier JSON.
 
 ### Dette technique résiduelle
 
-Aucune dette technique ouverte. Résolutions :
+La dette résiduelle ci-dessous est ordonnée dans `specs/PLANNING.md`. Les anciennes dettes D2-D5 sont résolues, mais l'audit 2026-04-19 a rouvert des priorités de stabilisation.
+
+| Priorité | Problème | Impact | Plan |
+|---|---|---|---|
+| P0 | `DELETE /cache/clear` exposé sans garde production | Purge cache possible si route accessible | Protéger par auth admin ou désactiver hors dev/test |
+| P0 | JWT SSO transmis via query string | Risque d'exposition dans logs, historique, referer | Cookie `HttpOnly Secure SameSite=Lax` ou code court à usage unique |
+| P0 | Secrets par défaut acceptables si production mal configurée | Risque de déploiement avec secret faible | Validator `Settings` bloquant en production |
+| P1 | `/suggest` contient parsing/cache dans l'endpoint | Responsabilité endpoint/service mélangée | Déplacer dans `SuggestService` |
+| P1 | `SearchService`/`SearchBuilder` utilisent encore `Dict[str, Any]` | Contrats moins sûrs et duplication dict/Pydantic | Faire circuler `SearchRequest` typé |
+| P1 | Réponses API publiques partiellement non typées | Contrat moins stable côté front | Ajouter `response_model` Pydantic |
+| P2 | `useSearchApi` 197 lignes, `useUrlSync` 143 lignes | Maintenance plus coûteuse | Extraire helpers testables |
+| P2 | `SearchContext` segmenté en interfaces mais consommé via `useSearch()` global | Couplage UI résiduel | Ajouter hooks selectors ou contexts ciblés |
+
+### Dettes résolues conservées comme historique
 
 | # | Problème | Résolution |
 |---|---------|------------|
@@ -214,3 +227,10 @@ Aucune dette technique ouverte. Résolutions :
 | D3 | Timestamp hardcodé dans `/health` | → `datetime.now(timezone.utc).isoformat()` |
 | D4 | `solr_connector.py` / `document_mapper.py` orphelins | → supprimés |
 | D5 | `disciplinary_field` invalide dans QB | → retiré de `SEARCH_FIELDS_MAPPING`, 3 champs valides : `titre`, `author`, `naked_texte` |
+
+### Vérification récente
+
+| Commande | Résultat audit 2026-04-19 |
+|---|---|
+| `cd front && npm run lint` | Passe avec 23 warnings (`id-length`, `react-hooks/exhaustive-deps`, `<img>`) |
+| `cd search_api_solr && pytest` | Non validé localement : dépendances Python absentes dans l'environnement courant |

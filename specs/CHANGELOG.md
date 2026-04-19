@@ -26,6 +26,7 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-16 | 008 | Code quality SOLID P0+P1 — useSavedSearches extrait, JSDoc hooks, SC-001/SC-004/SC-005 verts | — |
 | 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
 | 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
+| 2026-04-19 | docs | Alignement specs/code/docs : dette résiduelle P0/P1/P2/P3 ajoutée au planning, architecture et specs qualité synchronisées | — |
 
 ---
 
@@ -36,10 +37,11 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 001 | Search core — facettes, pagination, i18n | ✅ Livré |
 | 002 | Advanced search suite — QB, auth, recherches sauvegardées | ✅ Livré |
 | 003 | UX/UI premium — dark mode, glassmorphism, animations | ✅ Livré |
-| 004 | URL sync — liens partageables, back/forward | 🔲 Backlog (prérequis 007 ✅) |
+| 004 | URL sync — liens partageables, back/forward | ✅ Livré fonctionnellement |
 | 005 | Permissions — badges d'accès sur les résultats | ✅ Livré |
 | 006 | Tech debt — correctifs fondations techniques | ✅ Livré |
-| 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré |
-| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré complet |
-| 009 | DRY/KISS/YAGNI — P0+P1 livrés, P2 après 007 | ✅ Livré complet |
+| 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré fonctionnellement, dette P2 sur seuils de taille |
+| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré fonctionnellement, dette résiduelle planifiée |
+| 009 | DRY/KISS/YAGNI — corrections ciblées | ✅ Livré fonctionnellement, nettoyage P2/P3 restant |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
+| 011 | Auth LDAP/SSO — institutionnel | ✅ Livré fonctionnellement, durcissement JWT SSO P0 restant |

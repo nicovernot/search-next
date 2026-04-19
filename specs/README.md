@@ -26,23 +26,23 @@ specs/
 │       └── requirements.md
 ├── 003-ux-ui-premium-overhaul/ ✅ Livré — Refonte visuelle, dark mode, glassmorphism, animations
 │   └── spec.md
-├── 004-url-sync/              🔲 Backlog — Sync état ↔ URL, liens partageables, back/forward (prérequis : 007)
+├── 004-url-sync/              ✅ Livré — Sync état ↔ URL, liens partageables, back/forward
 │   └── spec.md
 ├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (4 tests dédiés, 33 tests E2E au total)
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
-├── 007-refactor-search-context/ ✅ Livré — 5 hooks SOLID + assembler, 33 tests existants (débloque 004)
+├── 007-refactor-search-context/ ✅ Livré fonctionnellement — hooks SOLID, dette P2 sur seuils de taille
 │   └── spec.md
-├── 008-code-quality-solid/    ✅ Livré complet — sous-interfaces SearchContext, useAuthModal, KISS-002
+├── 008-code-quality-solid/    ✅ Livré fonctionnellement — dette résiduelle suivie dans PLANNING
 │   └── spec.md
-├── 009-dry-kiss-yagni/        ✅ Livré complet — useClickOutside, useAnchoredPortal, AutocompleteInput découplé
+├── 009-dry-kiss-yagni/        ✅ Livré fonctionnellement — nettoyage restant P2/P3
 │   └── spec.md
 ├── 010-naming-intention-result/ ✅ Livré — renommages frontend + backend appliqués
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
-├── 011-auth-ldap-sso/         🔲 Backlog — Authentification LDAP + SSO (OIDC/SAML/CAS), provisionnement JIT
+├── 011-auth-ldap-sso/         ✅ Livré fonctionnellement — durcissement SSO/JWT restant P0
 │   └── spec.md
 └── README.md
 ```
@@ -78,17 +78,14 @@ specs/
 
 ## Backlog priorisé
 
-> Voir `docs/ARCHITECTURE.md` pour le bilan d'audit complet et l'ordre d'implémentation recommandé.
-> Voir aussi [`PLANNING.md`](PLANNING.md) pour le planning global consolidé et les points de cohérence entre specs.
+> Voir [`PLANNING.md`](PLANNING.md) pour le planning opérationnel courant. Il est la source de vérité pour la dette restante P0/P1/P2/P3.
+> Voir `docs/ARCHITECTURE.md` pour le bilan d'audit complet.
 > Voir [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md) pour les exigences techniques applicables à toutes les specs.
 
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
-| 1 | [006-tech-debt](006-tech-debt/spec.md) — Corrections & fondations techniques | — | — | ✅ Livré |
-| 2 | [005-permissions](005-permissions/spec.md) — Badges d'accès sur les résultats | ~2j | 006 ✅ | ✅ Livré |
-| 3 | [007-refactor-search-context](007-refactor-search-context/spec.md) — Découpage SearchContext SOLID | ~3j | — | ✅ Livré |
-| 4 | [008-code-quality-solid](008-code-quality-solid/spec.md) — Règles qualité & principes SOLID | continu | 007 ✅ | ✅ Livré complet |
-| 4 | [009-dry-kiss-yagni](009-dry-kiss-yagni/spec.md) — Audit DRY/KISS/YAGNI, corrections ciblées | ~1j | — | ✅ Livré complet |
-| 4 | [010-naming-intention-result](010-naming-intention-result/spec.md) — Nommage Intention→Résultat | ~1j | — | ✅ Livré |
-| 5 | [004-url-sync](004-url-sync/spec.md) — Liens partageables, back/forward | ~4j | 007 ✅ | 🔲 Backlog |
-| 6 | [011-auth-ldap-sso](011-auth-ldap-sso/spec.md) — Authentification LDAP + SSO institutionnel | ~5j | 002 ✅ | 🔲 Backlog |
+| P0 | Sécurité production — cache clear, JWT SSO, secrets prod, `.env` front | court | — | 🔥 À faire |
+| P1 | Contrats API/backend — `/suggest`, `SearchRequest`, response models, erreurs Solr | moyen | P0 | 🔶 À faire |
+| P1 | Cohérence docs/tests — architecture, pytest backend, lint warnings | court | P0/P1 backend | 🔶 À faire |
+| P2 | Maintenabilité frontend — `useSearchApi`, `useUrlSync`, selectors SearchContext, `AuthModal` | moyen | P1 | 🔵 À faire |
+| P3 | Nettoyage — dépendances, lockfiles, code mort/commentaires | court | P2 ou indépendant | ⚪ À faire |

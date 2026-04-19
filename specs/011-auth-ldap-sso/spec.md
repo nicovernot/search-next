@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/002-advanced-search-suite` (livré sur la branche principale)  
 **Created**: 2026-04-17  
-**Status**: ✅ Livré — backend (ldap_service, oidc_service, endpoints, migration) + frontend (AuthModal, AuthContext, api.ts, i18n 6 langues) + tests E2E
+**Status**: ✅ Livré fonctionnellement — backend (ldap_service, oidc_service, endpoints, migration) + frontend (AuthModal, AuthContext, api.ts, i18n 6 langues). Dette P0 restante : le JWT SSO ne doit plus transiter en query string.
 
 ## Overview
 
@@ -46,6 +46,7 @@ En tant que nouvel utilisateur se connectant pour la première fois via LDAP ou 
 - Token SSO expiré ou invalide lors du callback → retour sur la page de login avec message d'erreur.
 - Conflit d'email : un utilisateur LDAP dont l'email existe déjà comme compte local → fusion des comptes ou refus configurable (paramètre `LDAP_EMAIL_CONFLICT_STRATEGY`).
 - Déconnexion SSO (Single Logout) → invalider le JWT local et rediriger vers l'IdP si le protocole le supporte.
+- Dette sécurité audit 2026-04-19 : le callback OIDC fonctionnel redirige actuellement vers le frontend avec `?auth_token=<JWT>`. Avant production, remplacer ce transport par un cookie `HttpOnly Secure SameSite=Lax` ou par un code court à usage unique échangé contre le JWT.
 
 ---
 
@@ -69,6 +70,7 @@ En tant que nouvel utilisateur se connectant pour la première fois via LDAP ou 
 - **NFR-002**: La communication avec le serveur LDAP DOIT utiliser LDAPS (port 636) ou StartTLS. LDAP non sécurisé (port 389) est interdit en production.
 - **NFR-003**: Les tokens OIDC/SAML DOIVENT être validés (signature, expiry, issuer) avant d'émettre un JWT.
 - **NFR-004**: Le flux SSO DOIT résister aux attaques CSRF (état `state` dans le flow OIDC, validation du `RelayState` en SAML).
+- **NFR-005**: Le JWT applicatif long terme NE DOIT PAS être transmis dans une query string en production.
 
 ---
 
@@ -158,6 +160,7 @@ python3-saml>=1.16  # SAML 2.0 (optionnel, lourd — uniquement si requis)
 - [ ] `hashed_password=null` pour un utilisateur fédéré n'empêche pas l'accès aux fonctionnalités authentifiées.
 - [ ] Aucune régression sur les 33 tests E2E Playwright existants.
 - [ ] Les credentials LDAP et SSO ne sont jamais loggués ni exposés dans les erreurs HTTP.
+- [ ] Le JWT SSO n'est pas exposé dans l'URL frontend.
 
 ---
 

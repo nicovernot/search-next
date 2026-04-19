@@ -117,6 +117,7 @@ Référence opérationnelle : [`010-naming-intention-result/spec.md`](010-naming
 - Les tokens JWT doivent respecter la durée configurée par environnement.
 - Les routes protégées doivent vérifier le token côté backend.
 - Le frontend ne doit pas exposer de secret serveur.
+- Les tokens JWT longue durée ne doivent pas transiter en query string ; utiliser un cookie `HttpOnly Secure SameSite=Lax` ou un code court à usage unique pour les callbacks SSO.
 - Les erreurs d'auth doivent être traduites côté UI avec des codes stables.
 - Les routes proxy Next.js ne doivent relayer que les headers nécessaires.
 - Les endpoints sensibles doivent conserver les limites de taux existantes ou en définir une nouvelle si nécessaire.
@@ -175,6 +176,7 @@ Si une commande ne peut pas être lancée, la raison doit être documentée dans
 - Un `plan.md` est requis quand la spec implique plusieurs phases techniques ou des dépendances.
 - Un `tasks.md` est requis quand l'implémentation doit être suivie étape par étape.
 - Le planning global vit dans [`PLANNING.md`](PLANNING.md).
+- La dette résiduelle validée par audit doit être suivie dans [`PLANNING.md`](PLANNING.md), même quand une spec est livrée fonctionnellement.
 - `docs/ARCHITECTURE.md` décrit l'état architectural, mais ce fichier reste la source de vérité pour les exigences techniques transverses.
 
 ---

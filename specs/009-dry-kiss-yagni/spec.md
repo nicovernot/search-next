@@ -2,13 +2,28 @@
 
 **Feature Branch**: `feature/009-dry-kiss-yagni` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré complet — P0+P1 (commit ffc7bb5) + P2 (DRY-004/005/KISS-001/002 + DRY-003 résiduel sur Facets.tsx) après livraison de spec 007
+**Status**: ✅ Livré fonctionnellement — corrections DRY/KISS principales appliquées. Dette résiduelle et nettoyage P2/P3 suivis dans `../PLANNING.md`.
 
 ## Overview
 
 Audit complet des violations des principes DRY (Don't Repeat Yourself), KISS (Keep It Simple, Stupid) et YAGNI (You Aren't Gonna Need It) dans le codebase frontend et backend. Chaque violation est documentée avec sa localisation exacte, son impact, et la correction à apporter.
 
 ---
+
+## État réel au 2026-04-19
+
+Les duplications frontend majeures relevées dans cette spec sont corrigées ou isolées dans des helpers/hooks. Les points restants ne bloquent pas le fonctionnement, mais restent utiles pour stabiliser l'architecture :
+
+| Sujet | État | Suite |
+|---|---|---|
+| Helpers facettes, storage keys, spinners, portal/click outside | ✅ Livrés | Garder ces patterns pour les futures features |
+| `AutocompleteInput` découplé du contexte direct | ✅ Livré | Ne pas réintroduire d'import implicite à `SearchContext` dans les composants feuilles |
+| `hasActiveSearch` / `activeFilters` | ✅ Livrés via `useSearchState` | Centralisation à conserver |
+| `useSearchApi` / `useUrlSync` | ⚠️ Trop longs | P2 : extractions ciblées |
+| Dépendances et lockfiles | ⚠️ Nettoyage restant | P3 : retirer dépendances inutilisées et choisir un seul lockfile |
+| Code mort/commentaires backend | ⚠️ Nettoyage restant | P3 : supprimer commentaires obsolètes dans `SearchBuilder` |
+
+Les anciennes sections d'audit ci-dessous sont conservées comme historique de décision. Le planning opérationnel courant est `../PLANNING.md`.
 
 ## Audit DRY — Duplications identifiées
 
@@ -329,6 +344,8 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ## Plan d'action
 
+> Statut 2026-04-19 : ce plan initial est majoritairement exécuté. Les corrections restantes sont reclassées dans `../PLANNING.md` pour éviter deux sources de vérité concurrentes.
+
 ### Priorité P0 — Corrections sans risque (< 2h chacune)
 
 | ID | Correction | Fichiers touchés | Effort |
@@ -371,7 +388,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 - **SC-004**: `grep -rn "SearchState" front/app/` → 0 résultat hors `types.ts` (supprimé).
 - **SC-005**: `grep -rn "auth_token\|auth_user" front/app/` → 0 résultat hors `lib/storage-keys.ts`.
 - **SC-006**: `AutocompleteInput.tsx` ne contient plus d'import `useSearch`.
-- **SC-007**: Les 33 tests Playwright restent verts.
+- **SC-007**: Les tests Playwright restent verts. **À relancer dans l'environnement cible.**
 
 ### Checklist de revue de code (DRY/KISS/YAGNI)
 

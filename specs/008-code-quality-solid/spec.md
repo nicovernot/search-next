@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/008-code-quality-solid` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré complet — P0+P1 livrés + P2 : SearchContextValue segmentée en 5 sous-interfaces, KISS-002 (état modal sorti d'AuthContext vers useAuthModal)
+**Status**: ✅ Livré fonctionnellement — dette résiduelle planifiée dans `../PLANNING.md` (P0 sécurité, P1 contrats backend, P2 hooks front)
 
 ## Overview
 
@@ -22,7 +22,24 @@ L'objectif n'est pas la perfection académique mais la **maintenabilité pratiqu
 
 ---
 
-## Audit des violations actuelles
+## État réel au 2026-04-19
+
+Les corrections frontend prévues par cette spec ont été majoritairement livrées : logique déplacée dans des hooks, styles globaux sortis des composants, helpers réutilisables créés, état modal auth sorti d'`AuthContext`.
+
+La spec reste toutefois ouverte comme garde qualité, car l'audit code/specs du 2026-04-19 a identifié des écarts avec les critères stricts :
+
+| Domaine | Écart restant | Priorité planning |
+|---|---|---|
+| Sécurité backend | `DELETE /cache/clear` non protégé, JWT SSO dans query string, secrets prod à durcir | P0 |
+| Backend SOLID | `/suggest` contient encore parsing/cache dans l'endpoint | P1 |
+| Contrats typés | `SearchService` / `SearchBuilder` utilisent encore `Dict[str, Any]` autour de Solr | P1 |
+| Frontend hooks | `useSearchApi` et `useUrlSync` dépassent les seuils de taille initiaux | P2 |
+| Interface segregation | `SearchContextValue` est segmentée en interfaces, mais les composants consomment encore `useSearch()` global | P2 |
+| Vérification | `npm run lint` passe avec warnings ; `pytest` backend non validé localement faute de dépendances installées | P1 |
+
+## Audit historique des violations
+
+Cette section conserve l'audit initial. Elle décrit les problèmes qui ont motivé la spec ; plusieurs lignes sont maintenant résolues ou partiellement résolues.
 
 ### S — Single Responsibility Principle
 
@@ -137,14 +154,14 @@ const data = await res.json() as any;
 
 ## Backlog de corrections (code existant)
 
-| Priorité | Fichier | Correction | Spec liée |
+| Priorité | Fichier | Correction | État |
 |---|---|---|---|
-| P0 | `SearchContext.tsx` | Découper en 5 hooks | `007` |
-| P1 | `SavedSearchesPanel.tsx` | Extraire la logique CRUD dans `useSavedSearches.ts` | `007` |
-| P1 | `AdvancedQueryBuilder.tsx` | Déplacer `<style jsx global>` dans `globals.css` | Cette spec |
-| P2 | `Facets.tsx` | Rendre le rendu de facette extensible via un prop `renderFacet` | Cette spec |
-| P2 | `SearchContextValue` | Segmenter en sous-interfaces par domaine | Cette spec |
-| P3 | `ResultItem.tsx` | Externaliser `FORMAT_STYLES` et `configs` comme constantes de module | Cette spec |
+| P0 | `SearchContext.tsx` | Découper en hooks | ✅ Livré fonctionnellement via spec `007` |
+| P1 | `SavedSearchesPanel.tsx` | Extraire la logique CRUD dans `useSavedSearches.ts` | ✅ Livré |
+| P1 | `AdvancedQueryBuilder.tsx` | Déplacer `<style jsx global>` dans `globals.css` | ✅ Livré |
+| P2 | `Facets.tsx` / `FacetGroup.tsx` | Rendre les variantes de facette plus extensibles si nouveau type ajouté | À traiter seulement si nouveau type de facette |
+| P2 | `SearchContextValue` | Segmenter les interfaces et réduire la consommation globale | Partiel : interfaces segmentées, hooks selectors restants |
+| P3 | `ResultItem.tsx` | Externaliser/clarifier les configs de rendu si extension fréquente | À traiter si ajout de formats |
 
 ---
 
@@ -153,11 +170,11 @@ const data = await res.json() as any;
 ### Measurable Outcomes
 
 - **SC-001**: `grep -rn "await api\." front/app/components/` retourne 0 résultat (aucun appel API dans les composants de présentation).
-- **SC-002**: Aucun fichier dans `front/app/hooks/` ne dépasse 120 lignes.
+- **SC-002**: Aucun fichier dans `front/app/hooks/` ne dépasse 120 lignes. **Non atteint : `useSearchApi` et `useUrlSync` restent en dette P2.**
 - **SC-003**: `grep -rn ": any" front/app/` (hors `node_modules`) retourne 0 résultat hors adaptateurs tiers documentés.
 - **SC-004**: `grep -rn "style jsx global" front/app/components/` retourne 0 résultat.
 - **SC-005**: Chaque fichier dans `front/app/hooks/` commence par un commentaire JSDoc décrivant sa responsabilité unique.
-- **SC-006**: Les 33 tests Playwright existants restent verts après toutes les corrections.
+- **SC-006**: Les tests Playwright existants restent verts après toutes les corrections. **À relancer dans l'environnement cible.**
 
 ### Checklist de revue de code
 

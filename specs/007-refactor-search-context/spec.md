@@ -2,13 +2,24 @@
 
 **Feature Branch**: `feature/007-refactor-search-context` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré — 5 hooks SOLID + assembler 115 lignes (useUrlSync intégré), 33+ tests Playwright existants
+**Status**: ✅ Livré fonctionnellement — hooks SOLID extraits, assembleur `SearchContext` à 115 lignes. Dette P2 restante : seuils SC-002/SC-003 partiellement dépassés (`useSearchApi`, `useUrlSync`).
 
 ## Overview
 
-`SearchContext.tsx` est actuellement un God Object de ~306 lignes qui cumule 5 responsabilités distinctes : état de recherche, appels API Solr, gestion des suggestions, chargement des permissions, et configuration des facettes. Cette concentration viole le Single Responsibility Principle et rend le contexte difficile à tester, à faire évoluer, et à déboguer.
+Avant refactorisation, `SearchContext.tsx` était un God Object de ~306 lignes qui cumulait 5 responsabilités distinctes : état de recherche, appels API Solr, gestion des suggestions, chargement des permissions, et configuration des facettes. Cette concentration violait le Single Responsibility Principle et rendait le contexte difficile à tester, à faire évoluer, et à déboguer.
 
-Cette spec décrit le découpage en hooks spécialisés sans modifier l'interface publique du contexte (aucune régression sur les 33 tests E2E existants).
+Cette spec décrit le découpage en hooks spécialisés sans modifier l'interface publique du contexte. Le découpage est livré, mais certains seuils de taille restent ouverts comme dette P2 dans `specs/PLANNING.md`.
+
+## État réel au 2026-04-19
+
+| Élément | État code | Statut |
+|---|---|---|
+| `SearchContext.tsx` assembleur | 115 lignes, compose les hooks, pas de logique métier lourde | ✅ Livré fonctionnellement, SC-002 non atteint |
+| `useSearchState.ts` | 83 lignes | ✅ Dans le seuil |
+| `useSearchApi.ts` | 197 lignes | ⚠️ Dette P2 : extraire payload/résultat/permissions |
+| `useUrlSync.ts` | 143 lignes | ⚠️ Dette P2 : extraire parsing/build URL |
+| Hooks spécialisés | `useFacetConfig`, `useSuggestions`, `usePermissions`, `useSearchState`, `useSearchApi`, `useUrlSync` | ✅ Livré |
+| Tests | E2E existants à relancer dans l'environnement cible | ⚠️ Vérification non incluse dans cette spec |
 
 ## Contraintes
 
@@ -57,11 +68,11 @@ front/app/
 ## Success Criteria
 
 ### Measurable Outcomes
-- **SC-001**: Les 33 tests Playwright existants passent sans modification après refactorisation.
-- **SC-002**: `SearchContext.tsx` fait moins de 60 lignes après refactorisation.
-- **SC-003**: Aucun hook individuel ne dépasse 120 lignes.
-- **SC-004**: `grep -n "useState\|useCallback\|useRef\|useEffect" front/app/context/SearchContext.tsx` retourne 0 résultat (toute la logique est dans les hooks).
-- **SC-005**: `usePermissions` peut être importé et testé indépendamment de `SearchContext`.
+- **SC-001**: Les tests Playwright existants passent sans modification après refactorisation. **À relancer dans l'environnement cible.**
+- **SC-002**: `SearchContext.tsx` fait moins de 60 lignes après refactorisation. **Non atteint : 115 lignes, principalement interfaces slice inline.**
+- **SC-003**: Aucun hook individuel ne dépasse 120 lignes. **Non atteint : `useSearchApi` 197 lignes, `useUrlSync` 143 lignes.**
+- **SC-004**: `grep -n "useState\|useCallback\|useRef\|useEffect" front/app/context/SearchContext.tsx` retourne 0 résultat (toute la logique est dans les hooks). **Atteint.**
+- **SC-005**: `usePermissions` peut être importé et testé indépendamment de `SearchContext`. **Atteint structurellement.**
 
 ## Plan d'implémentation
 
