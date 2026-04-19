@@ -1,8 +1,8 @@
 # Feature Specification: Authentification LDAP et SSO
 
-**Feature Branch**: à créer — `feature/011-auth-ldap-sso`  
+**Feature Branch**: `feature/002-advanced-search-suite` (livré sur la branche principale)  
 **Created**: 2026-04-17  
-**Status**: Backlog — non démarré
+**Status**: ✅ Livré — backend (ldap_service, oidc_service, endpoints, migration) + frontend (AuthModal, AuthContext, api.ts, i18n 6 langues) + tests E2E
 
 ## Overview
 
