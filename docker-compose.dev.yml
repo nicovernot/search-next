@@ -11,28 +11,32 @@ services:
     volumes:
       - ./search_api_solr:/app
       - /app/__pycache__
+    entrypoint: /app/entrypoint.sh
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload --log-level debug
     environment:
       - DEV=true
       - LOG_LEVEL=DEBUG
       - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
 
-  frontend-dev:
-    image: node:18-alpine
-    container_name: openedition_frontend_dev
+  frontend:
+    build: !reset null
+    image: node:20-alpine
+    container_name: search-next_frontend_dev
     working_dir: /app
     ports:
-      - "${FRONTEND_DEV_PORT:-3007}:3000"
+      - "${FRONTEND_PORT:-3003}:3000"
     volumes:
       - ./front:/app
       - /app/node_modules
+      - /app/.next
     environment:
-      - REACT_APP_API_URL=http://localhost:8007
+      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8003}
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-    command: sh -c "npm install && npm start"
+      - HOSTNAME=0.0.0.0
+    command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm dev"
     restart: unless-stopped
     depends_on:
       - api
     networks:
-      - openedition_network
+      - search-next_network

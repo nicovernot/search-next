@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+
 
 def load_field_configs() -> dict:
     config_dir = Path(__file__).parent / "fields_json"
@@ -8,7 +8,7 @@ def load_field_configs() -> dict:
     if config_dir.exists():
         for file_path in config_dir.glob("*.json"):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     configs[file_path.stem] = json.load(f)
             except Exception as e:
                 print(f"Error loading {file_path}: {e}")
@@ -16,7 +16,7 @@ def load_field_configs() -> dict:
 
 FIELD_CONFIG = load_field_configs()
 
-def get_default_fields() -> List[str]:
+def get_default_fields() -> list[str]:
     """
     Retourne la liste des champs par défaut à récupérer (fl).
     """
@@ -32,7 +32,7 @@ def get_default_search_field() -> str:
     default = common.get('default', {})
     return default.get('df', 'text_recherche')
 
-def get_highlight_fields() -> List[str]:
+def get_highlight_fields() -> list[str]:
     """
     Retourne la liste des champs à surligner (hl.fl).
     """

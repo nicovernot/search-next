@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+/* Tailwind v4 : mappe les variables CSS sémantiques vers --color-* pour que
+   bg-card, bg-background, text-foreground, border-border, etc. fonctionnent.
+   `inline` préserve les variables au runtime → nécessaire pour le dark mode. */
+@theme inline {
+  --color-background:          hsl(var(--background));
+  --color-foreground:          hsl(var(--foreground));
+  --color-card:                hsl(var(--card));
+  --color-card-foreground:     hsl(var(--card-foreground));
+  --color-popover:             hsl(var(--popover));
+  --color-popover-foreground:  hsl(var(--popover-foreground));
+  --color-primary:             hsl(var(--primary));
+  --color-primary-foreground:  hsl(var(--primary-foreground));
+  --color-secondary:           hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:               hsl(var(--muted));
+  --color-muted-foreground:    hsl(var(--muted-foreground));
+  --color-accent:              hsl(var(--accent));
+  --color-accent-foreground:   hsl(var(--accent-foreground));
+  --color-destructive:         hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border:              hsl(var(--border));
+  --color-input:               hsl(var(--input));
+  --color-ring:                hsl(var(--ring));
+  --color-highlight:           hsl(var(--highlight));
+}
+
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+
+  --radius: 0.75rem;
+
+  /* Accentuation OpenEdition Premium Glow */
+  --highlight: 20 100% 55%;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+
+  --card: 224 71.4% 4.1%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 224 71.4% 4.1%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  
+  --highlight: 20 100% 55%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utils */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Soft Premium Shadows */
+.premium-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+}
+.dark .premium-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 15px 0px hsla(var(--highlight), 0.3); }
+  50% { box-shadow: 0 0 25px 5px hsla(var(--highlight), 0.5); }
+}
+
+.animate-pulse-glow:focus-within {
+  animation: pulseGlow 3s infinite alternate;
+}
+
+/* Base Form inputs overrides */
+input:focus, button:focus {
+  outline: none;
+}
+
+select {
+  background-color: transparent;
+  color: inherit;
+  border-color: hsl(var(--border) / 0.5);
+}
+
+/* Les inputs héritent du background de leur contexte par défaut.
+   Les composants définissent leur propre background via style inline ou classes. */
+input, textarea {
+  color: inherit;
+  border-color: hsl(var(--border) / 0.5);
+}
+
+option {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+/* QueryBuilder premium styles */
+.query-builder-premium .ruleGroup {
+  position: relative;
+}
+.query-builder-premium .ruleGroup:before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: hsl(var(--border));
+}
+.query-builder-premium .rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}

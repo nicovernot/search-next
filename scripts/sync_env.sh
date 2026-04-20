@@ -1,11 +1,11 @@
 #!/bin/bash
 # Script pour synchroniser les environnements entre les services
-# Usage: ./scripts/sync_env.sh [development|production|staging]
+# Usage: ./scripts/sync_env.sh [development|production|staging|test]
 
 set -e
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 [development|production|staging]"
+    echo "Usage: $0 [development|production|staging|test]"
     exit 1
 fi
 
@@ -16,6 +16,18 @@ if [ ! -f ".env.$ENVIRONMENT" ]; then
     echo "Error: .env.$ENVIRONMENT not found"
     exit 1
 fi
+
+# Charger les variables partagées puis celles de l'environnement cible pour
+# calculer les URLs générées ci-dessous.
+set -a
+# shellcheck source=/dev/null
+source ".env.shared" 2>/dev/null || true
+# shellcheck source=/dev/null
+source ".env.$ENVIRONMENT" 2>/dev/null || true
+set +a
+
+PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-${API_BASE_URL:-http://localhost:${API_PORT:-8003}}}"
+PUBLIC_FRONTEND_URL="${FRONTEND_URL:-http://localhost:${FRONTEND_PORT:-3003}}"
 
 echo "Synchronizing environment: $ENVIRONMENT"
 
@@ -32,6 +44,12 @@ $(cat .env.shared | grep -v "^#" | grep -v "^$")
 
 # Environment-specific configuration
 $(cat .env.$ENVIRONMENT | grep -v "^#" | grep -v "^$")
+
+# URL publique utilisée par le navigateur. En dev Docker: http://localhost:8003.
+# Derrière nginx staging/prod: /api.
+NEXT_PUBLIC_API_URL=$PUBLIC_API_URL
+API_BASE_URL=$PUBLIC_API_URL
+FRONTEND_URL=$PUBLIC_FRONTEND_URL
 EOL
 
 # Pour le backend
@@ -45,8 +63,18 @@ $(cat .env.shared | grep -v "^#" | grep -v "^$")
 
 # Environment-specific configuration
 $(cat .env.$ENVIRONMENT | grep -v "^#" | grep -v "^$")
+
+# Overrides from Docker setup (if available)
+REDIS_URL=redis://redis:6379/0
+DATABASE_URL=${DATABASE_URL:-postgresql://search_user:search_password@postgres:5432/search_db}
+POSTGRES_PORT=${POSTGRES_PORT:-5435}
+API_PORT=8007
 EOL
 
+# front/.env = valeur par défaut committée (Docker mode : 8003)
+# front/.env.local = override local généré par ce script (git-ignoré)
+# Ne pas écraser front/.env ici — il est versionné avec la valeur Docker par défaut.
+
 echo "Environment synchronization complete!"
-echo "Frontend: front/.env.local"
+echo "Frontend: front/.env.local + front/.env"
 echo "Backend: search_api_solr/.env.local"

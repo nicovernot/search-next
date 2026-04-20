@@ -1,229 +1,60 @@
-# OpenEdition Search - Frontend
+# Frontend OpenEdition Search
 
-Frontend React pour l'application de recherche OpenEdition, utilisant SearchKit pour l'interface de recherche.
+Frontend Next.js du projet OpenEdition Search.
 
-## 🚀 Démarrage rapide
+## Stack
 
-### Prérequis
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- next-intl
+- Playwright
 
-- Node.js 18+ et npm
-- Backend FastAPI en cours d'exécution (par défaut sur http://localhost:8000)
-
-### Installation
-
-```bash
-# Installer les dépendances
-npm install
-
-# Copier le fichier d'environnement
-cp .env.example .env
-
-# Configurer l'URL de l'API dans .env
-# REACT_APP_API_URL=http://localhost:8000
-```
-
-### Développement
+## Démarrage
 
 ```bash
-# Lancer l'application en mode développement
-npm start
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-L'application sera accessible sur http://localhost:3009 (ou sur le port défini dans la variable d'environnement FRONTEND_PORT)
+Le frontend écoute sur `http://localhost:3000` en local simple, et sur `http://localhost:3003` quand il est lancé via Docker Compose.
 
-### Build de production
-
-```bash
-# Créer un build optimisé
-npm run build
-```
-
-Les fichiers de production seront générés dans le dossier `build/`.
-
-## 🐳 Docker
-
-### Build de l'image Docker
-
-```bash
-docker build -t openedition-search-frontend \
-  --build-arg REACT_APP_API_URL=http://localhost:8000 \
-  .
-```
-
-### Exécution du conteneur
-
-```bash
-docker run -p 80:80 openedition-search-frontend
-```
-
-L'application sera accessible sur http://localhost
-
-### Docker Compose (avec le backend)
-
-```yaml
-version: '3.8'
-
-services:
-  frontend:
-    build:
-      context: ./front
-      args:
-        REACT_APP_API_URL: http://localhost:8000
-    ports:
-      - "3009:80"
-    depends_on:
-      - backend
-      
-  backend:
-    build: ./search_api_solr
-    ports:
-      - "8000:8000"
-```
-
-## 📁 Structure du projet
-
-```
-front/
-├── public/                 # Fichiers publics statiques
-│   ├── index.html
-│   └── manifest.json
-├── src/
-│   ├── components/         # Composants React réutilisables
-│   │   ├── SearchBar.jsx   # Barre de recherche
-│   │   ├── ResultsList.jsx # Liste des résultats
-│   │   ├── ResultItem.jsx  # Item de résultat individuel
-│   │   ├── Facets.jsx      # Container des facettes
-│   │   ├── FacetGroup.jsx  # Groupe de facettes
-│   │   └── Pagination.jsx  # Pagination des résultats
-│   ├── pages/              # Pages principales
-│   │   └── Home.jsx        # Page d'accueil avec recherche
-│   ├── services/           # Services d'interaction avec l'API
-│   │   └── api.js          # Client API FastAPI
-│   ├── utils/              # Utilitaires
-│   │   └── searchkit.js    # Configuration SearchKit
-│   ├── App.jsx             # Composant principal
-│   ├── App.css             # Styles globaux
-│   ├── index.jsx           # Point d'entrée React
-│   └── index.css           # Styles de base
-├── Dockerfile              # Configuration Docker
-├── nginx.conf              # Configuration Nginx pour la production
-├── package.json            # Dépendances et scripts
-└── README.md
-```
-
-## 🔧 Configuration
-
-### Variables d'environnement
-
-Créez un fichier `.env` à la racine du projet et définissez le port exposé du frontend (par défaut 3009) :
+## Variables d'environnement
 
 ```env
-# Host port that will forward to the frontend dev server (container listens on 3000)
-FRONTEND_PORT=3009
-REACT_APP_API_URL=http://localhost:8000
-REACT_APP_SEARCHKIT_API_KEY=
-PORT=3000
+NEXT_PUBLIC_API_URL=http://localhost:8003
 ```
 
-### Configuration de l'API
+Via Docker (`make dev`, `make prod`), le fichier `front/.env` est généré automatiquement par `scripts/sync_env.sh`.
 
-Le fichier `src/services/api.js` contient les fonctions pour communiquer avec le backend :
-
-- `search(searchRequest)` - Recherche POST avec objet SearchRequest
-- `searchGet(params)` - Recherche GET avec paramètres URL
-- `suggest(query)` - Autocomplétion
-- `getPermissions(urls, ip)` - Vérification des permissions
-
-### Configuration SearchKit
-
-Le fichier `src/utils/searchkit.js` configure SearchKit pour votre application :
-
-- Configuration de la connexion à l'API
-- Définition des champs de recherche
-- Configuration des facettes
-- Transformateurs de données
-
-## 🎨 Personnalisation
-
-### Styles
-
-Les composants utilisent des fichiers CSS modules séparés. Vous pouvez personnaliser :
-
-- `src/index.css` - Styles globaux
-- `src/App.css` - Layout principal
-- `src/components/*.css` - Styles des composants individuels
-
-### Facettes
-
-Pour ajouter ou modifier des facettes, éditez `src/components/Facets.jsx` :
-
-```javascript
-const facetConfigs = [
-  { key: 'platform', label: 'Plateforme', field: 'platform' },
-  { key: 'type', label: 'Type de document', field: 'type' },
-  // Ajoutez vos facettes ici
-];
-```
-
-### Champs de résultats
-
-Pour modifier l'affichage des résultats, éditez `src/components/ResultItem.jsx`.
-
-## 🧪 Tests
+Pour un démarrage manuel sans Docker, créer `front/.env.local` manuellement :
 
 ```bash
-# Lancer les tests
-npm test
-
-# Lancer les tests avec couverture
-npm test -- --coverage
+echo "NEXT_PUBLIC_API_URL=http://localhost:8007" > .env.local
 ```
 
-## 📦 Scripts disponibles
-
-- `npm start` - Lance le serveur de développement
-- `npm build` - Crée un build de production
-- `npm test` - Lance les tests
-- `npm run lint` - Vérifie le code avec ESLint
-- `npm run format` - Formate le code avec Prettier
-
-## 🔗 Intégration avec le backend
-
-Le frontend communique avec l'API FastAPI via les endpoints suivants :
-
-- `POST /search` - Recherche principale
-- `GET /search` - Recherche avec paramètres URL
-- `GET /suggest` - Autocomplétion
-- `GET /permissions` - Vérification des permissions
-
-## 🌐 Déploiement
-
-### Nginx (Production)
-
-Le fichier `nginx.conf` est configuré pour :
-- Servir les fichiers statiques avec cache
-- Gérer le routing SPA
-- Proxifier les requêtes API (optionnel)
-- Headers de sécurité
-
-### Variables d'environnement de build
-
-Pour configurer l'URL de l'API au moment du build :
+## Scripts
 
 ```bash
-REACT_APP_API_URL=https://api.example.com npm run build
+pnpm dev
+pnpm build
+pnpm start
+pnpm lint
+pnpm test:e2e
 ```
 
-## 📝 Licence
+## Fonctionnalités UI
 
-Ce projet fait partie de l'écosystème OpenEdition.
+- Recherche simple
+- Recherche avancée
+- Facettes et pagination
+- Authentification
+- Recherches sauvegardées
+- i18n
+- Thème clair / sombre
 
-## 🤝 Contribution
+## Tests
 
-Les contributions sont les bienvenues ! Veuillez suivre les conventions de code existantes.
-
-## 🧭 Playwright / CI image (optionnel)
-
-Pour les tests E2E reproductibles en CI, une image Docker dédiée contenant Playwright, les navigateurs et Xvfb est fournie dans le dépôt (`front/Dockerfile.playwright`). Elle permet de lancer les tests rapidement sans réinstaller les dépendances à chaque exécution.
-
-Consultez `front/README.playwright.md` pour les commandes détaillées et les exemples d'intégration CI (Makefile : `build-playwright-image`, `test-front-ci-image`, `test-front-ci-ui-image`, ...).
+Les tests E2E vivent dans `front/tests` et utilisent Playwright.

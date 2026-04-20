@@ -3,11 +3,12 @@ Property-based tests for rate limiting configuration parsing.
 """
 import json
 import os
-import pytest
-from hypothesis import given, strategies as st, assume
 from unittest.mock import patch
 
-from app.models.rate_limit_models import RateLimit, RateLimitConfig
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 from app.settings import Settings
 
 
@@ -53,15 +54,15 @@ class TestRateLimitConfigurationParsing:
             'RATE_LIMIT_LOG_VIOLATIONS': str(log_violations).lower(),
             'RATE_LIMIT_METRICS_ENABLED': str(metrics_enabled).lower(),
         }
-        
+
         # Mock environment variables
         with patch.dict(os.environ, env_vars, clear=False):
             # Create settings instance
             settings = Settings()
-            
+
             # Get rate limit configuration
             rate_limit_config = settings.get_rate_limit_config()
-            
+
             # Verify configuration matches environment variables
             assert rate_limit_config.enabled == enabled
             assert rate_limit_config.default_requests == default_requests
@@ -94,20 +95,20 @@ class TestRateLimitConfigurationParsing:
         """
         # Convert to JSON string
         endpoints_json = json.dumps(endpoints_data)
-        
+
         env_vars = {
             'RATE_LIMIT_ENDPOINTS': endpoints_json,
         }
-        
+
         # Mock environment variables
         with patch.dict(os.environ, env_vars, clear=False):
             settings = Settings()
             rate_limit_config = settings.get_rate_limit_config()
-            
+
             # Verify each endpoint configuration
             for endpoint_name, expected_config in endpoints_data.items():
                 actual_limit = rate_limit_config.get_rate_limit_for_endpoint(endpoint_name)
-                
+
                 assert actual_limit.requests == expected_config['requests']
                 assert actual_limit.window_seconds == expected_config['window']
                 assert abs(actual_limit.burst_multiplier - expected_config['burst_multiplier']) < 0.001
@@ -135,20 +136,20 @@ class TestRateLimitConfigurationParsing:
         """
         # Create comma-separated IP list
         ip_whitelist_str = ','.join(ip_list)
-        
+
         env_vars = {
             'RATE_LIMIT_IP_WHITELIST': ip_whitelist_str,
         }
-        
+
         # Mock environment variables
         with patch.dict(os.environ, env_vars, clear=False):
             settings = Settings()
             rate_limit_config = settings.get_rate_limit_config()
-            
+
             # Verify IP whitelist
             for ip in ip_list:
                 assert rate_limit_config.is_ip_whitelisted(ip)
-            
+
             # Verify non-whitelisted IPs are not allowed
             if ip_list:  # Only test if we have IPs in the list
                 assert not rate_limit_config.is_ip_whitelisted('192.168.1.999')
@@ -167,11 +168,11 @@ class TestRateLimitConfigurationParsing:
         env_vars = {
             'ENVIRONMENT': environment,
         }
-        
+
         # Mock environment variables
         with patch.dict(os.environ, env_vars, clear=False):
             settings = Settings()
-            
+
             # Verify environment-specific defaults are applied
             if environment == 'test':
                 assert settings.rate_limit_default_requests == 10
@@ -181,15 +182,15 @@ class TestRateLimitConfigurationParsing:
                 assert settings.rate_limit_default_requests == 1000
             elif environment == 'staging':
                 assert settings.rate_limit_default_requests == 200
-            
+
             # Verify endpoint-specific defaults are set
             assert settings.rate_limit_endpoints != ""
-            
+
             # Parse and verify endpoint defaults
             endpoints_data = json.loads(settings.rate_limit_endpoints)
             assert 'search' in endpoints_data
             assert 'suggest' in endpoints_data
-            
+
             # Verify environment-appropriate limits
             if environment == 'test':
                 assert endpoints_data['search']['requests'] == 5
@@ -207,12 +208,12 @@ class TestRateLimitConfigurationParsing:
         with pytest.raises(ValueError, match="rate_limit_backend must be"):
             with patch.dict(os.environ, {'RATE_LIMIT_BACKEND': 'invalid'}, clear=False):
                 Settings()
-        
+
         # Test invalid positive values
         with pytest.raises(ValueError, match="Rate limit values must be positive"):
             with patch.dict(os.environ, {'RATE_LIMIT_DEFAULT_REQUESTS': '0'}, clear=False):
                 Settings()
-        
+
         # Test invalid multipliers
         with pytest.raises(ValueError, match="Rate limit multipliers must be"):
             with patch.dict(os.environ, {'RATE_LIMIT_BURST_MULTIPLIER': '0.5'}, clear=False):
@@ -226,11 +227,11 @@ class TestRateLimitConfigurationParsing:
         env_vars = {
             'RATE_LIMIT_ENDPOINTS': '{"invalid": json}',
         }
-        
+
         # Should not raise exception, but should log warning and use empty endpoints
         with patch.dict(os.environ, env_vars, clear=False):
             settings = Settings()
             rate_limit_config = settings.get_rate_limit_config()
-            
+
             # Should fall back to empty endpoints configuration
             assert len(rate_limit_config.endpoints) == 0

@@ -1,294 +1,185 @@
 # OpenEdition Search - Guide Docker
 
-Ce guide explique comment utiliser Docker pour déployer l'application de recherche OpenEdition.
+## Architecture
 
-## 🏗️ Architecture
+4 services Docker (pas de Solr local — Solr est distant) :
 
-L'infrastructure Docker comprend 3 services principaux :
+```
+┌──────────────┐     ┌──────────────┐
+│  Frontend    │     │     API      │
+│  Next.js 16  │────▶│   FastAPI    │
+│  :3003       │     │  :8003/:8007 │
+└──────────────┘     └──────┬───────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+        ┌──────────┐  ┌──────────┐  ┌─────────────────────────┐
+        │PostgreSQL│  │  Redis   │  │ Solr distant             │
+        │  :5435   │  │  :6376   │  │ solrslave-sec.labocleo.org│
+        └──────────┘  └──────────┘  └─────────────────────────┘
+```
 
-- **Solr** : Moteur de recherche (port 8983)
-- **API** : Backend FastAPI (port 8007)
-- **Frontend** : Interface React (port 3009 en dev (host) / 3000 en conteneur, 80 en prod)
+Ports exposés sur l'hôte (défauts Makefile) :
 
-## 🚀 Démarrage rapide
+| Service    | Hôte  | Conteneur |
+|------------|-------|-----------|
+| Frontend   | 3003  | 3000      |
+| API        | 8003  | 8007      |
+| PostgreSQL | 5435  | 5432      |
+| Redis      | 6376  | 6379      |
 
-### Avec Make (recommandé)
+## Démarrage rapide
 
 ```bash
-# Installation complète
-make install
-
-# Développement
+# Développement (avec hot-reload)
 make dev
 
 # Production
 make prod
 ```
 
+Ces commandes appellent `make sync-env` en premier, ce qui génère automatiquement `front/.env` et `front/.env.local`.
+
 ### Sans Make
 
 ```bash
 # Développement
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 # Production
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-## 📋 Commandes disponibles
-
-### Développement
+## Commandes disponibles
 
 ```bash
-make dev              # Lancer l'environnement de développement
-make dev-build        # Build et lancer en mode dev
-make dev-down         # Arrêter l'environnement de dev
-```
+# Environnements
+make dev              # Lancer en développement
+make dev-build        # Build + lancer en dev
+make dev-down         # Arrêter le dev
+make prod             # Lancer en production
+make prod-build       # Build + lancer en prod
+make prod-down        # Arrêter la prod
 
-### Production
-
-```bash
-make prod             # Lancer l'environnement de production
-make prod-build       # Build et lancer en mode prod
-make prod-down        # Arrêter l'environnement de prod
-```
-
-### Logs
-
-```bash
+# Logs
 make logs             # Tous les logs
 make logs-api         # Logs de l'API
 make logs-frontend    # Logs du frontend
-make logs-solr        # Logs de Solr
-```
 
-### Tests
+# Shell
+make shell-api        # Shell dans le conteneur API
+make shell-frontend   # Shell dans le conteneur frontend
 
-```bash
-make test             # Lancer les tests
-make test-cov         # Tests avec couverture
-```
-
-### Shell
-
-```bash
-make shell-api        # Accéder au conteneur API
-make shell-frontend   # Accéder au conteneur frontend
-make shell-solr       # Accéder au conteneur Solr
-```
-
-### Santé et monitoring
-
-```bash
-make health           # Vérifier la santé de tous les services
-make stats            # Statistiques des conteneurs
+# Monitoring
+make health           # Vérifier la santé des services
 make ps               # Liste des conteneurs
+make stats            # Statistiques ressources
+
+# Nettoyage
+make clean            # Conteneurs + volumes
+make clean-all        # Conteneurs + volumes + images
 ```
 
-### Nettoyage
+## Configuration
+
+### Environnements
+
+Les variables d'environnement sont gérées de façon centralisée depuis la racine du projet :
 
 ```bash
-make clean            # Nettoyer conteneurs et volumes
-make clean-all        # Nettoyage complet (avec images)
+make sync-env ENV=development   # ou staging / production / test
 ```
 
-## 🔧 Configuration
+Cela génère `front/.env`, `front/.env.local` et `search_api_solr/.env.local`.
 
-### Variables d'environnement
-
-Créez un fichier `.env` dans `search_api_solr/` :
+### Variables frontend clés
 
 ```env
-# API Settings
-API_HOST=0.0.0.0
+NEXT_PUBLIC_API_URL=http://localhost:8003
+```
+
+### Variables backend clés
+
+```env
+SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
 API_PORT=8007
-API_RELOAD=true
-
-# Solr Settings
-SOLR_BASE_URL=http://solr:8983/solr/openedition
-
-# Development
 DEV=true
-TEST_IP=195.221.21.146
 LOG_LEVEL=DEBUG
 ```
 
-### Frontend
-
-Créez un fichier `.env` dans `front/` :
-
-```env
-REACT_APP_API_URL=http://localhost:8007
-```
-
-## 🏭 Environnements
+## Accès aux services
 
 ### Développement
 
-- Hot reload activé pour l'API et le frontend
-- Volumes montés pour modification en temps réel
-- Logs détaillés
-- - Port 3009 pour le frontend (host)
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-```
+- Frontend : http://localhost:3003
+- API : http://localhost:8003
+- Swagger UI : http://localhost:8003/docs
 
 ### Production
 
-- Build optimisé
-- Plusieurs workers pour l'API
-- Frontend servi par Nginx
-- Reverse proxy optionnel
-- Port 80 pour le frontend
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-## 🌐 Accès aux services
-
--### Développement
--
-- Frontend : http://localhost:3009
-- API : http://localhost:8007
-- API Docs : http://localhost:8007/docs
-- Solr Admin : http://localhost:8983/solr
-
-### Production
-
-- Application : http://localhost
+- Frontend : http://localhost (port 80)
 - API : http://localhost/api
-- API Docs : http://localhost/docs
 
-## 📦 Volumes
+## Réseau
 
-```yaml
-volumes:
-  solr_data:          # Données Solr persistantes
+Tous les services communiquent via le réseau `search-next_network`.
+
+## Volumes persistants
+
+```
+postgres_data   — données PostgreSQL
+redis_data      — données Redis
 ```
 
-Les données Solr sont persistées dans un volume Docker nommé.
+Les données Solr sont distantes — aucun volume local pour Solr.
 
-## 🔌 Réseau
-
-Tous les services communiquent via le réseau `openedition_network`.
-
-## 🐛 Debugging
-
-### Voir les logs en temps réel
+## Débogage
 
 ```bash
-docker-compose logs -f api
+# Logs en temps réel
+docker compose logs -f api
+docker compose logs -f frontend
+
+# Shell dans un conteneur
+make shell-api
+
+# Vérifier la santé
+make health
+
+# Tester l'API directement
+curl http://localhost:8003/docs
 ```
 
-### Accéder au conteneur
-
-```bash
-docker-compose exec api bash
-```
-
-### Vérifier la santé
-
-```bash
-# API
-curl http://localhost:8007/docs
-
-# Frontend
-curl http://localhost:3009
-
-# Solr
-curl http://localhost:8983/solr/openedition/admin/ping
-```
-
-### Redémarrer un service
-
-```bash
-docker-compose restart api
-```
-
-## 🔒 Sécurité (Production)
-
-### HTTPS avec Let's Encrypt
-
-Ajoutez à `docker-compose.prod.yml` :
-
-```yaml
-nginx:
-  volumes:
-    - ./certs:/etc/nginx/certs:ro
-    - ./certbot/www:/var/www/certbot:ro
-```
-
-### Rate Limiting
-
-Configuré dans `nginx/nginx.conf` :
-
-```nginx
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-```
-
-## 📊 Performance
-
-### Scaler l'API
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale api=3
-```
-
-### Optimiser Solr
-
-Modifiez dans `docker-compose.yml` :
-
-```yaml
-environment:
-  - SOLR_HEAP=2g  # Augmenter la mémoire
-```
-
-## 🔄 Mise à jour
-
-```bash
-# 1. Sauvegarder les données
-docker-compose exec solr solr-backup
-
-# 2. Arrêter les services
-docker-compose down
-
-# 3. Mettre à jour le code
-git pull
-
-# 4. Rebuilder et redémarrer
-make prod-build
-```
-
-## ❓ Résolution de problèmes
+## Résolution de problèmes
 
 ### Le frontend ne peut pas contacter l'API
 
-Vérifiez que `REACT_APP_API_URL` pointe vers la bonne URL.
-
-### Solr ne démarre pas
-
-```bash
-# Vérifier les logs
-docker-compose logs solr
-
-# Nettoyer et redémarrer
-docker-compose down -v
-docker-compose up solr
-```
+Vérifier que `front/.env` contient `NEXT_PUBLIC_API_URL=http://localhost:8003`.
+Ce fichier est généré par `make sync-env` / `make dev`. En cas d'absence, relancer `make dev`.
 
 ### L'API retourne une erreur 503
 
-Vérifiez que Solr est accessible :
+Vérifier la connectivité vers le Solr distant :
 
 ```bash
-docker-compose exec api curl http://solr:8983/solr/openedition/admin/ping
+curl https://solrslave-sec.labocleo.org/solr/documents/admin/ping
 ```
 
-## 📚 Ressources
+### Port déjà utilisé
 
-- [Documentation Docker Compose](https://docs.docker.com/compose/)
-- [Documentation Solr](https://solr.apache.org/guide/)
-- [Documentation FastAPI](https://fastapi.tiangolo.com/)
-- [Documentation React](https://react.dev/)
+```bash
+# Voir quel processus utilise le port
+lsof -i :3003
+lsof -i :8003
+```
+
+## Production HTTPS
+
+Pour activer HTTPS, décommenter dans `docker-compose.prod.yml` :
+
+```yaml
+# volumes:
+#   - ./certs:/etc/nginx/certs:ro
+```
+
+Et fournir les certificats dans `./certs/`.
