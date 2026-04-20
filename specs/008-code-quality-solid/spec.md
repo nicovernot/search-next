@@ -2,7 +2,9 @@
 
 **Feature Branch**: `feature/008-code-quality-solid` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré fonctionnellement — dette résiduelle planifiée dans `../PLANNING.md` (P0 sécurité, P1 contrats backend, P2 hooks front)
+**Status**: ✅ Livré fonctionnellement — corrections frontend principales appliquées.
+
+> **"Livré fonctionnellement"** signifie : les règles SOLID sont appliquées dans les nouveaux développements et les violations majeures sont corrigées. SC-002 (taille hooks) et SC-003 (any backend) ne sont pas entièrement atteints et sont suivis comme dette P0/P1/P2 dans `../PLANNING.md`. La spec reste ouverte comme garde qualité jusqu'à clôture complète de la dette.
 
 ## Overview
 
@@ -99,11 +101,7 @@ Pas de violation identifiée — pas d'héritage de classes dans le codebase Rea
 
 ### Règle 1 — Un hook = une responsabilité
 
-### Règle 6 — Documentation par l'Intention et le Résultat
-
-Tout nouveau bloc de logique complexe ou composant doit être introduit (en commentaire JSDoc ou dans la PR) par une explication suivant le schéma :
-- **Intention** : Ce que le code essaie d'accomplir (ex: "Synchroniser l'état local avec l'URL").
-- **Résultat** : L'effet concret attendu (ex: "L'URL est mise à jour avec les filtres encodés sans recharger la page").
+Chaque hook doit pouvoir être décrit en une seule phrase. Si la description contient "et", c'est un signal de découpage.
 
 ```
 ✅ usePermissions.ts  → uniquement : fetch /permissions, mapper la réponse, exposer l'état
@@ -150,6 +148,12 @@ function ValueEditor(props: ValueEditorProps) { ... }
 const data = await res.json() as any;
 ```
 
+### Règle 6 — Documentation par l'Intention et le Résultat
+
+Tout nouveau bloc de logique complexe ou composant doit être introduit (en commentaire JSDoc ou dans la PR) par une explication suivant le schéma :
+- **Intention** : Ce que le code essaie d'accomplir (ex: "Synchroniser l'état local avec l'URL").
+- **Résultat** : L'effet concret attendu (ex: "L'URL est mise à jour avec les filtres encodés sans recharger la page").
+
 ---
 
 ## Backlog de corrections (code existant)
@@ -178,14 +182,7 @@ const data = await res.json() as any;
 
 ### Checklist de revue de code
 
-Pour chaque PR touchant `front/app/` :
-
-- [ ] Le composant/hook modifié a une responsabilité unique (peut être décrite en une phrase)
-- [ ] Aucun appel `api.*` dans un composant de présentation
-- [ ] Aucun `any` introduit sans commentaire justificatif
-- [ ] Les nouvelles interfaces sont segmentées (pas de props inutilisées)
-- [ ] Les styles sont dans `globals.css` ou des classes Tailwind — pas de `<style>` inline dans les composants
-- [ ] Les tests existants passent
+> Checklist canonique dans [`../TECHNICAL_REQUIREMENTS.md` — section 4](../TECHNICAL_REQUIREMENTS.md#4-qualité-de-code).
 
 ---
 

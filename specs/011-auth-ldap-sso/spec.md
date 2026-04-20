@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/002-advanced-search-suite` (livré sur la branche principale)  
 **Created**: 2026-04-17  
-**Status**: ✅ Livré fonctionnellement — backend (ldap_service, oidc_service, endpoints, migration) + frontend (AuthModal, AuthContext, api.ts, i18n 6 langues). Dette P0 restante : le JWT SSO ne doit plus transiter en query string.
+**Status**: ✅ Livré — backend (ldap_service, oidc_service, endpoints, migration) + frontend (AuthModal, AuthContext, api.ts, i18n 6 langues). Transport JWT SSO sécurisé : code court hex32 via Redis, échangé par `/auth/sso/exchange`.
 
 ## Overview
 
@@ -46,7 +46,7 @@ En tant que nouvel utilisateur se connectant pour la première fois via LDAP ou 
 - Token SSO expiré ou invalide lors du callback → retour sur la page de login avec message d'erreur.
 - Conflit d'email : un utilisateur LDAP dont l'email existe déjà comme compte local → fusion des comptes ou refus configurable (paramètre `LDAP_EMAIL_CONFLICT_STRATEGY`).
 - Déconnexion SSO (Single Logout) → invalider le JWT local et rediriger vers l'IdP si le protocole le supporte.
-- Dette sécurité audit 2026-04-19 : le callback OIDC fonctionnel redirige actuellement vers le frontend avec `?auth_token=<JWT>`. Avant production, remplacer ce transport par un cookie `HttpOnly Secure SameSite=Lax` ou par un code court à usage unique échangé contre le JWT.
+- ✅ Transport JWT SSO sécurisé : le callback redirige avec `?sso_code=<hex32>` (TTL 60s, usage unique via Redis). Le frontend échange le code contre le JWT via `GET /auth/sso/exchange`. Le JWT ne transite plus jamais dans une URL.
 
 ---
 

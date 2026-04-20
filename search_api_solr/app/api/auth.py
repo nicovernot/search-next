@@ -1,4 +1,5 @@
 import logging
+import secrets
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -10,6 +11,8 @@ from app.db.session import get_db
 from app.models.auth_models import LdapLogin, Token, UserCreate, UserLogin, UserResponse
 from app.models.user import User
 from app.settings import settings
+
+SSO_CODE_TTL = 60  # secondes — le code court expire après 60 s
 
 log = logging.getLogger(__name__)
 
@@ -174,5 +177,55 @@ async def sso_callback(
     user = _provision_federated_user(db, email=user_info["email"], auth_provider="oidc")
     token = _issue_token(user)
 
-    redirect_url = f"{settings.frontend_url}?auth_token={token.access_token}"
+    # Stocker le JWT sous un code court à usage unique (60 s) — le JWT ne transite pas dans l'URL
+    code = secrets.token_hex(32)
+    try:
+        from app.services.cache_service import get_redis_client
+        r = get_redis_client()
+        if r:
+            r.setex(f"sso_code:{code}", SSO_CODE_TTL, token.access_token)
+        else:
+            # Fallback mémoire (dev sans Redis) — moins sûr mais fonctionnel
+            _sso_code_store[code] = token.access_token
+    except Exception:
+        log.exception("SSO code store failed — falling back to memory")
+        _sso_code_store[code] = token.access_token
+
+    redirect_url = f"{settings.frontend_url}?sso_code={code}"
     return RedirectResponse(redirect_url, status_code=302)
+
+
+# Fallback mémoire si Redis indisponible (dev uniquement)
+_sso_code_store: dict[str, str] = {}
+
+
+@router.get("/sso/exchange", response_model=Token)
+async def sso_exchange(code: str = Query(..., min_length=64, max_length=64)):
+    """
+    Échange un code court SSO contre un JWT.
+    Le code est à usage unique et expire après 60 secondes.
+    """
+    access_token: str | None = None
+
+    try:
+        from app.services.cache_service import get_redis_client
+        r = get_redis_client()
+        if r:
+            key = f"sso_code:{code}"
+            raw = r.get(key)
+            if raw:
+                access_token = raw.decode() if isinstance(raw, bytes) else raw
+                r.delete(key)
+    except Exception:
+        log.exception("SSO exchange Redis error — trying memory fallback")
+
+    if not access_token:
+        access_token = _sso_code_store.pop(code, None)
+
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="sso_code_invalid_or_expired",
+        )
+
+    return Token(access_token=access_token, token_type="bearer")

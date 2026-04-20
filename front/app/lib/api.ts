@@ -67,6 +67,10 @@ export const api = {
     return `${API_BASE_URL}/auth/sso/login`;
   },
 
+  ssoExchange(code: string): Promise<Response> {
+    return fetch(`${API_BASE_URL}/auth/sso/exchange?code=${encodeURIComponent(code)}`);
+  },
+
   // --- Saved searches ---
 
   getSavedSearches(token: string): Promise<Response> {

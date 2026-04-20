@@ -311,11 +311,11 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ### YAGNI-004 — `highlighting` retourné par le backend mais jamais consommé
 
-**Fichier** : `search_api_solr/app/services/search_service.py` ligne 87
+**Fichier** : `search_api_solr/app/services/search_service.py`
 
-**Problème** : `"highlighting": solr_data.get("highlighting", {})` est inclus dans la réponse de recherche mais le frontend ne l'utilise jamais (`SearchDoc` ne contient pas de champ highlighting, `ResultItem` n'affiche pas de texte surligné).
+**Problème** : `"highlighting": solr_data.get("highlighting", {})` était inclus dans la réponse de recherche mais le frontend ne l'utilise jamais. Les paramètres Solr `hl=true`, `hl.fl`, `hl.simple.pre/post` étaient aussi envoyés inutilement à chaque requête.
 
-**Décision** : Ne pas supprimer pour l'instant (utile pour une future spec), mais documenter explicitement que c'est une fondation pour une future feature de highlighting — sinon c'est du YAGNI silencieux.
+**Décision** : ✅ Supprimé — `highlight_params` retiré de `search_builder.py`, champ `highlighting` retiré de `search_service.py`, import `get_highlight_fields` retiré, test `test_highlighting_params_in_search` supprimé, tests `test_cache_service.py` mis à jour. Aucune spec de highlighting n'existe ; si la feature est un jour nécessaire, une spec sera créée à ce moment-là.
 
 ---
 
@@ -392,12 +392,4 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ### Checklist de revue de code (DRY/KISS/YAGNI)
 
-Pour chaque PR touchant `front/app/` :
-
-- [ ] Aucune constante définie dans plus d'un fichier
-- [ ] Aucune logique métier dupliquée entre composants (extraire dans un hook ou `lib/`)
-- [ ] Aucune couleur hex hardcodée — utiliser les tokens Tailwind du thème
-- [ ] Aucun code commenté laissé en place
-- [ ] Aucune interface TypeScript définie mais non utilisée
-- [ ] Aucun composant UI qui importe directement un contexte dont il n'a pas besoin
-- [ ] Aucune feature implémentée sans use-case concret documenté dans une spec
+> Checklist canonique dans [`../TECHNICAL_REQUIREMENTS.md` — section 4](../TECHNICAL_REQUIREMENTS.md#4-qualité-de-code).

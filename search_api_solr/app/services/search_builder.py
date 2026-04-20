@@ -13,7 +13,6 @@ from app.services.facet_config import (
 from app.services.field_config import (
     get_default_fields,
     get_default_search_field,
-    get_highlight_fields,
     get_qf_params,
 )
 from app.models.search_models import SearchRequest, QueryModel, PaginationModel, FilterModel, FacetModel
@@ -226,18 +225,11 @@ class SearchBuilder(ISearchBuilder):
 
         query_params["fq"] = fq_list
 
-        # 4. Ajouter les Facettes et le Highlighting
+        # 4. Ajouter les Facettes
         facet_params = self._build_facet_params(request, active_platform)
 
-        highlight_params = {
-            "hl": "true",  # Activation du highlighting
-            "hl.fl": ",".join(get_highlight_fields()),  # Champs à surligner
-            "hl.simple.pre": "<b>",
-            "hl.simple.post": "</b>",
-        }
-
         # Fusionner tous les paramètres
-        all_params = {**query_params, **facet_params, **highlight_params}
+        all_params = {**query_params, **facet_params}
 
         # Solr accepte des listes pour 'fq' et 'facet.field', urlencode gère ça
         return f"{self.solr_base_url}{SOLR_BASE_HANDLER}?{urlencode(all_params, doseq=True)}"

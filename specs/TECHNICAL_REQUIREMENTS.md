@@ -78,6 +78,24 @@ Références opérationnelles :
 - [`008-code-quality-solid/spec.md`](008-code-quality-solid/spec.md)
 - [`009-dry-kiss-yagni/spec.md`](009-dry-kiss-yagni/spec.md)
 
+### Checklist de revue de code (source canonique)
+
+À appliquer pour chaque PR touchant `front/app/` :
+
+- [ ] Le composant/hook modifié a une responsabilité unique (peut être décrite en une phrase)
+- [ ] Aucun appel `api.*` dans un composant de présentation
+- [ ] Aucun `any` introduit sans commentaire justificatif
+- [ ] Les nouvelles interfaces sont segmentées (pas de props inutilisées)
+- [ ] Les styles sont dans `globals.css` ou des classes Tailwind — pas de `<style>` inline dans les composants
+- [ ] Aucune constante définie dans plus d'un fichier
+- [ ] Aucune logique métier dupliquée entre composants (extraire dans un hook ou `lib/`)
+- [ ] Aucune couleur hex hardcodée — utiliser les tokens Tailwind du thème
+- [ ] Aucun code commenté laissé en place
+- [ ] Aucune interface TypeScript définie mais non utilisée
+- [ ] Aucun composant UI qui importe directement un contexte dont il n'a pas besoin
+- [ ] Aucune feature implémentée sans use-case concret documenté dans une spec
+- [ ] Les tests existants passent
+
 ---
 
 ## 5. Nommage et lisibilité

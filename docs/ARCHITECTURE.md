@@ -162,10 +162,14 @@ IdP callback → GET /auth/sso/callback?code=...&state=...
   → OidcService.exchange_code() : validation state + échange code → ID token
   → Validation JWKS (RS256/ES256), issuer, audience
   → _provision_federated_user() : upsert User(auth_provider='oidc')
-  → 302 → frontend/?auth_token=<JWT>  [dette P0 : remplacer par cookie HttpOnly ou code court]
+  → génère code court hex32 → Redis[sso_code:<code>] TTL 60s
+  → 302 → frontend/?sso_code=<code>  [JWT ne transite pas dans l'URL]
 
-Frontend AuthContext (useEffect) → detecte ?auth_token= → loginWithToken()
-  → supprime param de l'URL (replaceState) → session active
+Frontend AuthContext (useEffect) → détecte ?sso_code=
+  → supprime param de l'URL (replaceState) immédiatement
+  → GET /auth/sso/exchange?code=<code>
+  → backend valide + supprime le code (usage unique)
+  → retourne {access_token} en JSON → loginWithToken() → session active
 ```
 
 ---
@@ -211,7 +215,7 @@ La dette résiduelle ci-dessous est ordonnée dans `specs/PLANNING.md`. Les anci
 | Priorité | Problème | Impact | Plan |
 |---|---|---|---|
 | P0 | `DELETE /cache/clear` exposé sans garde production | Purge cache possible si route accessible | Protéger par auth admin ou désactiver hors dev/test |
-| P0 | JWT SSO transmis via query string | Risque d'exposition dans logs, historique, referer | Cookie `HttpOnly Secure SameSite=Lax` ou code court à usage unique |
+| ✅ | JWT SSO transmis via query string | Résolu : code court hex32 → Redis TTL 60s → échange `/auth/sso/exchange` | — |
 | P0 | Secrets par défaut acceptables si production mal configurée | Risque de déploiement avec secret faible | Validator `Settings` bloquant en production |
 | P1 | `/suggest` contient parsing/cache dans l'endpoint | Responsabilité endpoint/service mélangée | Déplacer dans `SuggestService` |
 | P1 | `SearchService`/`SearchBuilder` utilisent encore `Dict[str, Any]` | Contrats moins sûrs et duplication dict/Pydantic | Faire circuler `SearchRequest` typé |

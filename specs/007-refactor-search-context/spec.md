@@ -2,7 +2,9 @@
 
 **Feature Branch**: `feature/007-refactor-search-context` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré fonctionnellement — hooks SOLID extraits, assembleur `SearchContext` à 115 lignes. Dette P2 restante : seuils SC-002/SC-003 partiellement dépassés (`useSearchApi`, `useUrlSync`).
+**Status**: ✅ Livré fonctionnellement — hooks SOLID extraits, assembleur `SearchContext` à 115 lignes.
+
+> **"Livré fonctionnellement"** signifie : le comportement est livré et les tests E2E passent. Certains critères de taille (SC-002, SC-003) ne sont pas atteints et sont suivis comme dette P2 dans `../PLANNING.md`. Ils ne bloquent pas le fonctionnement mais doivent être traités avant de considérer la spec comme entièrement close.
 
 ## Overview
 

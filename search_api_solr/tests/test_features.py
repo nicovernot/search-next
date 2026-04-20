@@ -31,17 +31,6 @@ class TestSearchBuilderFeatures:
         assert "mlt=true" in url
         assert "mlt.fl=text_recherche" in url
     
-    def test_highlighting_params_in_search(self, builder):
-        """Test que le highlighting est activé dans la recherche"""
-        request = SearchRequest(
-            query=QueryModel(query="test"),
-            filters=[],
-            pagination={"from": 0, "size": 10},
-            facets=[]
-        )
-        url = builder.build_search_url(request)
-        assert "hl=true" in url
-        assert "hl.fl=titre%2Cresume" in url or "hl.fl=titre,resume" in url
 
 class TestSuggestEndpoint:
     """Tests d'intégration pour l'endpoint /suggest"""

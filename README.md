@@ -95,20 +95,19 @@ make sync-env ENV=test
 
 ## État fonctionnel
 
-Implémenté côté produit:
+Implémenté côté produit :
 
 - Recherche simple avec facettes et pagination
 - Recherche avancée avec constructeur logique
 - Autocomplétion
 - Authentification email / mot de passe
+- Authentification LDAP institutionnelle
+- Authentification SSO OIDC (durcissement transport JWT à faire avant prod — voir P0 dans `specs/PLANNING.md`)
 - Recherches sauvegardées
+- Badges d'accès sur les résultats (permissions)
+- Synchronisation état ↔ URL (liens partageables, back/forward)
 - i18n `fr`, `en`, `es`, `de`, `it`, `pt`
 - UI premium avec thème clair / sombre
-
-Backlog encore ouvert:
-
-- `004-url-sync`: synchronisation état de recherche <-> URL
-- `005-permissions`: badges d'accès sur les résultats
 
 ## Notes de cohérence
 
@@ -117,11 +116,20 @@ Backlog encore ouvert:
 
 ## Specs
 
-- Vue d'ensemble: [specs/README.md](./specs/README.md)
-- Exigences techniques: [specs/TECHNICAL_REQUIREMENTS.md](./specs/TECHNICAL_REQUIREMENTS.md)
-- Planning global: [specs/PLANNING.md](./specs/PLANNING.md)
-- Recherche coeur: [specs/001-search-core/spec.md](./specs/001-search-core/spec.md)
-- Recherche avancée: [specs/002-advanced-search-suite/spec.md](./specs/002-advanced-search-suite/spec.md)
-- Refonte UI: [specs/003-ux-ui-premium-overhaul/spec.md](./specs/003-ux-ui-premium-overhaul/spec.md)
-- Backlog URL sync: [specs/004-url-sync/spec.md](./specs/004-url-sync/spec.md)
-- Backlog permissions: [specs/005-permissions/spec.md](./specs/005-permissions/spec.md)
+- Vue d'ensemble : [specs/README.md](./specs/README.md)
+- Exigences techniques : [specs/TECHNICAL_REQUIREMENTS.md](./specs/TECHNICAL_REQUIREMENTS.md)
+- Planning global et dette : [specs/PLANNING.md](./specs/PLANNING.md)
+
+| Spec | Titre | État |
+|------|-------|------|
+| [001](./specs/001-search-core/spec.md) | Recherche core — facettes, pagination, i18n | ✅ Livré |
+| [002](./specs/002-advanced-search-suite/spec.md) | Recherche avancée — QB, auth, recherches sauvegardées | ✅ Livré |
+| [003](./specs/003-ux-ui-premium-overhaul/spec.md) | UX/UI premium — dark mode, glassmorphism | ✅ Livré |
+| [004](./specs/004-url-sync/spec.md) | URL sync — liens partageables, back/forward | ✅ Livré |
+| [005](./specs/005-permissions/spec.md) | Permissions — badges d'accès sur les résultats | ✅ Livré |
+| [006](./specs/006-tech-debt/spec.md) | Tech debt — fondations techniques | ✅ Livré |
+| [007](./specs/007-refactor-search-context/spec.md) | Refactor SearchContext — hooks SOLID | ✅ Livré fonctionnellement |
+| [008](./specs/008-code-quality-solid/spec.md) | Code quality SOLID | ✅ Livré fonctionnellement |
+| [009](./specs/009-dry-kiss-yagni/spec.md) | DRY/KISS/YAGNI | ✅ Livré fonctionnellement |
+| [010](./specs/010-naming-intention-result/spec.md) | Naming intention→résultat | ✅ Livré |
+| [011](./specs/011-auth-ldap-sso/spec.md) | Auth LDAP/SSO institutionnel | ✅ Livré fonctionnellement |

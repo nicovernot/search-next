@@ -14,7 +14,7 @@ Les fonctionnalités principales sont livrées, mais l'audit code/specs du 2026-
 | Ordre | Sujet | Action | Fichiers principaux | Critère de sortie |
 |---|---|---|---|---|
 | 1 | Endpoint cache non protégé | Protéger `DELETE /cache/clear` par auth admin ou le désactiver hors dev/test | `search_api_solr/app/main.py` | Impossible de vider le cache en production sans autorisation explicite |
-| 2 | JWT SSO dans l'URL | Remplacer `?auth_token=<JWT>` par cookie `HttpOnly Secure SameSite=Lax` ou code court à usage unique | `search_api_solr/app/api/auth.py`, `front/app/context/AuthContext.tsx` | Aucun JWT long terme ne transite dans query string |
+| ✅ | JWT SSO dans l'URL | Code court hex32 → Redis TTL 60s → `/auth/sso/exchange` — JWT ne transite plus en query string | `search_api_solr/app/api/auth.py`, `front/app/context/AuthContext.tsx` | ✅ Aucun JWT ne transite dans query string |
 | 3 | Secrets prod | Refuser le démarrage en production avec secrets par défaut ou configuration fédérée incomplète | `search_api_solr/app/settings.py`, `search_api_solr/app/core/env_validation.py` | `ENVIRONMENT=production` échoue si `SECRET_KEY`, LDAP ou SSO sont mal configurés |
 | 4 | Configuration front sensible | Vérifier que `front/.env` ne contient aucun secret serveur et que seules les variables `NEXT_PUBLIC_*` nécessaires y sont exposées | `front/.env`, `front/.env.example` | Aucun secret serveur côté frontend |
 

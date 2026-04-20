@@ -62,18 +62,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Handle SSO callback: detect ?auth_token= or ?sso_error= in URL
+  // Handle SSO callback: detect ?sso_code= (one-time exchange) or ?sso_error= in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const authToken = params.get("auth_token");
+    const ssoCode = params.get("sso_code");
     const ssoError = params.get("sso_error");
 
-    if (authToken) {
-      loginWithToken(authToken);
-      // Remove token from URL immediately (security + cleanliness)
+    if (ssoCode) {
+      // Remove code from URL immediately before async exchange
       const clean = new URL(window.location.href);
-      clean.searchParams.delete("auth_token");
+      clean.searchParams.delete("sso_code");
       window.history.replaceState({}, "", clean.toString());
+
+      api.ssoExchange(ssoCode)
+        .then((res) => {
+          if (!res.ok) throw new Error("sso_exchange_failed");
+          return res.json();
+        })
+        .then((data: { access_token: string }) => {
+          loginWithToken(data.access_token);
+        })
+        .catch(() => {
+          setError("sso_error");
+        });
     } else if (ssoError) {
       setError("sso_error");
       const clean = new URL(window.location.href);

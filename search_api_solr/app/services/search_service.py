@@ -90,7 +90,6 @@ class SearchService(ISearchService):
                 "results": solr_data.get("response", {}).get("docs", []),
                 "total": solr_data.get("response", {}).get("numFound", 0),
                 "facets": frontend_normalized_facets,
-                "highlighting": solr_data.get("highlighting", {})
             }
 
             # 5. Mettre en cache le résultat
