@@ -1,6 +1,8 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
+
 from app.db.base_class import Base
+
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)

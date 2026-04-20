@@ -2,29 +2,29 @@
 """
 Service de recherche - Encapsulation de la logique métier avec cache Redis
 """
-from app.services.interfaces import ISearchService, ISearchBuilder, ISolrClient
-from app.models.search_models import SearchRequest
-from typing import Dict, Any
-import logging
+from typing import Any
 
 from app.core.logging import get_logger
+from app.models.search_models import SearchRequest
+from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
+
 
 class SearchService(ISearchService):
     """Service de recherche implémentant ISearchService avec cache Redis"""
-    
+
     def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
         self.builder = builder
         self.solr_client = solr_client
         self.logger = get_logger(__name__)
-        
+
         # Reverse mapping: Solr field name -> frontend identifier
         from app.services.facet_config import COMMON_FACETS_MAPPING
         self._solr_to_identifier = {v: k for k, v in COMMON_FACETS_MAPPING.items()}
-    
+
     def _normalize_facets(self, raw_facets: dict) -> dict:
         """
         Normalise les facettes Solr brutes en format frontend.
-        
+
         Solr renvoie:  {"platformID": ["OJ", 206225, "OB", 173423, ...]}
         Frontend attend: {"platform": {"buckets": [{"key": "OJ", "doc_count": 206225}, ...]}}
         """
@@ -32,7 +32,7 @@ class SearchService(ISearchService):
         for solr_field, values in raw_facets.items():
             # Mapper le nom Solr vers l'identifiant frontend
             identifier = self._solr_to_identifier.get(solr_field, solr_field)
-            
+
             if isinstance(values, list):
                 # Convertir la liste alternée [key, count, key, count, ...] en buckets
                 buckets = []
@@ -46,122 +46,131 @@ class SearchService(ISearchService):
             elif isinstance(values, dict):
                 # Déjà au bon format (JSON Facet API)
                 normalized[identifier] = values
-        
+
         return normalized
-    
-    async def execute_cached_search(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Effectue une recherche complète avec cache"""
+
+    async def execute_cached_search(self, request: SearchRequest) -> dict[str, Any]:
+        """Effectue une recherche complète avec cache."""
+        from app.services.cache_service import cache_service
+
+        # Cache key uses the serialised request
+        request_dict = request.model_dump(by_alias=True)
+
+        cached_result = await cache_service.get_search_cache(request_dict)
+        if cached_result:
+            self.logger.debug(
+                "Returning cached search results",
+                extra={"context": {"query": request.query.query}},
+            )
+            return cached_result
+
+        search_url = self.builder.build_search_url(request)
+
+        self.logger.info(
+            "Starting search request",
+            extra={
+                "context": {
+                    "query": request.query.query,
+                    "filters": [f.identifier for f in request.filters],
+                    "pagination": request_dict.get("pagination"),
+                }
+            },
+        )
+
         try:
-            # Import local pour éviter les imports circulaires
-            from app.services.cache_service import cache_service
-
-            # 1. Vérifier le cache d'abord
-            cached_result = await cache_service.get_search_cache(request)
-            if cached_result:
-                self.logger.debug(
-                    "Returning cached search results",
-                    extra={"context": {"query": request.get("query")}}
-                )
-                return cached_result
-
-            # 2. Construire l'URL de recherche
-            search_url = self.builder.build_search_url(request)
-
-            # Logging structuré avec contexte
-            self.logger.info(
-                "Starting search request",
-                extra={
-                    "context": {
-                        "query": request.get("query"),
-                        "filters": [f["identifier"] for f in request.get("filters", [])],
-                        "pagination": request.get("pagination")
-                    }
-                }
-            )
-
-            # 3. Exécuter la recherche via le client Solr
             solr_data = await self.solr_client.search(search_url)
-
-            # 4. Normaliser le résultat pour le frontend
-            solr_raw_facets = solr_data.get("facet_counts", {}).get("facet_fields", {})
-            frontend_normalized_facets = self._normalize_facets(solr_raw_facets)
-
-            search_result = {
-                "results": solr_data.get("response", {}).get("docs", []),
-                "total": solr_data.get("response", {}).get("numFound", 0),
-                "facets": frontend_normalized_facets,
-            }
-
-            # 5. Mettre en cache le résultat
-            await cache_service.set_search_cache(request, search_result)
-
-            # Logging structuré des résultats
-            self.logger.info(
-                "Search completed successfully",
-                extra={
-                    "context": {
-                        "query": request.get("query"),
-                        "num_found": search_result.get("total"),
-                        "processing_time": solr_data.get('responseHeader', {}).get('QTime', 0)
-                    }
-                }
-            )
-
-            return search_result
-            
         except Exception as e:
-            # Logging structuré des erreurs
             self.logger.error(
                 "Search failed",
-                extra={
-                    "context": {
-                        "query": request.get("query"),
-                        "error": str(e),
-                        "error_type": type(e).__name__
-                    }
-                },
-                exc_info=True
+                extra={"context": {"query": request.query.query, "error": str(e)}},
+                exc_info=True,
             )
             raise
 
+        solr_raw_facets = solr_data.get("facet_counts", {}).get("facet_fields", {})
+        search_result: dict[str, Any] = {
+            "results": solr_data.get("response", {}).get("docs", []),
+            "total": solr_data.get("response", {}).get("numFound", 0),
+            "facets": self._normalize_facets(solr_raw_facets),
+        }
+
+        await cache_service.set_search_cache(request_dict, search_result)
+
+        self.logger.info(
+            "Search completed successfully",
+            extra={
+                "context": {
+                    "query": request.query.query,
+                    "num_found": search_result["total"],
+                    "processing_time": solr_data.get("responseHeader", {}).get("QTime", 0),
+                }
+            },
+        )
+
+        return search_result
+
 class SuggestService:
-    """Service de suggestion"""
-    
+    """Service d'autocomplétion : cache, appel Solr, parsing de la réponse."""
+
     def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
         self.builder = builder
         self.solr_client = solr_client
         self.logger = get_logger(__name__)
-    
-    async def fetch_autocomplete_suggestions(self, query: str) -> Dict[str, Any]:
-        """Effectue une suggestion"""
+
+    def _parse_solr_suggestions(self, solr_data: dict[str, Any], query: str) -> list:
+        """Extrait la liste de termes depuis la réponse Solr Suggester."""
         try:
-            # Construire l'URL de suggestion
-            suggest_url = self.builder.build_suggest_url(query)
-            self.logger.debug(f"Suggest URL: {suggest_url}")
+            suggest_block = solr_data.get("suggest", {}).get("default", {})
+            if query in suggest_block:
+                raw = suggest_block[query].get("suggestions", [])
+            elif suggest_block:
+                first_term = next(iter(suggest_block))
+                raw = suggest_block[first_term].get("suggestions", [])
+            else:
+                return []
+            return [s.get("term") for s in raw if s.get("term")]
+        except Exception as parse_error:
+            self.logger.error(f"Error parsing Solr suggest response: {parse_error}")
+            return []
 
-            # Exécuter la suggestion via le client Solr
-            autocomplete_result = await self.solr_client.search(suggest_url)
+    async def fetch_autocomplete_suggestions(self, query: str) -> dict[str, Any]:
+        """Retourne les suggestions d'autocomplétion avec cache Redis."""
+        from app.services.cache_service import cache_service
 
-            self.logger.info(f"Suggest completed for query: {query}")
-            return autocomplete_result
-            
+        cached = await cache_service.get_suggest_cache(query)
+        if cached:
+            self.logger.debug(f"Returning cached suggestions for query: {query}")
+            return cached
+
+        suggest_url = self.builder.build_suggest_url(query)
+        self.logger.debug(f"Suggest URL: {suggest_url}")
+
+        try:
+            solr_data = await self.solr_client.search(suggest_url)
         except Exception as e:
-            self.logger.error(f"Suggest failed: {e}")
-            # Retourner une réponse vide en cas d'erreur pour ne pas bloquer l'UI
-            return {"suggest": {"default": {query: {"numFound": 0, "suggestions": []}}}}
+            self.logger.error(f"Suggest Solr call failed: {e}")
+            return {"suggestions": []}
+
+        suggestions = self._parse_solr_suggestions(solr_data, query)
+        result: dict[str, Any] = {"suggestions": suggestions}
+
+        await cache_service.set_suggest_cache(query, result)
+        self.logger.info(f"Suggest completed for query: {query} ({len(suggestions)} results)")
+        return result
 
 class PermissionsService:
     """Service de permissions avec cache"""
-    
+
     def __init__(self, solr_client: ISolrClient):
         self.solr_client = solr_client
         self.logger = get_logger(__name__)
-    
-    async def get_document_permissions(self, urls: str, ip: str) -> Dict[str, Any]:
+
+    async def get_document_permissions(self, urls: str, ip: str) -> dict[str, Any]:
         """Récupère les permissions pour des documents avec cache"""
         try:
             from app.services.cache_service import cache_service
-            from app.services.docs_permissions_client import DocsPermissionsClient, SolrClient as PermSolrClient
+            from app.services.docs_permissions_client import DocsPermissionsClient
+            from app.services.docs_permissions_client import SolrClient as PermSolrClient
             from app.settings import SOLR_CONFIG
 
             # 1. Vérifier le cache d'abord

@@ -4,6 +4,7 @@
  */
 import { useCallback, useRef, useEffect } from "react";
 import { api } from "../lib/api";
+import { buildSearchPayload, hasActiveSearch } from "../lib/search-payload";
 import type { FullFacetConfig, SavedSearchData, SearchDoc } from "../types";
 import type { useSearchState } from "./useSearchState";
 
@@ -69,13 +70,7 @@ export function useSearchApi({
         locale: currentLocale,
       } = { ...latestRef.current, ...stateOverrides };
 
-      const hasFilters = Object.values(activeFilters).some((filterValues) => filterValues.length > 0);
-      const hasLogical =
-        currentSearchMode === "advanced" &&
-        logicalQueryRules &&
-        logicalQueryRules.rules?.length > 0;
-
-      if (!searchQuery && !hasFilters && !hasLogical) {
+      if (!hasActiveSearch(searchQuery, activeFilters, currentSearchMode, logicalQueryRules)) {
         setResults([]);
         setTotal(0);
         return;
@@ -86,22 +81,14 @@ export function useSearchApi({
       resetPermissions();
 
       try {
-        const formattedFilters = Object.entries(activeFilters).flatMap(([field, values]) =>
-          values.map((value) => ({ identifier: field, value }))
+        const body = buildSearchPayload(
+          searchQuery,
+          currentSearchMode,
+          logicalQueryRules,
+          activeFilters,
+          paginationConfig,
+          facetConfiguration,
         );
-
-        const body = {
-          query: { query: searchQuery || "*" },
-          logical_query: currentSearchMode === "advanced" ? logicalQueryRules : null,
-          filters: formattedFilters,
-          facets: facetConfiguration
-            ? Object.keys(facetConfiguration.common || {}).map((fk) => ({ identifier: fk, type: "list" }))
-            : [
-                { identifier: "platform", type: "list" },
-                { identifier: "type", type: "list" },
-              ],
-          pagination: { from: paginationConfig.from, size: paginationConfig.size },
-        };
 
         const searchHttpResponse = await api.search(body, currentLocale);
         if (!searchHttpResponse.ok) throw new Error(searchHttpResponse.statusText);
@@ -183,12 +170,7 @@ export function useSearchApi({
       skipEffectRef.current = false;
       return;
     }
-    const hasActive =
-      searchState.query ||
-      (searchState.searchMode === "advanced" &&
-        Array.isArray(searchState.logicalQuery?.rules) &&
-        searchState.logicalQuery.rules.length > 0);
-    if (!hasActive) return;
+    if (!hasActiveSearch(searchState.query, searchState.filters, searchState.searchMode, searchState.logicalQuery)) return;
     executeSearchWithOverrides();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchState.filters, searchState.pagination.from, searchState.pagination.size]);

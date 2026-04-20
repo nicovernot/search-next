@@ -1,11 +1,11 @@
 """
 Rate limiting data models and configuration structures.
 """
+import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Optional
+
 from pydantic import BaseModel, Field, field_validator
-import json
 
 
 @dataclass
@@ -33,7 +33,7 @@ class RateLimitResult:
     limit: int  # Maximum allowed requests
     remaining: int  # Remaining requests in window
     reset_at: datetime  # When the window resets
-    retry_after: Optional[int] = None  # Seconds to wait if blocked
+    retry_after: int | None = None  # Seconds to wait if blocked
 
     def __post_init__(self):
         """Validate rate limit result."""
@@ -51,18 +51,18 @@ class RateLimitConfig(BaseModel):
     default_requests: int = Field(default=100, description="Default requests per window")
     default_window: int = Field(default=60, description="Default window in seconds")
     burst_multiplier: float = Field(default=1.0, description="Burst multiplier")
-    
+
     # Endpoint-specific limits (JSON string that gets parsed)
-    endpoints: Dict[str, RateLimit] = Field(default_factory=dict, description="Endpoint-specific limits")
-    
+    endpoints: dict[str, RateLimit] = Field(default_factory=dict, description="Endpoint-specific limits")
+
     # Client type configuration
     authenticated_multiplier: float = Field(default=2.0, description="Multiplier for authenticated clients")
     ip_whitelist: list[str] = Field(default_factory=list, description="IP addresses to whitelist")
-    
+
     # Backend configuration
     backend: str = Field(default="redis", description="Backend type (redis or memory)")
     redis_key_prefix: str = Field(default="rate_limit:", description="Redis key prefix")
-    
+
     # Monitoring configuration
     log_violations: bool = Field(default=True, description="Log rate limit violations")
     metrics_enabled: bool = Field(default=True, description="Enable metrics collection")
@@ -92,44 +92,44 @@ class RateLimitConfig(BaseModel):
         return v
 
     @classmethod
-    def parse_endpoints_from_json(cls, endpoints_json: str) -> Dict[str, RateLimit]:
+    def parse_endpoints_from_json(cls, endpoints_json: str) -> dict[str, RateLimit]:
         """Parse endpoint configuration from JSON string."""
         if not endpoints_json.strip():
             return {}
-        
+
         try:
             data = json.loads(endpoints_json)
             endpoints = {}
-            
+
             for endpoint, config in data.items():
                 if not isinstance(config, dict):
                     raise ValueError(f"Invalid config for endpoint {endpoint}")
-                
+
                 requests = config.get('requests')
                 window = config.get('window')
                 burst_multiplier = config.get('burst_multiplier', 1.0)
-                
+
                 if requests is None or window is None:
                     raise ValueError(f"Missing requests or window for endpoint {endpoint}")
-                
+
                 endpoints[endpoint] = RateLimit(
                     requests=int(requests),
                     window_seconds=int(window),
                     burst_multiplier=float(burst_multiplier)
                 )
-            
+
             return endpoints
-            
+
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in endpoints configuration: {e}")
+            raise ValueError(f"Invalid JSON in endpoints configuration: {e}") from e
         except (ValueError, TypeError) as e:
-            raise ValueError(f"Invalid endpoint configuration: {e}")
+            raise ValueError(f"Invalid endpoint configuration: {e}") from e
 
     def get_rate_limit_for_endpoint(self, endpoint: str) -> RateLimit:
         """Get rate limit configuration for a specific endpoint."""
         if endpoint in self.endpoints:
             return self.endpoints[endpoint]
-        
+
         # Return default configuration
         return RateLimit(
             requests=self.default_requests,
@@ -140,7 +140,7 @@ class RateLimitConfig(BaseModel):
     def get_rate_limit_for_client(self, endpoint: str, is_authenticated: bool = False) -> RateLimit:
         """Get rate limit configuration for a client type."""
         base_limit = self.get_rate_limit_for_endpoint(endpoint)
-        
+
         if is_authenticated:
             # Apply authenticated multiplier
             return RateLimit(
@@ -148,7 +148,7 @@ class RateLimitConfig(BaseModel):
                 window_seconds=base_limit.window_seconds,
                 burst_multiplier=base_limit.burst_multiplier
             )
-        
+
         return base_limit
 
     def is_ip_whitelisted(self, ip: str) -> bool:

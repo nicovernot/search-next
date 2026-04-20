@@ -1,12 +1,19 @@
 # app/services/docs_permissions_client.py
-import re
-from typing import List, Dict, Any, Optional
 import logging
-from urllib.parse import urlencode, quote_plus
-import httpx # Librairie pour les requêtes HTTP asynchrones
+import re
+from typing import Any
+from urllib.parse import quote_plus, urlencode
 
-from app.settings import SOLR_CONFIG, FQ_IDS_ARE, FQ_SUBSCRIBERS_IS, FQ_TYPE_IS, SOLR_QUERY, settings
-from app.models import DocsPermissionsResponse, Organization # Importez vos modèles Pydantic
+import httpx  # Librairie pour les requêtes HTTP asynchrones
+
+from app.models import DocsPermissionsResponse, Organization  # Importez vos modèles Pydantic
+from app.settings import (
+    FQ_IDS_ARE,
+    FQ_SUBSCRIBERS_IS,
+    FQ_TYPE_IS,
+    SOLR_QUERY,
+    settings,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,11 +22,11 @@ class SolrClient:
     """ Simulation d'un client Solr pour l'interface """
     def __init__(self, base_url: str):
         self.base_url = base_url
-    
-    async def execute_solr_query(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+
+    async def execute_solr_query(self, params: dict[str, Any]) -> dict[str, Any] | None:
         url = f"{self.base_url}/select?{urlencode(params, doseq=True)}"
         logger.info(f"Requête Solr exécutée: {url}")
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(url, timeout=10.0)
@@ -34,47 +41,47 @@ class SolrClient:
 
 
 class DocsPermissionsClient:
-    
+
     RESPONSE_DEFAULT = {
         'data': {'organization': None, 'docs': None},
         'info': {},
     }
-    
-    def __init__(self, solr_client: SolrClient, settings: Dict[str, Any]):
+
+    def __init__(self, solr_client: SolrClient, settings: dict[str, Any]):
         self.settings = settings
         self.solr_client = solr_client
-    
+
     def _escape_url_chars(self, value: str) -> str:
         """ Échappe les caractères spéciaux pour un filtre Solr """
         return re.sub(r'([+\-!(){}\[\]^"~*?:\\/|&])', r'\\\1', value)
 
-    def _build_subscribers_filter_query(self, organization_shortname: Optional[str]) -> str:
+    def _build_subscribers_filter_query(self, organization_shortname: str | None) -> str:
         """ Construit le filtre fq pour les abonnés et les types sans abonnement """
-        
+
         types_needing_parents = self.settings.get('types_needing_parents', [])
-        
+
         if not organization_shortname:
             logger.info("Organization shortname is empty, using only type filter")
             return FQ_TYPE_IS % (' OR '.join(types_needing_parents))
-            
+
         where_subscribers_field_exists = FQ_SUBSCRIBERS_IS % organization_shortname
         where_subscribers_fields_is_missing = FQ_TYPE_IS % (' OR '.join(types_needing_parents))
-        
+
         return f"{where_subscribers_field_exists} OR {where_subscribers_fields_is_missing}"
 
-    def _create_solr_params(self, docs_urls: List[str], organization_shortname: Optional[str], fields: Optional[List[str]] = None) -> Dict[str, Any]:
+    def _create_solr_params(self, docs_urls: list[str], organization_shortname: str | None, fields: list[str] | None = None) -> dict[str, Any]:
         """ Construit le dictionnaire de paramètres Solr """
-        
+
         # 1. Échapper les URLs et construire le FQ_IDS_ARE
         escaped_urls = [self._escape_url_chars(url) for url in docs_urls]
         fq_ids = FQ_IDS_ARE % (' OR '.join(escaped_urls))
-        
+
         # 2. Construire le FQ d'abonnement
         fq_subscribers = self._build_subscribers_filter_query(organization_shortname)
 
         # 3. Champs à retourner (fl)
         fl_fields = fields if fields else self.settings.get('fl', [])
-        
+
         params = {
             'q': SOLR_QUERY,
             'fq': [fq_ids, fq_subscribers],
@@ -84,9 +91,9 @@ class DocsPermissionsClient:
         }
         return params
 
-    def _extract_accessible_docs(self, response_docs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _extract_accessible_docs(self, response_docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """ Extrait les URLs et l'ID parent des documents de la réponse Solr """
-        
+
         accessible_docs = []
         for doc in response_docs:
             accessible_docs.append({
@@ -96,7 +103,7 @@ class DocsPermissionsClient:
         return accessible_docs
 
     @staticmethod
-    def _formats_for_url(url: str, has_facsimile: bool) -> List[str]:
+    def _formats_for_url(url: str, has_facsimile: bool) -> list[str]:
         """Dérive les formats disponibles selon la plateforme OpenEdition et la présence d'un PDF."""
         if 'journals.openedition.org' in url:
             # Revues : html + epub + pdf (accès institutionnel standard)
@@ -106,7 +113,7 @@ class DocsPermissionsClient:
         # hypotheses.org, calenda.org, etc.
         return ['html']
 
-    async def _fetch_doc_formats(self, docs_urls: List[str]) -> Dict[str, List[str]]:
+    async def _fetch_doc_formats(self, docs_urls: list[str]) -> dict[str, list[str]]:
         """Dérive les formats disponibles par doc depuis Solr (files_facsimile) + type de plateforme."""
         escaped_urls = [self._escape_url_chars(url) for url in docs_urls]
         fq = FQ_IDS_ARE % (' OR '.join(escaped_urls))
@@ -114,7 +121,7 @@ class DocsPermissionsClient:
         solr_response = await self.solr_client.execute_solr_query(params)
 
         # Index Solr results by URL
-        solr_by_url: Dict[str, bool] = {}
+        solr_by_url: dict[str, bool] = {}
         if solr_response and solr_response.get('responseHeader', {}).get('status') == 0:
             for doc in solr_response['response']['docs']:
                 url = doc.get('url')
@@ -126,12 +133,12 @@ class DocsPermissionsClient:
             for url in docs_urls
         }
 
-    async def _fetch_accessible_documents(self, organization: Organization, docs_urls: List[str]) -> List[Dict[str, Any]]:
+    async def _fetch_accessible_documents(self, organization: Organization, docs_urls: list[str]) -> list[dict[str, Any]]:
         """ Récupère les documents accessibles à l'organisation depuis Solr """
-        
+
         params = self._create_solr_params(docs_urls, organization.shortname)
         solr_response = await self.solr_client.execute_solr_query(params)
-        
+
         if not solr_response or solr_response['responseHeader']['status'] != 0:
             logger.error("Échec de la requête Solr initiale")
             return []
@@ -139,13 +146,13 @@ class DocsPermissionsClient:
         response_docs = solr_response['response']['docs']
         return self._extract_accessible_docs(response_docs)
 
-    def _format_response_docs(self, docs_urls: List[str], authorized_docs: Any, organization: Optional[Organization]) -> List[Dict[str, Any]]:
+    def _format_response_docs(self, docs_urls: list[str], authorized_docs: Any, organization: Organization | None) -> list[dict[str, Any]]:
         """ Formate la réponse finale pour chaque URL demandée.
         authorized_docs peut être une liste de dicts {url,…} ou directement une liste d'URLs (str). """
 
         authorized_urls = [d if isinstance(d, str) else d['url'] for d in authorized_docs]
         formatted_docs = []
-        
+
         org_formats = (organization.formats or []) if organization else []
 
         for url in docs_urls:
@@ -163,34 +170,34 @@ class DocsPermissionsClient:
             })
         return formatted_docs
 
-    def _fill_up_response(self, organization: Optional[Organization] = None, docs: Optional[List[Dict[str, Any]]] = None, info: Optional[Dict[str, Any]] = None) -> DocsPermissionsResponse:
+    def _fill_up_response(self, organization: Organization | None = None, docs: list[dict[str, Any]] | None = None, info: dict[str, Any] | None = None) -> DocsPermissionsResponse:
         """ Construit l'objet de réponse final """
-        
+
         response = self.RESPONSE_DEFAULT.copy()
         response['data']['organization'] = organization.dict() if organization else None
         response['data']['docs'] = docs
         if info:
             response['info'] = info
-        
+
         return DocsPermissionsResponse(**response)
 
-    async def _check_if_documents_have_parents(self, docs_urls: List[str], organization: Organization) -> Dict[str, Any]:
+    async def _check_if_documents_have_parents(self, docs_urls: list[str], organization: Organization) -> dict[str, Any]:
         """ Vérifie si les documents demandés ont des parents et retourne l'info du premier parent trouvé """
-        
+
         try:
             # On ne récupère que les champs nécessaires pour la vérification des parents
             fields = ['url', 'idparent', 'container_url']
             params = self._create_solr_params(docs_urls, organization.shortname, fields=fields)
-            
+
             logger.info(f"Recherche de parents pour URLs: {docs_urls}")
             solr_response = await self.solr_client.execute_solr_query(params)
-            
+
             if not solr_response or solr_response['responseHeader']['status'] != 0:
                 logger.error("Échec de la vérification des parents")
                 return {'parentId': None, 'parentUrl': None}
-            
+
             response_docs = solr_response['response']['docs']
-            
+
             for doc in response_docs:
                 if doc.get('idparent'):
                     return {
@@ -198,35 +205,35 @@ class DocsPermissionsClient:
                         'parentUrl': doc.get('container_url'),
                         'childUrl': doc.get('url')
                     }
-            
+
             return {'parentId': None, 'parentUrl': None}
-            
+
         except Exception as e:
             logger.error(f"Erreur lors de la vérification des parents: {e}")
             return {'parentId': None, 'parentUrl': None}
 
-    async def _get_organization(self, remote_ip: str, docs_urls: List[str]) -> Optional[Organization]:
+    async def _get_organization(self, remote_ip: str, docs_urls: list[str]) -> Organization | None:
         """ Appel l'API d'authentification pour obtenir les infos de l'organisation """
-        
+
         # L'API auth identifie l'organisation par l'IP — une seule URL suffit comme contexte.
         # Passer plusieurs URLs (comma-join) supprime le champ `formats` de la réponse.
         first_url = quote_plus(docs_urls[0])
         url = f"{settings.auth_api_url}?ip={remote_ip}&url={first_url}"
         logger.info(f"Calling auth URL: {url}")
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 # Utiliser follow_redirects=True pour gérer les codes 302
                 response = await client.get(url, follow_redirects=True, timeout=10.0)
-                
+
                 # Le code PHP acceptait 200 et 302, httpx gère ça via follow_redirects
                 if response.status_code not in [200]:
                     logger.error(f"Auth API returned non-success HTTP code: {response.status_code}")
                     return None
-                    
+
                 user_data = response.json()
                 logger.info(f"Parsed user data: {user_data}")
-                
+
                 # Si pas de username (shortname), on considère qu'il n'y a pas d'organisation (ex: freemium/anonyme)
                 if not user_data.get('username'):
                     logger.info("No username found in auth response, returning None")
@@ -244,7 +251,7 @@ class DocsPermissionsClient:
                     ),
                 }
                 return Organization(**organization_data)
-                
+
             except Exception as e:
                 logger.error(f"Failed to get organization from auth API: {e}")
                 return None
@@ -252,14 +259,14 @@ class DocsPermissionsClient:
 
     async def handle_query(self, urls_str: str, remote_ip: str) -> DocsPermissionsResponse:
         """ Point d'entrée principal de la logique """
-        
+
         logger.info(f"URLs received: {urls_str or 'null'}")
         logger.info(f"Remote IP: {remote_ip or 'null'}")
-        
+
         if not remote_ip:
             logger.error("No remote IP, returning empty response")
             return self._fill_up_response()
-            
+
         docs_urls = [url.strip() for url in urls_str.split(',') if url.strip()]
         if not docs_urls:
              logger.error("No URLs parsed, returning empty response")
@@ -309,17 +316,17 @@ class DocsPermissionsClient:
 
         return await self._fetch_permissions(effective_organization, docs_urls)
 
-    async def _fetch_permissions(self, organization: Organization, docs_urls: List[str]) -> DocsPermissionsResponse:
+    async def _fetch_permissions(self, organization: Organization, docs_urls: list[str]) -> DocsPermissionsResponse:
         """ Récupère les documents accessibles et formate la réponse """
-        
+
         documents_accessibles = await self._fetch_accessible_documents(organization, docs_urls)
 
         if not documents_accessibles:
             logger.error("Aucun document accessible trouvé")
             formatted_docs = self._format_response_docs(docs_urls, [], organization)
             return self._fill_up_response(organization, formatted_docs)
-        
+
         # Construire la réponse finale
         formatted_docs = self._format_response_docs(docs_urls, documents_accessibles, organization)
-        
+
         return self._fill_up_response(organization, formatted_docs)

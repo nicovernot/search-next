@@ -196,7 +196,7 @@ Les principes DRY, KISS et YAGNI sont couverts dans la spec `009-dry-kiss-yagni`
 
 | Outil | Usage | Config |
 |---|---|---|
-| ESLint `@typescript-eslint/no-explicit-any` | Bloquer les `any` | `"error"` dans `.eslintrc` |
-| ESLint `react-hooks/exhaustive-deps` | Détecter les stale closures | `"warn"` |
-| `madge` | Visualiser les dépendances circulaires entre hooks | `npx madge --circular front/app/hooks/` |
-| Playwright | Vérifier les régressions après refactorisation | `npm run test:e2e` |
+| ESLint `@typescript-eslint/no-explicit-any` | Bloquer les `any` | Inclus via `eslint-config-next/typescript` — à passer en `"error"` dans `eslint.config.js` pour enforcement strict |
+| ESLint `react-hooks/exhaustive-deps` | Détecter les stale closures | Actif en `warn` via `eslint-config-next` (pas de config supplémentaire nécessaire) |
+| `madge` | Visualiser les dépendances circulaires entre hooks | `npx madge --circular front/app/hooks/` (non installé — via npx) |
+| Playwright | Vérifier les régressions après refactorisation | `pnpm run test:e2e` |

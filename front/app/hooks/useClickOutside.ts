@@ -15,7 +15,7 @@ export function useClickOutside(
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
       if (!target.isConnected) return;
-      if (refs.some((r) => r.current?.contains(target))) return;
+      if (refs.some((ref) => ref.current?.contains(target))) return;
       onClose();
     };
     // setTimeout(0) : évite de capturer le clic d'ouverture dans le même tick d'event loop

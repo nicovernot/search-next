@@ -23,8 +23,8 @@ export default function FacetGroup({ label, field, buckets, activeFilters, onFil
 
   const filteredBuckets = useMemo(() => {
     if (!searchTerm) return buckets;
-    return buckets.filter(b => 
-      b.key.toLowerCase().includes(searchTerm.toLowerCase())
+    return buckets.filter(bucket =>
+      bucket.key.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [buckets, searchTerm]);
 

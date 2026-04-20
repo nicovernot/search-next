@@ -44,15 +44,15 @@ export default function Facets() {
 
       {activeFilters.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6 p-3 bg-secondary/50 rounded-2xl border border-border shadow-inner">
-          {activeFilters.map((f, i) => (
+          {activeFilters.map((activeFilter, i) => (
             <span
               key={i}
               data-testid="active-filter-chip"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-highlight/30 text-highlight text-xs font-bold shadow-sm animate-fade-in hover:scale-105 transition-transform"
             >
-              {f.value}
-              <button 
-                onClick={() => handleChange(f.identifier, f.value, false)} 
+              {activeFilter.value}
+              <button
+                onClick={() => handleChange(activeFilter.identifier, activeFilter.value, false)}
                 className="hover:scale-125 transition-transform font-bold ml-1 text-muted-foreground hover:text-destructive"
               >
                 ×

@@ -43,7 +43,7 @@ export function useSavedSearches(token: string | null) {
         }
         return true;
       } else {
-        const apiErrorMessage = await saveResponse.json().then((d: { detail?: string }) => d.detail).catch(() => null);
+        const apiErrorMessage = await saveResponse.json().then((body: { detail?: string }) => body.detail).catch(() => null);
         setSaveError(apiErrorMessage || `Erreur ${saveResponse.status}`);
         return false;
       }

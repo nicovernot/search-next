@@ -22,7 +22,7 @@ Les specs `008`, `009` et `010` appliquent ces règles à la dette existante :
 | Routing/i18n | `next-intl` avec routes localisées (`/[locale]`) |
 | Recherche avancée | `react-querybuilder` pour le QueryBuilder |
 | Backend | FastAPI, Pydantic v2, SQLAlchemy |
-| Auth | JWT HS256, mots de passe hashés avec bcrypt |
+| Auth | JWT HS256, bcrypt (local), LDAP3 (institutionnel), OIDC/OAuth2 (SSO fédéré) |
 | Données | PostgreSQL pour users/recherches sauvegardées |
 | Cache | Redis pour cache search/suggest/permissions |
 | Search | Apache Solr distant |
@@ -135,7 +135,7 @@ Référence opérationnelle : [`010-naming-intention-result/spec.md`](010-naming
 - Les tokens JWT doivent respecter la durée configurée par environnement.
 - Les routes protégées doivent vérifier le token côté backend.
 - Le frontend ne doit pas exposer de secret serveur.
-- Les tokens JWT longue durée ne doivent pas transiter en query string ; utiliser un cookie `HttpOnly Secure SameSite=Lax` ou un code court à usage unique pour les callbacks SSO.
+- Les tokens JWT longue durée ne doivent pas transiter en query string. Le callback SSO utilise un code court hex32 à usage unique (Redis TTL 60s), échangé par `GET /auth/sso/exchange`.
 - Les erreurs d'auth doivent être traduites côté UI avec des codes stables.
 - Les routes proxy Next.js ne doivent relayer que les headers nécessaires.
 - Les endpoints sensibles doivent conserver les limites de taux existantes ou en définir une nouvelle si nécessaire.
@@ -147,7 +147,7 @@ Référence opérationnelle : [`010-naming-intention-result/spec.md`](010-naming
 - Les langues supportées sont `fr`, `en`, `es`, `de`, `it`, `pt`.
 - Toute nouvelle chaîne visible doit être ajoutée dans les 6 fichiers de messages.
 - Les erreurs utilisateur doivent être traduites.
-- Le changement de locale doit conserver l'état utilisateur quand la feature le requiert, notamment pour la future spec `004-url-sync`.
+- Le changement de locale doit conserver l'état utilisateur quand la feature le requiert (implémenté dans `004-url-sync`).
 
 ---
 
@@ -166,15 +166,17 @@ Frontend :
 
 ```bash
 cd front
-npm run lint
-npm run test:e2e
+pnpm run lint       # ESLint via eslint-config-next (id-length, react-hooks, typescript)
+pnpm run test:e2e   # Playwright
 ```
 
 Backend :
 
 ```bash
 cd search_api_solr
-pytest
+pytest              # Tests unitaires et d'intégration
+ruff check .        # Linter (pycodestyle, pyflakes, bugbear, bandit, annotations)
+ruff check . --fix  # Auto-correction des violations simples
 ```
 
 Projet :

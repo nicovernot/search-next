@@ -2,18 +2,15 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
 # Ajout du répertoire courant au path pour permettre les imports de l'application
 sys.path.append(os.getcwd())
 
-from app.settings import settings
 from app.db.base_class import Base
-from app.models.user import User
-from app.models.saved_search import SavedSearch
+from app.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

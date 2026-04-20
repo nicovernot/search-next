@@ -6,11 +6,10 @@ credentials to verify the password. Only LDAPS (port 636) or StartTLS are permit
 """
 
 import logging
-from typing import Optional
-
-from ldap3 import Connection, Server, Tls, SUBTREE, AUTO_BIND_NO_TLS, ALL_ATTRIBUTES
-from ldap3.core.exceptions import LDAPException
 import ssl
+
+from ldap3 import AUTO_BIND_NO_TLS, SUBTREE, Connection, Server, Tls
+from ldap3.core.exceptions import LDAPException
 
 from app.settings import settings
 
@@ -22,7 +21,7 @@ def _make_server() -> Server:
     return Server(settings.ldap_url, use_ssl=True, tls=tls, get_info=None)
 
 
-def _search_user(conn: Connection, username: str) -> Optional[dict]:
+def _search_user(conn: Connection, username: str) -> dict | None:
     """Returns first matching entry as dict, or None."""
     search_filter = settings.ldap_user_filter.format(username=username)
     conn.search(
@@ -67,9 +66,9 @@ def authenticate(username: str, password: str) -> dict:
             auto_bind=AUTO_BIND_NO_TLS,
             raise_exceptions=True,
         )
-    except LDAPException:
+    except LDAPException as e:
         log.error("LDAP service account bind failed")
-        raise ValueError("ldap_unavailable")
+        raise ValueError("ldap_unavailable") from e
 
     user_info = _search_user(service_conn, username)
     service_conn.unbind()
@@ -87,8 +86,8 @@ def authenticate(username: str, password: str) -> dict:
             raise_exceptions=True,
         )
         user_conn.unbind()
-    except LDAPException:
-        raise ValueError("ldap_invalid_credentials")
+    except LDAPException as e:
+        raise ValueError("ldap_invalid_credentials") from e
 
     if not user_info["email"]:
         raise ValueError("ldap_no_email")

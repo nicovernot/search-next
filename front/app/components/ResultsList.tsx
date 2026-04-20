@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { X, Filter, LayoutGrid, Building2 } from "lucide-react";
 import { useSearch } from "../context/SearchContext";
 import { useTranslations } from "next-intl";
@@ -65,15 +66,15 @@ export default function ResultsList() {
       {!loading && activeFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-2.5 mb-8 animate-in slide-in-from-left-2 duration-300">
           <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mr-1">{t("filters")}:</span>
-          {activeFilters.map((f, i) => (
+          {activeFilters.map((activeFilter, i) => (
             <div
               key={i}
               className="group flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-full text-[11px] hover:border-highlight/30 hover:shadow-sm transition-all"
             >
-              <span className="text-muted-foreground italic font-medium">{getFacetLabelForFilter(f.identifier)}</span>
-              <span className="font-bold text-foreground">{f.value}</span>
+              <span className="text-muted-foreground italic font-medium">{getFacetLabelForFilter(activeFilter.identifier)}</span>
+              <span className="font-bold text-foreground">{activeFilter.value}</span>
               <button
-                onClick={() => removeFilter(f.identifier, f.value)}
+                onClick={() => removeFilter(activeFilter.identifier, activeFilter.value)}
                 className="ml-1 text-muted-foreground hover:text-highlight hover:scale-110 transition-all"
                 title={t("removeFilter")}
               >
@@ -101,7 +102,7 @@ export default function ResultsList() {
         <>
           {loading && (
             <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
+              {[...Array(5)].map((_item, i) => (
                 <div key={i} className="bg-card border border-border rounded-xl p-6 animate-pulse shadow-sm">
                   <div className="flex gap-3 mb-4">
                     <div className="h-5 bg-muted rounded-full w-28" />
@@ -133,7 +134,7 @@ export default function ResultsList() {
           {!loading && !error && organization && (
             <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/5 animate-in fade-in duration-500">
               {organization.logoUrl ? (
-                <img src={organization.logoUrl} alt={organization.name ?? ""} className="h-7 w-auto object-contain shrink-0" />
+                <Image src={organization.logoUrl} alt={organization.name ?? ""} height={28} width={80} className="h-7 w-auto object-contain shrink-0" unoptimized />
               ) : (
                 <Building2 size={18} className="text-blue-500 shrink-0" />
               )}

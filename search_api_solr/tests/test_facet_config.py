@@ -2,13 +2,12 @@
 Tests pour la configuration des facettes
 """
 
-import pytest
 from app.services.facet_config import (
     COMMON_FACETS_MAPPING,
+    FACET_CONFIG,
     FACET_SUBCATEGORIES,
     PLATFORM_SPECIFIC_FACETS,
     get_filter_values,
-    FACET_CONFIG,
 )
 
 

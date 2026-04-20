@@ -1,19 +1,32 @@
+from typing import Any, Literal
+
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Any, Literal
+
 from app.models.logical_query import QueryGroup
 
 
 class SearchQuery(BaseModel):
     q: str
-    filters: Optional[List[str]] = None
+    filters: list[str] | None = None
     page: int = 1
     page_size: int = 10
 
 
 class SearchResponse(BaseModel):
-    results: List[Any]
+    results: list[Any]
     total: int
-    facets: Optional[Any] = None
+    facets: Any | None = None
+
+
+class SuggestResponse(BaseModel):
+    suggestions: list[str]
+
+
+class FacetsConfigResponse(BaseModel):
+    facets: list[Any]
+    search_fields: list[str]
+
+    model_config = {"extra": "allow"}
 
 
 # Modèles pour Searchkit (utilisés par SearchBuilder)
@@ -60,15 +73,15 @@ class FacetModel(BaseModel):
         description="Type de facette: 'list' (champ) ou 'query' (requête)",
         example="list",
     )
-    value: Optional[str] = Field(
+    value: str | None = Field(
         None,
         description="Valeur pour le type 'query' (ex: subscribers:amu)",
         example=None,
     )
-    label: Optional[str] = Field(
+    label: str | None = Field(
         None, description="Libellé de la facette", example="Plateforme"
     )
-    size: Optional[int] = Field(
+    size: int | None = Field(
         5, description="Nombre de valeurs à retourner", example=5
     )
 
@@ -77,17 +90,19 @@ class SearchRequest(BaseModel):
     """Modèle de requête compatible avec Searchkit et SearchBuilder"""
 
     query: QueryModel
-    logical_query: Optional[QueryGroup] = Field(None, description="Requête logique complexe (AND/OR/NOT récursif)")
-    filters: List[FilterModel] = Field(
+    logical_query: QueryGroup | None = Field(
+        None, description="Requête logique complexe (AND/OR/NOT récursif)"
+    )
+    filters: list[FilterModel] = Field(
         default=[], description="Liste des filtres actifs"
     )
     pagination: PaginationModel = Field(
         default_factory=PaginationModel, description="Paramètres de pagination"
     )
-    facets: List[FacetModel] = Field(
+    facets: list[FacetModel] = Field(
         default=[], description="Liste des facettes demandées"
     )
-    sort: Optional[str] = Field(
+    sort: str | None = Field(
         None, description="Critères de tri (ex: date desc)", example="date desc"
     )
 

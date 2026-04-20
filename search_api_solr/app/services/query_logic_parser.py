@@ -1,5 +1,5 @@
-from typing import Union
-from app.models.logical_query import QueryRule, QueryGroup
+
+from app.models.logical_query import QueryGroup, QueryRule
 
 # Normalise les noms d'opérateurs envoyés par react-querybuilder (camelCase) vers les noms internes
 _OPERATOR_ALIASES: dict[str, str] = {
@@ -15,7 +15,7 @@ _OPERATOR_ALIASES: dict[str, str] = {
 
 class QueryLogicParser:
     @staticmethod
-    def convert_to_solr_query_string(item: Union[QueryRule, QueryGroup, dict]) -> str:
+    def convert_to_solr_query_string(item: QueryRule | QueryGroup | dict) -> str:
         """
         Convertit récursivement une QueryGroup ou QueryRule (ou dict) en chaîne de requête Solr.
         """
@@ -34,7 +34,7 @@ class QueryLogicParser:
 
     @staticmethod
     def _build_solr_rule_fragment(rule: QueryRule) -> str:
-        from app.services.facet_config import SEARCH_FIELDS_MAPPING, COMMON_FACETS_MAPPING
+        from app.services.facet_config import COMMON_FACETS_MAPPING, SEARCH_FIELDS_MAPPING
 
         field = SEARCH_FIELDS_MAPPING.get(rule.field,
                 COMMON_FACETS_MAPPING.get(rule.field, rule.field))

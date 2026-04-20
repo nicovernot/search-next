@@ -1,7 +1,7 @@
 # models/document.py
-from typing import Literal, Optional, List, Union
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
-from datetime import date
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 PlatformID = Literal["OJ", "OB", "HO", "CO"]
 AccessType = Literal["openaccess", "restricted", "exclusive", "embargo", None]
@@ -14,43 +14,43 @@ class DocumentBase(BaseModel):
     platformID: PlatformID
 
     title: str
-    subtitle: Optional[str] = None
-    overview: Optional[str] = Field(None, max_length=500)
+    subtitle: str | None = None
+    overview: str | None = Field(None, max_length=500)
 
-    authors: List[str] = Field(default_factory=list)
-    first_author: Optional[str] = None
+    authors: list[str] = Field(default_factory=list)
+    first_author: str | None = None
 
     date: str = Field(..., description="Année ou date formatée JJ-MM-AAAA")
-    access_type: Optional[AccessType] = None
-    access: Optional[bool] = None  # legacy, à supprimer plus tard
+    access_type: AccessType | None = None
+    access: bool | None = None  # legacy, à supprimer plus tard
 
-    site_title: Optional[str] = None  # revue OU éditeur
-    datemisenligne: Optional[str] = None  # ISO date brute (optionnel)
+    site_title: str | None = None  # revue OU éditeur
+    datemisenligne: str | None = None  # ISO date brute (optionnel)
 
 
 class JournalArticle(DocumentBase):
     type: Literal["article"] = "article"
     platformID: Literal["OJ"] = "OJ"
-    site_title: Optional[str] = Field(None, description="Nom de la revue")
+    site_title: str | None = Field(None, description="Nom de la revue")
 
 
 class Book(DocumentBase):
     type: Literal["book"] = "book"
     platformID: Literal["OB"] = "OB"
-    site_title: Optional[str] = Field(None, description="Nom de l'éditeur")
+    site_title: str | None = Field(None, description="Nom de l'éditeur")
 
-    isbn_print: Optional[str] = Field(None, alias="ep_isbnprint")
-    isbn_electronic: Optional[str] = Field(None, alias="ep_isbnelec")
+    isbn_print: str | None = Field(None, alias="ep_isbnprint")
+    isbn_electronic: str | None = Field(None, alias="ep_isbnelec")
 
 
 class BookChapter(DocumentBase):
     type: Literal["chapter"] = "chapter"
     platformID: Literal["OB"] = "OB"
-    site_title: Optional[str] = Field(None, description="Nom de l'éditeur")
-    book_title: Optional[str] = None
+    site_title: str | None = Field(None, description="Nom de l'éditeur")
+    book_title: str | None = None
 
-    isbn_print: Optional[str] = Field(None, alias="ep_isbnprint")
-    isbn_electronic: Optional[str] = Field(None, alias="ep_isbnelec")
+    isbn_print: str | None = Field(None, alias="ep_isbnprint")
+    isbn_electronic: str | None = Field(None, alias="ep_isbnelec")
 
 
 class BlogPost(DocumentBase):
@@ -64,11 +64,4 @@ class Event(DocumentBase):
 
 
 # Union finale pour FastAPI
-DocumentResponse = Union[
-    JournalArticle,
-    Book,
-    BookChapter,
-    BlogPost,
-    Event,
-    DocumentBase  # fallback
-]
+DocumentResponse = JournalArticle | Book | BookChapter | BlogPost | Event | DocumentBase

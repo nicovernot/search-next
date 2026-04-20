@@ -29,8 +29,8 @@ export const api = {
     });
   },
 
-  suggest(q: string): Promise<Response> {
-    return fetch(`${API_BASE_URL}/suggest?q=${encodeURIComponent(q)}`);
+  suggest(query: string): Promise<Response> {
+    return fetch(`${API_BASE_URL}/suggest?q=${encodeURIComponent(query)}`);
   },
 
   facetsConfig(): Promise<Response> {

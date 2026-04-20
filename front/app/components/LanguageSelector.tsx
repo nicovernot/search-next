@@ -24,9 +24,9 @@ export default function LanguageSelector() {
       onChange={(e) => router.replace(pathname, { locale: e.target.value })}
       className="text-sm font-bold border border-border rounded-xl px-4 py-2 bg-secondary text-foreground focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/30 cursor-pointer appearance-none premium-shadow hover:bg-muted transition-all"
     >
-      {routing.locales.map((l) => (
-        <option key={l} value={l}>
-          {LANG_LABELS[l] || l}
+      {routing.locales.map((locale) => (
+        <option key={locale} value={locale}>
+          {LANG_LABELS[locale] || locale}
         </option>
       ))}
     </select>

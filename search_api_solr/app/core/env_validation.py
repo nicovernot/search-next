@@ -3,11 +3,11 @@ Validation des variables d'environnement pour l'API SearchV2.
 Utilise pydantic-settings pour la validation de configuration.
 """
 
-from pydantic import BaseModel, field_validator, AnyHttpUrl, Field, ValidationInfo, model_validator
-from pydantic_settings import BaseSettings
-from typing import Optional, List
-import os
 import logging
+import os
+
+from pydantic import AnyHttpUrl, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -16,35 +16,35 @@ class EnvironmentConfig(BaseSettings):
     """Configuration complète de l'environnement"""
     # Variables communes
     node_env: str = Field(default="development", description="Environnement (development, production, test)")
-    
+
     # Configuration Solr
     solr_url: AnyHttpUrl = Field(description="URL du serveur Solr")
     solr_collection: str = Field(description="Collection Solr")
-    
+
     # Configuration API
     api_base_url: str = Field(description="URL base publique de l'API")
     debug: bool = Field(default=False, description="Mode debug")
     auto_reload: bool = Field(default=False, description="Rechargement automatique")
     log_level: str = Field(default="info", description="Niveau de logging")
-    
+
     # Configuration sécurité
     disable_auth: bool = Field(default=False, description="Désactiver l'authentification")
-    jwt_secret: Optional[str] = Field(default=None, description="Secret JWT")
-    secret_key: Optional[str] = Field(default=None, description="Secret JWT utilisé par l'application")
-    session_secret: Optional[str] = Field(default=None, description="Secret de session")
+    jwt_secret: str | None = Field(default=None, description="Secret JWT")
+    secret_key: str | None = Field(default=None, description="Secret JWT utilisé par l'application")
+    session_secret: str | None = Field(default=None, description="Secret de session")
     cors_origins: str = Field(default="", description="Origines CORS autorisées (séparées par des virgules)")
-    
+
     # Autres variables
-    frontend_url: Optional[str] = Field(default=None, description="URL du frontend")
-    test_timeout: Optional[int] = Field(default=None, description="Timeout pour les tests")
-    test_retries: Optional[int] = Field(default=None, description="Nombre de tentatives pour les tests")
-    
+    frontend_url: str | None = Field(default=None, description="URL du frontend")
+    test_timeout: int | None = Field(default=None, description="Timeout pour les tests")
+    test_retries: int | None = Field(default=None, description="Nombre de tentatives pour les tests")
+
     @field_validator('solr_url')
     def validate_solr_url(cls, v):
         if 'solr' not in v.path.lower():
             raise ValueError('Solr URL must contain "solr" in the path')
         return v
-    
+
     @field_validator('log_level')
     def validate_log_level(cls, v):
         valid_levels = ['debug', 'info', 'warning', 'error', 'critical']
@@ -61,7 +61,7 @@ class EnvironmentConfig(BaseSettings):
             if normalized in {"0", "false", "no", "off", "release", "production"}:
                 return False
         return v
-    
+
     @model_validator(mode='after')
     def validate_auth_secret(self):
         disable_auth = os.getenv('DISABLE_AUTH', 'false').lower() == 'true'
@@ -71,7 +71,7 @@ class EnvironmentConfig(BaseSettings):
             else:
                 raise ValueError('SECRET_KEY or JWT_SECRET is required when auth is enabled')
         return self
-    
+
     class Config:
         env_file = ['.env.shared', '.env.local', '.env']
         env_file_encoding = 'utf-8'
@@ -87,18 +87,18 @@ def validate_environment():
     try:
         # Charger et valider la configuration
         config = EnvironmentConfig()
-        
+
         logger.info(f"Environment validation successful: {config.node_env}")
         logger.info(f"Solr configuration: {config.solr_url}/{config.solr_collection}")
         logger.info(f"API base URL: {config.api_base_url}")
         logger.info(f"Log level: {config.log_level}")
-        
+
         # Exporter les variables validées pour utilisation dans l'app
         os.environ['VALIDATED_SOLR_URL'] = str(config.solr_url)
         os.environ['VALIDATED_SOLR_COLLECTION'] = config.solr_collection
-        
+
         return config
-        
+
     except Exception as e:
         logger.error(f"Environment validation failed: {str(e)}")
         logger.error("Please check your .env files and ensure all required variables are set.")

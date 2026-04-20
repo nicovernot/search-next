@@ -94,13 +94,13 @@ export default function Home() {
             {t("heroSubtitle")}
           </p>
           <div className="hero-badges flex items-center justify-center gap-3 flex-wrap mb-10">
-            {PLATFORMS.map((p) => (
+            {PLATFORMS.map((platform) => (
               <span
-                key={p.label}
+                key={platform.label}
                 className="source-badge inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-xs font-semibold text-foreground hover:scale-105 transition-transform premium-shadow cursor-default"
               >
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-                {p.label}
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: platform.color }} />
+                {platform.label}
               </span>
             ))}
           </div>

@@ -113,3 +113,43 @@ export function useSearch() {
   if (!ctx) throw new Error("useSearch must be used within SearchProvider");
   return ctx;
 }
+
+/** Slice : requête, mode, logicalQuery, executeSearch, loadSearch */
+export function useSearchQuery(): SearchQuerySlice {
+  const ctx = useContext(SearchContext);
+  if (!ctx) throw new Error("useSearchQuery must be used within SearchProvider");
+  const { query, setQuery, searchMode, setSearchMode, logicalQuery, setLogicalQuery, hasActiveSearch, executeSearch, loadSearch } = ctx;
+  return { query, setQuery, searchMode, setSearchMode, logicalQuery, setLogicalQuery, hasActiveSearch, executeSearch, loadSearch };
+}
+
+/** Slice : résultats, total, loading, error, pagination */
+export function useSearchResults(): SearchResultsSlice {
+  const ctx = useContext(SearchContext);
+  if (!ctx) throw new Error("useSearchResults must be used within SearchProvider");
+  const { results, total, loading, error, pagination, setPage } = ctx;
+  return { results, total, loading, error, pagination, setPage };
+}
+
+/** Slice : facettes, filtres actifs, facetConfig, searchFields */
+export function useSearchFilters(): SearchFiltersSlice {
+  const ctx = useContext(SearchContext);
+  if (!ctx) throw new Error("useSearchFilters must be used within SearchProvider");
+  const { facets, filters, addFilter, removeFilter, clearFilters, activeFilters, facetConfig, searchFields } = ctx;
+  return { facets, filters, addFilter, removeFilter, clearFilters, activeFilters, facetConfig, searchFields };
+}
+
+/** Slice : suggestions d'autocomplétion */
+export function useSearchSuggestions(): SearchSuggestionsSlice {
+  const ctx = useContext(SearchContext);
+  if (!ctx) throw new Error("useSearchSuggestions must be used within SearchProvider");
+  const { suggestions, fetchSuggestions, loadingSuggestions } = ctx;
+  return { suggestions, fetchSuggestions, loadingSuggestions };
+}
+
+/** Slice : permissions d'accès et organisation détectée */
+export function useSearchPermissions(): SearchPermissionsSlice {
+  const ctx = useContext(SearchContext);
+  if (!ctx) throw new Error("useSearchPermissions must be used within SearchProvider");
+  const { permissions, loadingPermissions, organization } = ctx;
+  return { permissions, loadingPermissions, organization };
+}

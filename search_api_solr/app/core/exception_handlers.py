@@ -1,5 +1,6 @@
-from fastapi import Request, FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
 
 def add_exception_handlers(app: FastAPI):
     @app.exception_handler(Exception)

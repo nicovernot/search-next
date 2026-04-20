@@ -13,8 +13,8 @@ const eslintConfig = defineConfig([
     },
     rules: {
       // Nommage Intention→Résultat : avertir sur les identifiants trop courts
-      // Exceptions : t (next-intl), i (index de boucle), e (event local)
-      "id-length": ["warn", { min: 2, exceptions: ["t", "i", "e"] }],
+      // Exceptions : t (next-intl), i (index de boucle), e (event local), x/y (coordonnées)
+      "id-length": ["warn", { min: 2, exceptions: ["t", "i", "e", "x", "y"] }],
     },
   },
   // Override default ignores of eslint-config-next.

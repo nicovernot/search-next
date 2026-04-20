@@ -21,3 +21,39 @@ pytest = "^8.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade — syntaxe Python moderne
+    "B",   # flake8-bugbear — bugs courants
+    "S",   # flake8-bandit — sécurité (detect secrets, injections…)
+    "ANN", # annotations de type manquantes
+]
+ignore = [
+    "ANN401", # Any explicite — géré au cas par cas (adaptateurs tiers)
+    "ANN2",   # Return type annotations — FastAPI endpoints documentent via response_model
+    "S105",   # hardcoded password — faux positifs sur les noms de variables
+    "S106",
+    "B008",   # Depends() dans les defaults FastAPI — pattern attendu du framework
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "ANN", "E501", "W293", "B017", "F841"]  # Tests : contraintes assouplies
+"alembic/**" = ["E501", "UP", "I", "ANN", "W"]             # Migrations : code auto-généré
+"app/settings.py" = ["E501", "ANN"]                   # Validators Pydantic avec ValidationInfo non typé
+"app/core/env_validation.py" = ["ANN", "E501"]       # Config Pydantic verbose
+"app/api/**" = ["ANN1"]                              # Paramètres FastAPI annotés par Pydantic
+"app/services/docs_permissions_client.py" = ["E501"] # Client externe préexistant
+"app/models/rate_limit_models.py" = ["E501"]         # Modèles avec descriptions longues
+"app/models/logical_query.py" = ["E501"]             # Modèles avec descriptions longues
+"app/services/cache_service.py" = ["E501"]           # Cache avec messages de log longs
+"app/services/search_builder.py" = ["E501"]          # Builder Solr avec paramètres longs
+"app/models/user.py" = ["E501"]                      # Modèle user

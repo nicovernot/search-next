@@ -12,11 +12,11 @@ Falls back to in-memory dict when Redis is unavailable (development only).
 
 import logging
 import secrets
-from typing import Optional
 from urllib.parse import urlencode
 
 import httpx
-from jose import jwt as jose_jwt, JWTError
+from jose import JWTError
+from jose import jwt as jose_jwt
 
 from app.settings import settings
 
@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 _state_store: dict[str, bool] = {}
 
 # Cached IdP configuration
-_oidc_config_cache: Optional[dict] = None
+_oidc_config_cache: dict | None = None
 
 
 async def _get_oidc_config() -> dict:
@@ -48,8 +48,8 @@ def _store_state(state: str) -> None:
         if r:
             r.setex(f"oidc_state:{state}", 600, "1")
             return
-    except Exception:
-        pass
+    except Exception:  # noqa: S110
+        logging.getLogger(__name__).debug("Redis unavailable for state store, using memory")
     _state_store[state] = True
 
 
@@ -64,8 +64,8 @@ def _validate_and_consume_state(state: str) -> bool:
                 r.delete(key)
                 return True
             return False
-    except Exception:
-        pass
+    except Exception:  # noqa: S110
+        logging.getLogger(__name__).debug("Redis unavailable for state validation, using memory")
     return _state_store.pop(state, False)
 
 
@@ -155,4 +155,4 @@ def _validate_id_token(id_token: str, jwks: dict, expected_issuer: str) -> dict:
         return claims
     except JWTError as exc:
         log.warning("OIDC ID token validation failed: %s", exc)
-        raise ValueError("oidc_invalid_token")
+        raise ValueError("oidc_invalid_token") from exc

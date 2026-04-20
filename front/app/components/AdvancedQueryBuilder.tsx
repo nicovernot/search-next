@@ -38,7 +38,7 @@ export default function AdvancedQueryBuilder() {
   const { executeSearch, setLogicalQuery, logicalQuery: contextLogicalQuery, searchFields } = useSearch();
 
   // Champs depuis l'API si disponibles, fallback sur QB_FIELDS hardcodés
-  const fields: Field[] = (searchFields ?? QB_FIELDS.map((f) => f.name))
+  const fields: Field[] = (searchFields ?? QB_FIELDS.map((qbField) => qbField.name))
     .filter((name) => name in QB_LABELS_MAP)
     .map((name) => ({
       name,
@@ -82,8 +82,8 @@ export default function AdvancedQueryBuilder() {
           fields={fields}
           operators={operators}
           query={contextLogicalQuery ?? DEFAULT_QUERY}
-          onQueryChange={(q) => {
-            setLogicalQuery(q);
+          onQueryChange={(newQuery) => {
+            setLogicalQuery(newQuery);
           }}
           translations={{
             addGroup: { label: t("qb_addGroup"), title: t("qb_addGroup") },

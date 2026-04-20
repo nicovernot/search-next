@@ -23,7 +23,7 @@ export function useSearchState() {
       if (cur.includes(value)) return prev;
       return { ...prev, [field]: [...cur, value] };
     });
-    setPagination((p) => ({ ...p, from: 0 }));
+    setPagination((prev) => ({ ...prev, from: 0 }));
   }, []);
 
   const removeFilter = useCallback((field: string, value: string) => {
@@ -36,16 +36,16 @@ export function useSearchState() {
       }
       return { ...prev, [field]: cur };
     });
-    setPagination((p) => ({ ...p, from: 0 }));
+    setPagination((prev) => ({ ...prev, from: 0 }));
   }, []);
 
   const clearFilters = useCallback(() => {
     setFilters({});
-    setPagination((p) => ({ ...p, from: 0 }));
+    setPagination((prev) => ({ ...prev, from: 0 }));
   }, []);
 
   const setPage = useCallback((page: number) => {
-    setPagination((p) => ({ ...p, from: (page - 1) * p.size }));
+    setPagination((prev) => ({ ...prev, from: (page - 1) * prev.size }));
   }, []);
 
   const activeFilters = useMemo(

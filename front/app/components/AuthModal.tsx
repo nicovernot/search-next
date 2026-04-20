@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import { X, LogIn, UserPlus, Eye, EyeOff, Building2 } from "lucide-react";
 import type { ModalTab } from "../hooks/useAuthModal";
+import { LdapLoginForm } from "./LdapLoginForm";
 
 interface AuthModalProps {
   open: boolean;
@@ -31,9 +32,6 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [ldapUsername, setLdapUsername] = useState("");
-  const [ldapPassword, setLdapPassword] = useState("");
-  const [showLdap, setShowLdap] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -51,9 +49,6 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
       setEmail("");
       setPassword("");
       setConfirm("");
-      setLdapUsername("");
-      setLdapPassword("");
-      setShowLdap(false);
       setLocalError(null);
       setShowPwd(false);
     }
@@ -94,11 +89,10 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
     }
   };
 
-  const handleLdapSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLdapSubmit = async (username: string, password: string) => {
     setLocalError(null);
     try {
-      await loginWithLdap(ldapUsername, ldapPassword);
+      await loginWithLdap(username, password);
       handleClose();
     } catch {
       // error set in AuthContext
@@ -319,54 +313,7 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
 
                 {/* LDAP section */}
                 {ldapEnabled && (
-                  <div className="mt-2">
-                    <button
-                      type="button"
-                      data-testid="btn-toggle-ldap"
-                      onClick={() => setShowLdap((v) => !v)}
-                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-border text-sm font-bold text-foreground hover:bg-muted hover:border-highlight/40 transition-all"
-                    >
-                      <Building2 size={15} />
-                      {t("ldapLoginButton")}
-                    </button>
-
-                    {showLdap && (
-                      <form onSubmit={handleLdapSubmit} className="mt-3 space-y-3" data-testid="ldap-form">
-                        <input
-                          data-testid="input-ldap-username"
-                          type="text"
-                          value={ldapUsername}
-                          onChange={(e) => setLdapUsername(e.target.value)}
-                          required
-                          autoComplete="username"
-                          placeholder={t("ldapUsername")}
-                          className="w-full px-4 py-3 rounded-xl border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-all text-sm"
-                          style={{ backgroundColor: "hsl(var(--background))" }}
-                        />
-                        <input
-                          data-testid="input-ldap-password"
-                          type="password"
-                          value={ldapPassword}
-                          onChange={(e) => setLdapPassword(e.target.value)}
-                          required
-                          autoComplete="current-password"
-                          placeholder={t("ldapPassword")}
-                          className="w-full px-4 py-3 rounded-xl border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-all text-sm"
-                          style={{ backgroundColor: "hsl(var(--background))" }}
-                        />
-                        <button
-                          data-testid="btn-ldap-submit"
-                          type="submit"
-                          disabled={loading}
-                          className="w-full py-3 bg-highlight text-white rounded-xl font-bold text-sm hover:brightness-110 active:scale-95 transition-all premium-shadow disabled:opacity-60"
-                        >
-                          {loading ? (
-                            <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin mx-auto" />
-                          ) : t("ldapLoginTitle")}
-                        </button>
-                      </form>
-                    )}
-                  </div>
+                  <LdapLoginForm loading={loading} onSubmit={handleLdapSubmit} />
                 )}
               </div>
             )}

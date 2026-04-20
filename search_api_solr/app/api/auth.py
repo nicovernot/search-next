@@ -109,7 +109,9 @@ def login_user(user_in: UserLogin, db: Session = Depends(get_db)):
 @router.post("/ldap/login", response_model=Token)
 def ldap_login(credentials: LdapLogin, db: Session = Depends(get_db)):
     if not settings.ldap_enabled:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="LDAP not enabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="LDAP not enabled"
+        )
 
     from app.services import ldap_service
 
@@ -121,12 +123,12 @@ def ldap_login(credentials: LdapLogin, db: Session = Depends(get_db)):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="ldap_unavailable",
-            )
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="ldap_invalid_credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
 
     user = _provision_federated_user(db, email=user_info["email"], auth_provider="ldap")
     return _issue_token(user)
@@ -137,18 +139,20 @@ def ldap_login(credentials: LdapLogin, db: Session = Depends(get_db)):
 @router.get("/sso/login")
 async def sso_login():
     if not settings.sso_oidc_enabled:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="SSO not enabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="SSO not enabled"
+        )
 
     from app.services import oidc_service
 
     try:
         url = await oidc_service.build_authorization_url()
-    except Exception:
+    except Exception as exc:
         log.exception("SSO authorization URL build failed")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="sso_unavailable",
-        )
+        ) from exc
     return RedirectResponse(url, status_code=302)
 
 
@@ -159,7 +163,9 @@ async def sso_callback(
     db: Session = Depends(get_db),
 ):
     if not settings.sso_oidc_enabled:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="SSO not enabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="SSO not enabled"
+        )
 
     from app.services import oidc_service
 

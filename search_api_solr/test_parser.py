@@ -1,5 +1,6 @@
-from app.models.logical_query import QueryRule, QueryGroup
+from app.models.logical_query import QueryGroup, QueryRule
 from app.services.query_logic_parser import QueryLogicParser
+
 
 def test_parser():
     # Test simple rule

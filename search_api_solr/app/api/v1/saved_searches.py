@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
-from pydantic import BaseModel
 from typing import Any
 
-from app.db.session import get_db
-from app.models.user import User
-from app.models.saved_search import SavedSearch
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from app.core.dependencies import get_current_user
+from app.db.session import get_db
+from app.models.saved_search import SavedSearch
+from app.models.user import User
 
 router = APIRouter(prefix="/saved-searches", tags=["saved-searches"])
 
@@ -31,7 +31,7 @@ class SavedSearchResponse(BaseModel):
 
 # --- Endpoints ---
 
-@router.get("", response_model=List[SavedSearchResponse])
+@router.get("", response_model=list[SavedSearchResponse])
 def list_saved_searches(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

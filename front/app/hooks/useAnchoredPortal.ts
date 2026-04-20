@@ -23,11 +23,11 @@ export function useAnchoredPortal(
 
   const update = useCallback(() => {
     if (!anchorRef.current) return;
-    const r = anchorRef.current.getBoundingClientRect();
+    const rect = anchorRef.current.getBoundingClientRect();
     setStyle(
       align === "right"
-        ? { position: "fixed", top: r.bottom + gap, right: window.innerWidth - r.right, zIndex: 2147483647 }
-        : { position: "fixed", top: r.bottom + gap, left: r.left, width: r.width, zIndex: 2147483647 },
+        ? { position: "fixed", top: rect.bottom + gap, right: window.innerWidth - rect.right, zIndex: 2147483647 }
+        : { position: "fixed", top: rect.bottom + gap, left: rect.left, width: rect.width, zIndex: 2147483647 },
     );
   }, [anchorRef, align, gap]);
 
