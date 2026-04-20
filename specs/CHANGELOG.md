@@ -27,6 +27,8 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
 | 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
 | 2026-04-19 | docs | Alignement specs/code/docs : dette résiduelle P0/P1/P2/P3 ajoutée au planning, architecture et specs qualité synchronisées | — |
+| 2026-04-20 | 004/011 | URL sync (21 tests) et LDAP/SSO (12 tests) documentés ; total E2E porté à 66 tests | — |
+| 2026-04-20 | P0/P1/P2/P3 | Sécurité production, contrats backend, lint, hooks et nettoyage soldés ; planning basculé en vérification release | — |
 
 ---
 
@@ -40,8 +42,8 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 004 | URL sync — liens partageables, back/forward | ✅ Livré fonctionnellement |
 | 005 | Permissions — badges d'accès sur les résultats | ✅ Livré |
 | 006 | Tech debt — correctifs fondations techniques | ✅ Livré |
-| 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré fonctionnellement, dette P2 sur seuils de taille |
-| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré fonctionnellement, dette résiduelle planifiée |
-| 009 | DRY/KISS/YAGNI — corrections ciblées | ✅ Livré fonctionnellement, nettoyage P2/P3 restant |
+| 007 | Refactor SearchContext — découpage en hooks SOLID | ✅ Livré, dette taille acceptée |
+| 008 | Code quality SOLID — règles qualité, checklist | ✅ Livré |
+| 009 | DRY/KISS/YAGNI — corrections ciblées | ✅ Livré |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
-| 011 | Auth LDAP/SSO — institutionnel | ✅ Livré fonctionnellement, durcissement JWT SSO P0 restant |
+| 011 | Auth LDAP/SSO — institutionnel | ✅ Livré, transport JWT SSO sécurisé |

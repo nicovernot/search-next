@@ -1,13 +1,13 @@
 # Planning global des specs
 
 **Audit**: 2026-04-20  
-**But**: centraliser l'ordre de traitement, les dépendances et les points de cohérence entre specs.
+**But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
 
 ## État global
 
-Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 sont résolus (2026-04-20). Il reste une dette P2/P3 non bloquante pour la production.
+Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Il reste uniquement de la vérification de release et des améliorations opportunistes.
 
 ---
 
@@ -46,8 +46,8 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 
 | # | Sujet | Résolution |
 |---|---|---|
-| ✅ 11 | `useSearchApi` 197 lignes | `buildSearchPayload` + `hasActiveSearch` extraits dans `lib/search-payload.ts` ; hook ~160L (complexité stale closures inhérente documentée) (2026-04-20) |
-| ✅ 12 | `useUrlSync` 143 lignes | `buildUrlParams`, `readFiltersFromParams`, `parseSavedSearchData` extraits dans `lib/url-search-state.ts` ; hook ~65L, parsing testable sans React (2026-04-20) |
+| ✅ 11 | `useSearchApi` trop long | `buildSearchPayload` + `hasActiveSearch` extraits dans `lib/search-payload.ts` ; hook ~179L (complexité stale closures inhérente documentée) (2026-04-20) |
+| ✅ 12 | `useUrlSync` trop long | `buildUrlParams`, `readFiltersFromParams`, `parseSavedSearchData` extraits dans `lib/url-search-state.ts` ; hook ~79L, parsing testable sans React (2026-04-20) |
 | ✅ 13 | `SearchContext` consommé globalement | 5 hooks sélecteurs ajoutés : `useSearchQuery`, `useSearchResults`, `useSearchFilters`, `useSearchSuggestions`, `useSearchPermissions` (2026-04-20) |
 | ✅ 14 | `AuthModal` volumineux | `LdapLoginForm` extrait dans `components/LdapLoginForm.tsx` — état LDAP et handlers encapsulés (2026-04-20) |
 
@@ -68,9 +68,21 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 
 ## Ordre d'exécution recommandé
 
-1. **P0 et P1** ✅ Terminés (2026-04-20)
-2. **P2** ✅ Terminé (2026-04-20)
-3. **P3** ✅ Terminé (2026-04-20)
+1. **Vérification release** : relancer lint/tests dans l'environnement cible.
+2. **Migration opportuniste** : remplacer `useSearch()` par les hooks selectors quand un composant est modifié.
+3. **Préparation prochaine feature** : utiliser [`SKILLS.md`](SKILLS.md) pour déléguer les travaux IA.
+
+---
+
+## Reste à faire
+
+| Priorité | Item | Pourquoi | Sortie attendue |
+|---|---|---|---|
+| Release | Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
+| Release | Relancer `pnpm run test:e2e` | Vérifier les 66 tests Playwright documentés | Suite E2E verte ou écarts documentés |
+| Release | Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
+| P2 optionnel | Migrer les consommateurs `useSearch()` vers `useSearchQuery/Results/Filters/Suggestions/Permissions` | Réduire le couplage UI restant | PRs opportunistes par composant |
+| P2 optionnel | Extraire encore `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
 ---
 
@@ -78,12 +90,12 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 
 | Sujet | État |
 |---|---|
-| Specs 001–011 | ✅ Toutes livrées fonctionnellement |
+| Specs 001–011 | ✅ Toutes livrées |
 | Auth LDAP/SSO + transport JWT | ✅ Complet (2026-04-20) |
 | URL sync (004) | ✅ Livré — 19 tests E2E |
 | Permissions (005) | ✅ Livré — badges, proxy IP, fallback `unknown` |
-| Refactor SearchContext (007) | ✅ Livré — assembleur 115L, 6 hooks SOLID |
-| Qualité code (008/009/010) | ✅ Livré — P2 soldé (2026-04-20) |
+| Refactor SearchContext (007) | ✅ Livré — assembleur + 6 hooks SOLID + selectors |
+| Qualité code (008/009/010) | ✅ Livré — dette bloquante soldée (2026-04-20) |
 | Tech debt (006) | ✅ Livré — searchFields depuis `/facets/config` |
 | Sécurité prod (P0) | ✅ Résolu (2026-04-20) |
 | Architecture backend (P1) | ✅ Résolu (2026-04-20) |
@@ -94,8 +106,9 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 
 ### Écarts connus (dette acceptée)
 
-- `useSearchApi.ts` : ~160 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
-- `SearchContext.tsx` : ~150 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
+- `useSearchApi.ts` : ~179 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
+- `SearchContext.tsx` : ~155 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
+- Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
 
@@ -111,9 +124,9 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 | 004 | URL sync | ✅ Livré |
 | 005 | Permissions | ✅ Livré |
 | 006 | Tech debt | ✅ Livré |
-| 007 | Refactor SearchContext | ✅ Livré — P2 soldé (2026-04-20) |
-| 008 | Code quality SOLID | ✅ Livré — P0/P1/P2 soldés |
-| 009 | DRY/KISS/YAGNI | ✅ Livré fonctionnellement — nettoyage P3 |
+| 007 | Refactor SearchContext | ✅ Livré — dette taille acceptée |
+| 008 | Code quality SOLID | ✅ Livré — dette bloquante soldée |
+| 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
 

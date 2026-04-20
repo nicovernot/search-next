@@ -135,8 +135,11 @@ class Settings(BaseSettings):
     def validate_production_secrets(self):
         """Bloque le démarrage en production si les secrets par défaut sont utilisés"""
         if self.environment == "production":
-            default_key = "your-secret-key-for-development"
-            if self.secret_key == default_key:
+            placeholder_secret_keys = {
+                "your-secret-key-for-development",
+                "change-me-in-production",
+            }
+            if self.secret_key in placeholder_secret_keys:
                 raise ValueError(
                     "SECRET_KEY must be changed from the default value in production. "
                     "Set a strong random SECRET_KEY environment variable."

@@ -5,6 +5,7 @@ Ce dossier contient les spécifications Spec Kit du projet.
 La référence centrale des exigences techniques transverses est [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md). Les specs `008`, `009` et `010` en sont les déclinaisons opérationnelles pour la qualité, la simplicité et le nommage.
 
 L'historique des lots livrés est dans [`CHANGELOG.md`](CHANGELOG.md).
+Les compétences opérationnelles pour piloter les prochaines itérations IA sont dans [`SKILLS.md`](SKILLS.md).
 
 ## Structure
 
@@ -12,13 +13,14 @@ L'historique des lots livrés est dans [`CHANGELOG.md`](CHANGELOG.md).
 specs/
 ├── TECHNICAL_REQUIREMENTS.md  📌 Référence canonique — exigences techniques transverses
 ├── PLANNING.md                📌 Planning global — ordre, dépendances, cohérence
+├── SKILLS.md                  📌 Skills opérationnels IA — vérification, sécurité, release
 ├── 001-search-core/           ✅ Livré — Recherche de base, facettes, pagination, i18n
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (33 tests E2E documentés)
+├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (66 tests E2E documentés au total)
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
@@ -28,21 +30,21 @@ specs/
 │   └── spec.md
 ├── 004-url-sync/              ✅ Livré — Sync état ↔ URL, liens partageables, back/forward
 │   └── spec.md
-├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (4 tests dédiés, 33 tests E2E au total)
+├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (4 tests dédiés)
 │   └── spec.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
 │   └── spec.md
-├── 007-refactor-search-context/ ✅ Livré fonctionnellement — hooks SOLID, dette P2 sur seuils de taille
+├── 007-refactor-search-context/ ✅ Livré — hooks SOLID, helpers extraits, dette de taille acceptée/documentée
 │   └── spec.md
-├── 008-code-quality-solid/    ✅ Livré fonctionnellement — dette résiduelle suivie dans PLANNING
+├── 008-code-quality-solid/    ✅ Livré — règles qualité appliquées, dette résiduelle optionnelle documentée
 │   └── spec.md
-├── 009-dry-kiss-yagni/        ✅ Livré fonctionnellement — nettoyage restant P2/P3
+├── 009-dry-kiss-yagni/        ✅ Livré — duplications majeures, lockfiles et dépendances nettoyés
 │   └── spec.md
 ├── 010-naming-intention-result/ ✅ Livré — renommages frontend + backend appliqués
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
-├── 011-auth-ldap-sso/         ✅ Livré fonctionnellement — durcissement SSO/JWT restant P0
+├── 011-auth-ldap-sso/         ✅ Livré — LDAP/SSO + échange SSO sécurisé par code court
 │   └── spec.md
 └── README.md
 ```
@@ -84,8 +86,6 @@ specs/
 
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
-| P0 | Sécurité production — cache clear, JWT SSO, secrets prod, `.env` front | court | — | 🔥 À faire |
-| P1 | Contrats API/backend — `/suggest`, `SearchRequest`, response models, erreurs Solr | moyen | P0 | 🔶 À faire |
-| P1 | Cohérence docs/tests — architecture, pytest backend, lint warnings | court | P0/P1 backend | 🔶 À faire |
-| P2 | Maintenabilité frontend — `useSearchApi`, `useUrlSync`, selectors SearchContext, `AuthModal` | moyen | P1 | 🔵 À faire |
-| P3 | Nettoyage — dépendances, lockfiles, code mort/commentaires | court | P2 ou indépendant | ⚪ À faire |
+| Vérification | Relancer `pnpm run lint`, `pnpm run test:e2e`, `make test` dans l'environnement cible | court | services disponibles | 🔁 À faire avant release |
+| P2 optionnel | Migrer progressivement les composants de `useSearch()` vers les hooks selectors | moyen | aucun | ⚪ Opportuniste |
+| P2 optionnel | Réduire `AuthModal.tsx` si de nouveaux modes d'auth sont ajoutés | moyen | aucun | ⚪ Opportuniste |

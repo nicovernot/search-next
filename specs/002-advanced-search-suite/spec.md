@@ -109,5 +109,7 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | `tests/saved-searches.spec.ts` | **12 tests** — panneau visible/ouverture/fermeture/vide (3), sauvegarder ok/via Enter/bouton désactivé si nom vide/absent si pas de recherche active (4+1), charger + résultats visibles / charger après reload (2), supprimer (1), persistance après reload (1) |
 | `tests/search.spec.ts` | **2 tests** — chargement page, recherche simple |
 | `tests/permissions.spec.ts` | **4 tests** — badge open access, restricted, institutional, dégradé silencieux si l'API permissions échoue |
+| `tests/url-sync.spec.ts` | **21 tests** — sync URL, back/forward, hydratation, filtres, pagination, QueryBuilder encodé |
+| `tests/auth-ldap-sso.spec.ts` | **12 tests** — LDAP UI, erreurs, SSO callback, échange token/code, coexistence local/fédéré |
 
-**Total : 33 tests E2E** documentés dans `front/tests` (15 auth + 12 saved-searches + 2 search + 4 permissions)
+**Total : 66 tests E2E** documentés dans `front/tests`.

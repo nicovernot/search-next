@@ -11,6 +11,8 @@ from hypothesis import strategies as st
 
 from app.settings import Settings
 
+TEST_PRODUCTION_SECRET_KEY = "test-production-secret-key-that-is-not-a-placeholder"
+
 
 class TestRateLimitConfigurationParsing:
     """Property-based tests for rate limit configuration parsing."""
@@ -168,6 +170,8 @@ class TestRateLimitConfigurationParsing:
         env_vars = {
             'ENVIRONMENT': environment,
         }
+        if environment == 'production':
+            env_vars['SECRET_KEY'] = TEST_PRODUCTION_SECRET_KEY
 
         # Mock environment variables
         with patch.dict(os.environ, env_vars, clear=False):

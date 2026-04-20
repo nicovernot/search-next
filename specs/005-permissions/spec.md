@@ -3,35 +3,30 @@
 **Feature Branch**: `feature/005-permissions` (à créer depuis `feature/002-advanced-search-suite`)
 **Created**: 2026-04-13
 **Updated**: 2026-04-17
-**Status**: ✅ Livré — badges, proxy IP, fallback unknown, tests Playwright (117 lignes, commit 34cf91e)
+**Status**: ✅ Livré — badges, proxy IP, fallback unknown, tests Playwright
 
 ## Overview
 
 Afficher les droits d'accès de l'utilisateur courant sur chaque résultat de recherche, en s'appuyant sur le endpoint backend `GET /permissions` déjà exposé. L'objectif est de rendre visible, directement sur les cartes de résultats, si un document est accessible en lecture complète, en accès restreint (abonné), ou fermé.
 
-## Contexte technique (état au 2026-04-16)
+## Contexte technique (état au 2026-04-20)
 
-**Backend — endpoint fonctionnel, proxy IP incomplet** :
+**Backend — livré** :
 - `GET /permissions` est exposé et rate-limité (15 req/min)
 - `PermissionsService` existe dans `search_api_solr/app/services/search_service.py`
 - `DocsPermissionsClient` existe dans `search_api_solr/app/services/docs_permissions_client.py`
 - Le service appelle `https://auth.openedition.org/auth_by_url/` avec les URLs de documents
-- L'IP est lue depuis `request.client.host` — accepte aussi un param `?ip=` et `TEST_IP` en dev
+- L'IP suit la priorité `?ip=` explicite → `X-Forwarded-For` → `TEST_IP` dev → `request.client.host`
 - Le cache permissions existe côté backend via Redis (`cache_service.get_permissions_cache` / `set_permissions_cache`)
 
-**Frontend — partiellement livré** :
+**Frontend — livré** :
 - `ResultItem.tsx` : composant `AccessBadge` complet (4 statuts, skeleton, icônes, couleurs, formats html/epub/pdf) ✅
 - `ResultsList.tsx` : passe `permissionInfo` et `loadingPermissions` à chaque `ResultItem` ✅
-- `SearchContext.tsx` : `fetchPermissions` appelé en fire-and-forget après chaque page, `permissions`/`loadingPermissions`/`organization` exposés ✅
+- `usePermissions.ts` : `fetchPermissions` appelé en fire-and-forget après chaque page, `permissions`/`loadingPermissions`/`organization` exposés via `SearchContext` ✅
 - `ResultsList.tsx` : bandeau organisation institutionnelle affiché ✅
 - Traductions : clés `access_open/restricted/institutional/unknown` dans les 6 langues ✅
-- `lib/api.ts` : méthode `permissions(urls)` présente ✅
-
-**Ce qui manque** :
-- Aucun route handler Next.js — l'appel `fetch` est direct browser → backend, l'IP reçue est celle du browser/proxy Docker, pas l'IP réelle de l'utilisateur en production ❌
-- Le backend FastAPI ne lit pas encore `X-Forwarded-For` — injecter ce header côté Next.js seul ne suffira pas tant que `/permissions` ne le prend pas en compte ❌
-- Les erreurs ou réponses partielles de `/permissions` ne créent pas encore explicitement de statut `unknown` pour les URLs concernées ; le badge disparaît actuellement si aucun statut n'est renseigné ❌
-- Aucun test Playwright (`tests/permissions.spec.ts` inexistant) ❌
+- `front/app/api/permissions/route.ts` relaie l'appel côté serveur Next.js et transmet `X-Forwarded-For` quand pertinent ✅
+- `lib/api.ts` : méthode `permissions(urls)` appelle la route interne Next.js ✅
 
 **Dépendance** : spec 006 ✅ (client API centralisé déjà livré dans `lib/api.ts`).
 
@@ -82,10 +77,10 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 - **SC-003**: En cas d'erreur `/permissions`, les résultats restent accessibles et fonctionnels — aucun crash.
 - **SC-004**: Les labels/tooltips des badges sont correctement traduits dans les 6 langues.
 
-### Tests Playwright (à créer)
-| Fichier | Cas à couvrir |
+### Tests Playwright
+| Fichier | Cas couverts |
 |---|---|
-| `tests/permissions.spec.ts` | Badges présents après recherche (mock API), badge open/restricted/institutional corrects selon réponse mockée, chargement non-bloquant (résultats visibles avant badges), erreur /permissions → pas de crash + badge neutre, labels traduits en EN et FR |
+| `tests/permissions.spec.ts` | Badge open access, restricted, institutional, mode dégradé silencieux si l'API permissions échoue |
 
 ---
 
@@ -101,13 +96,15 @@ En tant qu'utilisateur connecté depuis un réseau institutionnel abonné, je ve
 | Lecture `X-Forwarded-For` côté FastAPI | FR-004 | ✅ Livré (`main.py` — priorité sur `request.client.host`) |
 | Fallback `unknown` sur `!docs` (erreur ou réponse vide) | SC-003 | ✅ Livré |
 | Fallback `unknown` sur réponse partielle (docs présent mais URL absente) | SC-003 | ✅ Livré (toutes les URLs initialisées à unknown avant le parcours docs) |
-| Tests Playwright | SC-001→004 | ✅ Livré (`front/tests/permissions.spec.ts`, 117 lignes, commit 34cf91e) |
+| Tests Playwright | SC-001→004 | ✅ Livré (`front/tests/permissions.spec.ts`, 4 tests) |
 
 ---
 
 ## Plan de complétion
 
-### Étape 1 — Proxy IP fiable (< 3h)
+Toutes les étapes ci-dessous sont livrées. Elles restent documentées comme historique d'implémentation.
+
+### Étape 1 — Proxy IP fiable (< 3h) ✅ FAIT
 
 Créer `front/app/api/permissions/route.ts` :
 - Reçoit les URLs en query string depuis le browser
@@ -119,11 +116,11 @@ Modifier `lib/api.ts` : `permissions()` appelle `/api/permissions` (route intern
 
 Modifier `search_api_solr/app/main.py` : `/permissions` garde `?ip=` comme override explicite pour les tests, puis lit `X-Forwarded-For`, puis `TEST_IP` en dev, puis `request.client.host`.
 
-### Étape 2 — Robustesse du statut neutre (< 1h)
+### Étape 2 — Robustesse du statut neutre (< 1h) ✅ FAIT
 
 Modifier `SearchContext.tsx` ou le futur `usePermissions.ts` pour mapper les erreurs, les réponses sans `docs`, et les URLs absentes d'une réponse partielle vers `{ status: "unknown", formats: [] }`.
 
-### Étape 3 — Tests Playwright (< 3h)
+### Étape 3 — Tests Playwright (< 3h) ✅ FAIT
 
 Créer `front/tests/permissions.spec.ts` avec mock `page.route('**/api/permissions*', ...)` :
 - Badge `open` affiché si `isPermitted=true` et `purchased=false`

@@ -1,8 +1,8 @@
 # Architecture — OpenEdition Search
 
-**Dernier audit**: 2026-04-19  
+**Dernier audit**: 2026-04-20
 **Branch active**: `feature/002-advanced-search-suite`  
-**État global**: Specs 001–011 livrées fonctionnellement. Dette résiduelle P0/P1/P2 planifiée dans `specs/PLANNING.md`.
+**État global**: Specs 001–011 livrées. Dette bloquante P0/P1/P2/P3 soldée ou acceptée explicitement dans `specs/PLANNING.md`.
 
 ---
 
@@ -77,7 +77,8 @@
 │  ├── POST /auth/login, POST /auth/register                  │
 │  ├── POST /auth/ldap/login                                  │
 │  ├── GET  /auth/sso/login  (redirect → IdP)                │
-│  ├── GET  /auth/sso/callback  (JWT en query — à durcir P0) │
+│  ├── GET  /auth/sso/callback  (émet sso_code court)       │
+│  ├── GET  /auth/sso/exchange   (échange code → JWT)        │
 │  └── GET/POST/DELETE /saved-searches                        │
 │                                                              │
 │  Services (DI via Depends()):                               │
@@ -189,18 +190,18 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 | Badges d'accès (permissions) | ✅ Complet | permissions.spec.ts |
 | Champs QB depuis `/facets/config` | ✅ Complet | — |
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
-| Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (19) |
+| Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (21) |
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
-| Authentification SSO OIDC | ✅ Fonctionnel, durcissement transport JWT requis | auth-ldap-sso.spec.ts |
+| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (12) |
 
 ---
 
 ## Maintenabilité
 
 ### Points forts
-- **DI backend partielle** : Services injectés via `Depends()`, interfaces définies (`ISearchService`, `ISearchBuilder`). La recherche principale passe par les services ; `/suggest` garde encore de la logique dans l'endpoint.
+- **DI backend** : Services injectés via `Depends()`, interfaces définies (`ISearchService`, `ISearchBuilder`). Recherche et suggestion passent par les services.
 - **Config JSON** : Facettes et champs Solr en JSON (`facets_json/`, `fields_json/`). Pas de recompilation pour modifier une facette.
-- **Hooks SOLID** : `SearchContext` est un assembleur — logique dans 6 hooks spécialisés. `useSearchApi` et `useUrlSync` restent volontairement plus longs que le seuil initial et sont planifiés en P2.
+- **Hooks SOLID** : `SearchContext` est un assembleur — logique dans 6 hooks spécialisés. `useUrlSync` est réduit via helpers purs ; `useSearchApi` reste volontairement orchestrateur.
 - **latestRef pattern** : Évite les stale closures dans `executeSearch` sans useCallback instable.
 - **Client API centralisé** : `lib/api.ts` — base URL, headers, auth en un seul endroit.
 - **Types centralisés** : `front/app/types.ts` — interfaces partagées entre composants et contextes.
@@ -210,18 +211,18 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 
 ### Dette technique résiduelle
 
-La dette résiduelle ci-dessous est ordonnée dans `specs/PLANNING.md`. Les anciennes dettes D2-D5 sont résolues, mais l'audit 2026-04-19 a rouvert des priorités de stabilisation.
+La dette bloquante ci-dessous est résolue. Les suites restantes sont listées dans `specs/PLANNING.md` comme vérification release ou amélioration opportuniste.
 
 | Priorité | Problème | Impact | Plan |
 |---|---|---|---|
-| P0 | `DELETE /cache/clear` exposé sans garde production | Purge cache possible si route accessible | Protéger par auth admin ou désactiver hors dev/test |
+| ✅ | `DELETE /cache/clear` exposé sans garde production | Résolu : HTTP 403 en production | — |
 | ✅ | JWT SSO transmis via query string | Résolu : code court hex32 → Redis TTL 60s → échange `/auth/sso/exchange` | — |
-| P0 | Secrets par défaut acceptables si production mal configurée | Risque de déploiement avec secret faible | Validator `Settings` bloquant en production |
-| P1 | `/suggest` contient parsing/cache dans l'endpoint | Responsabilité endpoint/service mélangée | Déplacer dans `SuggestService` |
-| P1 | `SearchService`/`SearchBuilder` utilisent encore `Dict[str, Any]` | Contrats moins sûrs et duplication dict/Pydantic | Faire circuler `SearchRequest` typé |
-| P1 | Réponses API publiques partiellement non typées | Contrat moins stable côté front | Ajouter `response_model` Pydantic |
-| P2 | `useSearchApi` 197 lignes, `useUrlSync` 143 lignes | Maintenance plus coûteuse | Extraire helpers testables |
-| P2 | `SearchContext` segmenté en interfaces mais consommé via `useSearch()` global | Couplage UI résiduel | Ajouter hooks selectors ou contexts ciblés |
+| ✅ | Secrets par défaut acceptables si production mal configurée | Résolu : `Settings` bloque les placeholders connus en production | — |
+| ✅ | `/suggest` contient parsing/cache dans l'endpoint | Résolu : `SuggestService.fetch_autocomplete_suggestions` | — |
+| ✅ | `SearchService`/`SearchBuilder` utilisent encore `Dict[str, Any]` | Résolu : `SearchRequest` circule jusqu'au builder | — |
+| ✅ | Réponses API publiques partiellement non typées | Résolu : `response_model` sur `/search`, `/suggest`, `/facets/config` | — |
+| ✅ | Hooks recherche/URL trop longs | Résolu/accepté : helpers extraits, `useUrlSync` réduit, `useSearchApi` orchestration conservée | — |
+| P2 optionnel | Composants consommant encore `useSearch()` global | Couplage UI résiduel | Migrer vers selectors lors des prochaines touches |
 
 ### Dettes résolues conservées comme historique
 
@@ -234,7 +235,9 @@ La dette résiduelle ci-dessous est ordonnée dans `specs/PLANNING.md`. Les anci
 
 ### Vérification récente
 
-| Commande | Résultat audit 2026-04-19 |
+| Commande | Résultat audit 2026-04-20 |
 |---|---|
-| `cd front && npm run lint` | Passe avec 23 warnings (`id-length`, `react-hooks/exhaustive-deps`, `<img>`) |
-| `cd search_api_solr && pytest` | Non validé localement : dépendances Python absentes dans l'environnement courant |
+| `cd front && pnpm run lint` | À relancer avant release |
+| `cd front && pnpm run test:e2e` | 66 tests documentés, à relancer avant release |
+| `make test` | Commande backend de référence Docker |
+| `python3 -m pytest ...` local Codex | Non lancé : module `pytest` absent dans l'environnement courant |

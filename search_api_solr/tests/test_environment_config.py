@@ -7,6 +7,8 @@ import pytest
 
 from app.settings import Settings, get_cors_origins, get_environment
 
+TEST_PRODUCTION_SECRET_KEY = "test-production-secret-key-that-is-not-a-placeholder"
+
 
 class TestEnvironmentDetection:
     """Tests pour la détection de l'environnement"""
@@ -70,7 +72,7 @@ class TestSettingsValidation:
 
     def test_environment_validation_valid(self):
         """Test la validation d'un environnement valide"""
-        settings = Settings(environment="production")
+        settings = Settings(environment="production", secret_key=TEST_PRODUCTION_SECRET_KEY)
         assert settings.environment == "production"
 
     def test_environment_validation_invalid(self):
@@ -82,7 +84,11 @@ class TestSettingsValidation:
     def test_cors_max_age_adjustment(self):
         """Test l'ajustement automatique de cors_max_age"""
         # Production
-        prod_settings = Settings(environment="production", cors_max_age=86400)
+        prod_settings = Settings(
+            environment="production",
+            cors_max_age=86400,
+            secret_key=TEST_PRODUCTION_SECRET_KEY,
+        )
         assert prod_settings.cors_max_age == 3600  # Doit être ajusté à 1h
 
         # Développement
@@ -97,7 +103,8 @@ class TestSettingsValidation:
         """Test l'ajustement des méthodes CORS en production"""
         settings = Settings(
             environment="production",
-            cors_allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            cors_allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            secret_key=TEST_PRODUCTION_SECRET_KEY,
         )
         # En production, seulement GET, POST, OPTIONS doivent être conservés
         assert settings.cors_allow_methods == ["GET", "POST", "OPTIONS"]
@@ -106,16 +113,26 @@ class TestSettingsValidation:
         """Test l'ajustement des headers CORS en production"""
         settings = Settings(
             environment="production",
-            cors_allow_headers=["Accept", "Authorization", "Content-Type", "X-Requested-With"]
+            cors_allow_headers=["Accept", "Authorization", "Content-Type", "X-Requested-With"],
+            secret_key=TEST_PRODUCTION_SECRET_KEY,
         )
         # En production, seulement les headers minimaux doivent être conservés
         assert settings.cors_allow_headers == ["Accept", "Authorization", "Content-Type"]
 
     def test_trusted_hosts_default_production(self):
         """Test les hôtes de confiance par défaut en production"""
-        settings = Settings(environment="production")
+        settings = Settings(environment="production", secret_key=TEST_PRODUCTION_SECRET_KEY)
         assert "search.openedition.org" in settings.trusted_hosts
         assert "www.openedition.org" in settings.trusted_hosts
+
+    @pytest.mark.parametrize(
+        "placeholder_secret_key",
+        ["your-secret-key-for-development", "change-me-in-production"],
+    )
+    def test_production_rejects_placeholder_secret_keys(self, placeholder_secret_key):
+        """Test que les placeholders de SECRET_KEY sont interdits en production"""
+        with pytest.raises(ValueError, match="SECRET_KEY must be changed"):
+            Settings(environment="production", secret_key=placeholder_secret_key)
 
 
 class TestEnvironmentSpecificSettings:
@@ -133,7 +150,11 @@ class TestEnvironmentSpecificSettings:
         """Fixture pour les settings de production"""
         monkeypatch.delenv("LOG_LEVEL", raising=False)
         monkeypatch.delenv("CORS_ORIGINS", raising=False)
-        return Settings(environment="production", _env_file=None)
+        return Settings(
+            environment="production",
+            secret_key=TEST_PRODUCTION_SECRET_KEY,
+            _env_file=None,
+        )
 
     @pytest.fixture
     def test_settings(self, monkeypatch):
@@ -205,6 +226,7 @@ LOG_LEVEL=DEBUG
 
         # Changer pour la production
         monkeypatch.setenv("ENVIRONMENT", "production")
+        monkeypatch.setenv("SECRET_KEY", TEST_PRODUCTION_SECRET_KEY)
         prod_settings = Settings()
         assert prod_settings.environment == "production"
         assert prod_settings.cors_max_age == 3600
@@ -236,7 +258,7 @@ class TestSecuritySettings:
 
     def test_https_redirect_settings(self):
         """Test la configuration de la redirection HTTPS"""
-        prod_settings = Settings(environment="production")
+        prod_settings = Settings(environment="production", secret_key=TEST_PRODUCTION_SECRET_KEY)
         dev_settings = Settings(environment="development")
 
         assert prod_settings.enable_https_redirect is True
@@ -244,7 +266,7 @@ class TestSecuritySettings:
 
     def test_trusted_hosts_settings(self):
         """Test la configuration des hôtes de confiance"""
-        prod_settings = Settings(environment="production")
+        prod_settings = Settings(environment="production", secret_key=TEST_PRODUCTION_SECRET_KEY)
         staging_settings = Settings(environment="staging")
         dev_settings = Settings(environment="development")
 
@@ -255,7 +277,11 @@ class TestSecuritySettings:
     def test_dev_mode_settings(self):
         """Test la configuration du mode développement"""
         dev_settings = Settings(environment="development", dev=True)
-        prod_settings = Settings(environment="production", dev=False)
+        prod_settings = Settings(
+            environment="production",
+            dev=False,
+            secret_key=TEST_PRODUCTION_SECRET_KEY,
+        )
 
         assert dev_settings.dev is True
         assert prod_settings.dev is False
