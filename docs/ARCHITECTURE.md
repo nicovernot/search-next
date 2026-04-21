@@ -1,7 +1,7 @@
 # Architecture — OpenEdition Search
 
 **Dernier audit**: 2026-04-20
-**Branch active**: `feature/002-advanced-search-suite`  
+**Branch active**: `main`  
 **État global**: Specs 001–011 livrées. Dette bloquante P0/P1/P2/P3 soldée ou acceptée explicitement dans `specs/PLANNING.md`.
 
 ---
@@ -192,7 +192,7 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
 | Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (21) |
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
-| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (12) |
+| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (14) |
 
 ---
 
@@ -238,6 +238,6 @@ La dette bloquante ci-dessous est résolue. Les suites restantes sont listées d
 | Commande | Résultat audit 2026-04-20 |
 |---|---|
 | `cd front && pnpm run lint` | À relancer avant release |
-| `cd front && pnpm run test:e2e` | 66 tests documentés, à relancer avant release |
+| `cd front && pnpm run test:e2e` | 68 tests documentés, à relancer avant release |
 | `make test` | Commande backend de référence Docker |
 | `python3 -m pytest ...` local Codex | Non lancé : module `pytest` absent dans l'environnement courant |

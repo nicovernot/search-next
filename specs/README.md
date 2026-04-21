@@ -20,7 +20,7 @@ specs/
 │   ├── tasks.md
 │   └── checklists/
 │       └── requirements.md
-├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (66 tests E2E documentés au total)
+├── 002-advanced-search-suite/ ✅ Livré — Recherche avancée, autocomplétion, comptes, recherches sauvegardées (68 tests E2E documentés au total)
 │   ├── spec.md
 │   ├── plan.md
 │   ├── tasks.md
@@ -46,6 +46,9 @@ specs/
 │   └── tasks.md
 ├── 011-auth-ldap-sso/         ✅ Livré — LDAP/SSO + échange SSO sécurisé par code court
 │   └── spec.md
+├── 012-semantic-search-api-platform/ ⚪ Backlog prioritaire — recherche sémantique, catégorisation disciplinaire, API mutualisable + SDK PHP/Python/Node.js
+│   ├── spec.md
+│   └── plan.md
 └── README.md
 ```
 
@@ -87,5 +90,6 @@ specs/
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
 | Vérification | Relancer `pnpm run lint`, `pnpm run test:e2e`, `make test` dans l'environnement cible | court | services disponibles | 🔁 À faire avant release |
+| P1 | 012 — Recherche sémantique, catégorisation disciplinaire, API mutualisable + SDKs | long | validation métier taxonomie + infra embeddings | ⚪ À cadrer |
 | P2 optionnel | Migrer progressivement les composants de `useSearch()` vers les hooks selectors | moyen | aucun | ⚪ Opportuniste |
 | P2 optionnel | Réduire `AuthModal.tsx` si de nouveaux modes d'auth sont ajoutés | moyen | aucun | ⚪ Opportuniste |

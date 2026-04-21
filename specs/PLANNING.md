@@ -7,7 +7,7 @@
 
 ## État global
 
-Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Il reste uniquement de la vérification de release et des améliorations opportunistes.
+Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Une nouvelle initiative prioritaire est ouverte : `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
 
 ---
 
@@ -68,21 +68,79 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 
 
 ## Ordre d'exécution recommandé
 
-1. **Vérification release** : relancer lint/tests dans l'environnement cible.
-2. **Migration opportuniste** : remplacer `useSearch()` par les hooks selectors quand un composant est modifié.
-3. **Préparation prochaine feature** : utiliser [`SKILLS.md`](SKILLS.md) pour déléguer les travaux IA.
+### Bloc 0 — Vérification release (prérequis immédiat)
+
+À faire avant tout démarrage de la spec 012 pour partir sur une base verte.
+
+1. Relancer `pnpm run lint` dans l'environnement cible.
+2. Relancer `pnpm run test:e2e` (68 tests Playwright).
+3. Relancer `make test` (backend Docker).
+
+### Bloc 1 — Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
+
+Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas le travail technique sur le namespace `/api/v1`, et inversement.
+
+4. **[Métier]** Valider la taxonomie disciplinaire et le jeu d'évaluation lexical vs hybride.
+5. **[Technique]** Consolider `/api/v1` — déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/`, publier `openapi.json`.
+6. Réunir les décisions de cadrage (taxonomie + périmètre public) dans `plan.md` avant de démarrer la Phase 2.
+
+### Bloc 2 — Socle disciplinaire (Phase 2) — dépend du Bloc 1 complet
+
+7. Ajouter `disciplines`, `discipline_source`, `discipline_confidence` aux modèles backend et frontend.
+8. Ajouter la facette discipline à la config backend et à l'UI.
+
+### Bloc 3 — Pipeline d'enrichissement IA (Phase 3) — dépend du Bloc 2
+
+9. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
+10. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
+
+### Bloc 4 — Recherche hybride (Phase 4) — dépend du Bloc 3
+
+11. Ajouter `SearchMode` aux modèles de requête.
+12. Fusionner scores Solr et pgvector côté backend.
+13. Déployer derrière feature flag par environnement.
+
+### Bloc 5 — SDKs officiels (Phase 5) — dépend du Bloc 1 (API stable) + Bloc 4 (contrat figé)
+
+14. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
+15. Packager, versionner, documenter chaque SDK.
+16. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
+
+### En parallèle / opportuniste
+
+- Migrer les composants de `useSearch()` vers les hooks selectors lors des prochaines touches.
 
 ---
 
 ## Reste à faire
 
-| Priorité | Item | Pourquoi | Sortie attendue |
+### Vérification release (avant tout)
+
+| Item | Pourquoi | Sortie attendue |
+|---|---|---|
+| Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
+| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright documentés | Suite E2E verte ou écarts documentés |
+| Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
+
+### Spec 012 — par phase et dépendances
+
+| Phase | Item | Prérequis | Sortie attendue |
 |---|---|---|---|
-| Release | Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
-| Release | Relancer `pnpm run test:e2e` | Vérifier les 66 tests Playwright documentés | Suite E2E verte ou écarts documentés |
-| Release | Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
-| P2 optionnel | Migrer les consommateurs `useSearch()` vers `useSearchQuery/Results/Filters/Suggestions/Permissions` | Réduire le couplage UI restant | PRs opportunistes par composant |
-| P2 optionnel | Extraire encore `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
+| ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
+| Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
+| Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
+| Ph.1 | Consolider `/api/v1` et publier OpenAPI | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable |
+| Ph.2 | Ajouter modèle disciplinaire (backend + frontend + facette) | Ph.0 taxonomie validée | Champs + facette discipline opérationnels |
+| Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.1 + Ph.2 | Jobs batch + stockage PG/pgvector |
+| Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
+| Ph.5 | Générer SDKs Node.js, Python, PHP + CI sync | Ph.1 (API stable) + Ph.4 (contrat figé) | Packages + exemples + CI |
+
+### Optionnel / opportuniste
+
+| Item | Pourquoi | Sortie attendue |
+|---|---|---|
+| Migrer composants `useSearch()` → hooks selectors | Réduire le couplage UI résiduel | PRs ciblées par composant touché |
+| Extraire `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
 ---
 
@@ -92,7 +150,7 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 
 |---|---|
 | Specs 001–011 | ✅ Toutes livrées |
 | Auth LDAP/SSO + transport JWT | ✅ Complet (2026-04-20) |
-| URL sync (004) | ✅ Livré — 19 tests E2E |
+| URL sync (004) | ✅ Livré — 21 tests E2E |
 | Permissions (005) | ✅ Livré — badges, proxy IP, fallback `unknown` |
 | Refactor SearchContext (007) | ✅ Livré — assembleur + 6 hooks SOLID + selectors |
 | Qualité code (008/009/010) | ✅ Livré — dette bloquante soldée (2026-04-20) |
@@ -103,6 +161,7 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
 | Docs / architecture | ✅ Synchronisés (2026-04-20) |
+| Spec 012 | ⚪ À lancer — recherche sémantique, disciplines, API mutualisable, SDKs |
 
 ### Écarts connus (dette acceptée)
 
@@ -111,6 +170,7 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 
 - Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
+- `/api/v1` partiel : `saved_searches` est déjà sous `app/api/v1/` mais `/search`, `/suggest`, `/facets/config` restent à la racine — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
 
 ---
 
@@ -129,6 +189,7 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0, P1, P2 
 | 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
+| 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
 
 ---
 
