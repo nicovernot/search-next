@@ -62,12 +62,46 @@
 
 > Prérequis : Phase 0 (taxonomie + audit Solr) + Phase 1 (`SearchResponse.results` typé).
 
-- [ ] Figer les types dans les modèles : `disciplines: list[str]`, `discipline_source: Literal["source_metadata", "inferred", "manual_override"]`, `discipline_confidence: float` (0.0–1.0)
-- [ ] Ajouter ces champs à `document.py` (`DocumentBase`) et à `search_models.py` si nécessaire
-- [ ] Propager jusqu'au frontend : `front/app/types.ts`, `ResultItem.tsx`, `Facets.tsx`
-- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) et à l'UI
-- [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0
-- [ ] Prévoir le mécanisme d'override manuel (hors UI dans un premier temps)
+### 2.1 — Schéma PostgreSQL et taxonomie
+
+- [ ] Créer la migration Alembic pour la table `discipline` (code PK, label_fr, label_en, parent_code auto-référentiel)
+- [ ] Peupler la table `discipline` depuis la taxonomie validée en Phase 0 (script de seed ou fixture Alembic)
+- [ ] Créer la migration Alembic pour la table `document_enrichment` :
+  - `doc_id VARCHAR` (clé Solr — pas de FK SQL, cohérence garantie par le pipeline)
+  - `model_version VARCHAR`
+  - `embedding vector(N)` (N = 768 pour multilingual-e5-large, 1024 pour bge-m3)
+  - `disciplines VARCHAR[]` (codes depuis `discipline.code`)
+  - `discipline_source VARCHAR`, `discipline_confidence FLOAT`, `text_input TEXT`, `computed_at TIMESTAMPTZ`
+  - Contrainte `UNIQUE (doc_id, model_version)` — permet la coexistence de plusieurs versions pendant ré-indexation
+  - Index `ivfflat (embedding vector_cosine_ops)` avec `lists = sqrt(nb_docs_estimé)`
+  - Index classique sur `doc_id`
+
+### 2.2 — Modèles Pydantic et SQLAlchemy
+
+- [ ] Créer `app/models/document_enrichment.py` (SQLAlchemy ORM, conventions `Base` existantes)
+- [ ] Figer les types Pydantic : `disciplines: list[str]`, `discipline_source: Literal["source_metadata", "inferred", "manual_override"]`, `discipline_confidence: float | None`
+- [ ] Ajouter ces champs à `document.py` (`DocumentBase`) — optionnels (`= None`) pour rétrocompatibilité
+- [ ] Ajouter `active_model_version: str` à `Settings` pour que le service sache quelle version lire
+
+### 2.3 — Enrichissement au moment de la réponse (merge Solr ↔ PG)
+
+- [ ] Implémenter `SearchService._enrich_with_pg(solr_docs, db)` :
+  - Requête `IN` sur les `doc_id` des résultats courants (≤ `page_size`, coût négligeable)
+  - Filtre sur `model_version == settings.active_model_version`
+  - Merge des champs disciplines dans chaque doc Solr
+  - Fallback gracieux si enrichissement absent (nouveau doc non encore indexé) : `disciplines=[]`
+- [ ] Injecter la session DB dans `SearchService` via `Depends(get_db)` (pattern existant dans le projet)
+
+### 2.4 — Frontend et facette discipline
+
+- [ ] Propager les champs disciplines jusqu'au frontend : `front/app/types.ts`, `ResultItem.tsx`
+- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) et à l'UI (`Facets.tsx`)
+  - La facette discipline est servie depuis PostgreSQL (pas Solr) — requête `GROUP BY unnest(disciplines)`
+- [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0 (dans le pipeline batch)
+
+### 2.5 — Override manuel
+
+- [ ] Prévoir le mécanisme d'override manuel via `discipline_source = "manual_override"` — hors UI dans un premier temps (opéré par requête SQL ou script admin)
 - [ ] Marquer Ph.2 comme ✅ dans `specs/PLANNING.md`
 
 ---
@@ -80,9 +114,8 @@
 
 - [ ] Vérifier la version PostgreSQL de l'infra cible (pgvector requiert PG ≥ 14)
 - [ ] Ajouter `pgvector>=0.3.0` et `sentence-transformers>=3.0` à `requirements.txt`
-- [ ] Créer migration Alembic : `CREATE EXTENSION IF NOT EXISTS vector` + table `document_enrichments`
-  - Colonnes : `doc_id`, `embedding vector(N)`, `disciplines`, `discipline_source`, `discipline_confidence`, `model_version`, `computed_at`, `text_input`
-  - Index : `CREATE INDEX ON document_enrichments USING ivfflat (embedding vector_cosine_ops)` pour la recherche ANN
+- [ ] Vérifier que la migration Phase 2 a bien créé `document_enrichment` avec l'extension `vector` et l'index `ivfflat`
+- [ ] Calibrer le paramètre `lists` de l'index `ivfflat` selon le nombre de documents estimés (`lists ≈ sqrt(nb_docs)` : 100 pour 10k docs, 316 pour 100k docs)
 
 ### 3.2 — Export Solr par curseur
 

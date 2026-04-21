@@ -37,6 +37,215 @@ Pipeline d'enrichissement asynchrone
 └── calcul d'embeddings multilingues
 ```
 
+## Modèle de données — liens entre documents, disciplines et vecteurs
+
+### Principe fondamental : Solr et PostgreSQL sont deux mondes indépendants
+
+Les documents vivent dans Solr (distant, en lecture seule pour ce projet). PostgreSQL stocke uniquement les enrichissements calculés. Le lien entre les deux est le **`doc_id` Solr** — clé stable présente dans chaque document Solr, stockée dans `document_enrichment.doc_id`.
+
+```
+Solr (lecture seule)                 PostgreSQL (enrichissements)
+─────────────────────                ───────────────────────────────────────
+doc { id: "OJ-12345",      ←──────  document_enrichment { doc_id: "OJ-12345"
+      title: "Histoire...",            embedding: vector(768)
+      overview: "..."  }              disciplines: ["histoire", "sociologie"]
+                                      discipline_source: "source_metadata"
+                                      discipline_confidence: 0.91
+                                      model_version: "multilingual-e5-large-v1"
+                                      text_input: "Histoire... ."
+                                      computed_at: 2026-04-21T02:00 }
+                             ←──────
+                                     discipline { code: "histoire"
+                                                  label_fr: "Histoire"
+                                                  label_en: "History"
+                                                  parent_code: null }
+```
+
+Il n'existe **pas de clé étrangère SQL entre Solr et PostgreSQL** — le `doc_id` est une chaîne opaque. La cohérence est garantie par le pipeline d'enrichissement (il lit Solr, écrit en PG) et par les requêtes de couverture (Phase 3.6).
+
+---
+
+### Schéma PostgreSQL complet
+
+#### Table `discipline` — taxonomie (source de vérité des codes valides)
+
+```sql
+CREATE TABLE discipline (
+    code        VARCHAR PRIMARY KEY,        -- "histoire" (stable, jamais modifié)
+    label_fr    VARCHAR NOT NULL,           -- "Histoire"
+    label_en    VARCHAR NOT NULL,           -- "History"
+    parent_code VARCHAR REFERENCES discipline(code)  -- null = discipline racine
+);
+```
+
+Peuplée une fois depuis la taxonomie validée en Phase 0. Les codes sont des chaînes courtes stables — le libellé peut évoluer, le code ne change jamais (les `disciplines[]` dans `document_enrichment` référencent ces codes).
+
+#### Table `document_enrichment` — enrichissements calculés
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE document_enrichment (
+    id                    SERIAL PRIMARY KEY,
+    doc_id                VARCHAR NOT NULL,               -- id Solr, ex: "OJ-12345"
+    model_version         VARCHAR NOT NULL,               -- "multilingual-e5-large-v1"
+
+    -- Vecteur sémantique (768 = multilingual-e5-large, 1024 = bge-m3)
+    embedding             vector(768),
+
+    -- Disciplines calculées (codes référençant discipline.code)
+    disciplines           VARCHAR[],                      -- ["histoire", "sociologie"]
+    discipline_source     VARCHAR,                        -- "source_metadata" | "inferred" | "manual_override"
+    discipline_confidence FLOAT,                          -- 0.0–1.0
+
+    -- Traçabilité
+    text_input            TEXT,                           -- texte exact utilisé pour l'embedding
+    computed_at           TIMESTAMPTZ DEFAULT now(),
+
+    CONSTRAINT uq_doc_model UNIQUE (doc_id, model_version)
+);
+
+-- Index ANN pour la recherche vectorielle (cosine similarity)
+-- lists ≈ sqrt(nb_docs) : 100 pour 10k docs, 316 pour 100k docs
+CREATE INDEX ON document_enrichment USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+-- Index classique pour les lookups doc_id → enrichissement
+CREATE INDEX ix_doc_enrichment_doc_id ON document_enrichment (doc_id);
+```
+
+**Pourquoi `UNIQUE (doc_id, model_version)` et pas `UNIQUE (doc_id)` ?**
+Lors d'un changement de modèle, les anciens vecteurs restent en base pendant la ré-indexation — cela permet de basculer progressivement vers la nouvelle version sans trou de couverture. Le service lit toujours la version active (`ACTIVE_MODEL_VERSION` dans `settings.py`).
+
+**Pourquoi `VARCHAR[]` pour `disciplines` et pas une table de jointure ?**
+- Les disciplines sont lues bien plus souvent qu'écrites (enrichissement batch, lecture à chaque requête).
+- `VARCHAR[]` permet une requête directe : `WHERE 'histoire' = ANY(disciplines)`.
+- Une table de jointure (`document_discipline`) serait plus flexible pour des requêtes complexes mais ajoute une jointure sur le chemin critique de chaque réponse. Ce compromis est acceptable pour une taxonomie courte (≤ 30 disciplines).
+- Si la taxonomie devient hiérarchique et nécessite des requêtes de type "tous les articles de sciences humaines et de ses sous-disciplines", une table de jointure sera introduite dans une spec dédiée.
+
+---
+
+### Comment les disciplines sont liées aux documents à l'exécution
+
+#### Phase d'écriture (pipeline batch)
+
+```python
+# enrichment_job.py — niveau 1 : disciplines depuis métadonnées Solr
+discipline_map = load_taxonomy_from_db(db)   # {solr_field_value: discipline_code}
+
+for doc in solr_batch:
+    raw_subjects = doc.get("subject", [])    # champ Solr audité en Phase 0
+    disciplines = [
+        discipline_map[s] for s in raw_subjects
+        if s in discipline_map
+    ]
+    source = "source_metadata" if disciplines else None
+
+    # niveau 2 : classification inférée si aucune métadonnée source
+    if not disciplines:
+        disciplines, confidence = classifier.predict(doc["title"], doc.get("overview"))
+        source = "inferred"
+    else:
+        confidence = 1.0  # métadonnée source = confiance maximale
+
+    db.merge(DocumentEnrichment(
+        doc_id=doc["id"],
+        model_version=ACTIVE_MODEL_VERSION,
+        embedding=model.encode(build_text(doc)).tolist(),
+        disciplines=disciplines,
+        discipline_source=source,
+        discipline_confidence=confidence,
+        text_input=build_text(doc),
+    ))
+```
+
+#### Phase de lecture (chemin HTTP — SearchService)
+
+```python
+# search_service.py — après récupération des résultats Solr
+async def _enrich_with_pg(self, solr_docs: list[dict], db: Session) -> list[dict]:
+    doc_ids = [d["id"] for d in solr_docs]
+
+    enrichments = (
+        db.query(DocumentEnrichment)
+        .filter(
+            DocumentEnrichment.doc_id.in_(doc_ids),
+            DocumentEnrichment.model_version == settings.active_model_version,
+        )
+        .all()
+    )
+    enrichment_map = {e.doc_id: e for e in enrichments}
+
+    for doc in solr_docs:
+        e = enrichment_map.get(doc["id"])
+        if e:
+            doc["disciplines"]           = e.disciplines or []
+            doc["discipline_source"]     = e.discipline_source
+            doc["discipline_confidence"] = e.discipline_confidence
+        else:
+            # document sans enrichissement (nouveau doc pas encore indexé)
+            doc["disciplines"]           = []
+            doc["discipline_source"]     = None
+            doc["discipline_confidence"] = None
+
+    return solr_docs
+```
+
+Ce merge Solr ↔ PG est **une requête IN** sur les `doc_id` des résultats courants (≤ `page_size`, généralement 10–20 docs) — coût négligeable.
+
+---
+
+### Comment les vecteurs sont liés aux documents à l'exécution
+
+#### Recherche sémantique (mode `semantic`)
+
+```
+Requête utilisateur: "impact du changement climatique sur l'agriculture"
+         │
+         ▼
+SentenceTransformer.encode()  →  query_vector [0.12, -0.34, ..., 0.07]
+         │
+         ▼
+SELECT doc_id, 1 - (embedding <=> query_vector) AS score
+FROM document_enrichment
+WHERE model_version = 'multilingual-e5-large-v1'
+ORDER BY embedding <=> query_vector   -- opérateur cosine distance pgvector
+LIMIT 50;
+         │
+         ▼
+[doc_ids ordonnés par similarité sémantique]
+         │
+         ▼
+Solr: SELECT * WHERE id IN (doc_ids)  →  données complètes des documents
+```
+
+L'opérateur `<=>` est l'opérateur de distance cosine de pgvector. L'index `ivfflat` rend cette requête approximative mais sub-linéaire — sans index, chaque recherche calculerait la distance à tous les vecteurs.
+
+#### Recherche hybride (mode `hybrid`) — fusion RRF
+
+```
+Solr (lexical)          pgvector (sémantique)
+  rank 1: OJ-111          rank 1: OJ-999
+  rank 2: OJ-222          rank 2: OJ-111
+  rank 3: OJ-333          rank 3: OJ-444
+       │                        │
+       └──────────┬─────────────┘
+                  ▼
+         RRF: score(doc) = 1/(60+rank_solr) + 1/(60+rank_pgvector)
+                  │
+                  ▼
+         OJ-111 : 1/61 + 1/62 = 0.0327  ← gagne car présent dans les deux
+         OJ-999 : 0    + 1/61 = 0.0164
+         OJ-222 : 1/62 + 0    = 0.0161
+                  │
+                  ▼
+         Résultats fusionnés, triés par score RRF décroissant
+```
+
+Un document absent du résultat pgvector (pas encore indexé) obtient un score RRF partiel — il reste visible via Solr. La couverture partielle ne dégrade pas la recherche lexicale.
+
+---
+
 ## Phases
 
 ### Phase 0 - Cadrage métier et technique
