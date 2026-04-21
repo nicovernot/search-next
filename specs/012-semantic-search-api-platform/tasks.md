@@ -94,8 +94,10 @@
 
 ### 2.4 — Frontend et facette discipline
 
-- [ ] Propager les champs disciplines jusqu'au frontend : `front/app/types.ts`, `ResultItem.tsx`
-- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) et à l'UI (`Facets.tsx`)
+- [ ] Ajouter `disciplines: string[]`, `discipline_source: string | null`, `discipline_confidence: number | null` à l'interface `SearchDoc` dans `front/app/types.ts` (champs optionnels pour rétrocompatibilité)
+- [ ] Afficher les disciplines comme badges dans `ResultItem.tsx` (pattern : comme `AccessBadge` — un badge par discipline, style neutre)
+- [ ] Ajouter les i18n keys nécessaires dans les 6 fichiers de traduction (`front/public/locales/{fr,en,de,it,es,pt}/common.json`) : au minimum `discipline.label`, `discipline.source.source_metadata`, `discipline.source.inferred`, `discipline.source.manual_override`
+- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) avec les buckets renvoyant label_fr/label_en — `Facets.tsx` n'a pas besoin de modification structurelle (déjà dynamique)
   - La facette discipline est servie depuis PostgreSQL (pas Solr) — requête `GROUP BY unnest(disciplines)`
 - [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0 (dans le pipeline batch)
 
@@ -161,13 +163,26 @@
 
 > Prérequis : Phase 3 (pgvector actif + embeddings calculés).
 
+### 4.1 — Backend
+
 - [ ] Ajouter `semantic_search_enabled: bool = False` dans `Settings` (`settings.py`) + variable d'env `SEMANTIC_SEARCH_ENABLED`
-- [ ] Ajouter `mode: Literal["lexical", "semantic", "hybrid"] = "lexical"` à `SearchRequest`
+- [ ] Ajouter `mode: Literal["lexical", "semantic", "hybrid"] = "hybrid"` à `SearchRequest` (défaut `"hybrid"` côté API, mais ignoré tant que `semantic_search_enabled=False`)
+- [ ] Ajouter `semantic_score: float | None = None` à `DocumentResponse` (champ debug — exposé dans la réponse API, jamais rendu en UI publique)
 - [ ] Implémenter la requête vectorielle pgvector dans `search_service.py` (embed de la requête → recherche ANN)
 - [ ] Implémenter la fusion RRF (k=60) entre résultats Solr et pgvector
-- [ ] Exposer `semantic_score` en debug, masquer si non pertinent côté UI publique
 - [ ] Vérifier que le mode `lexical` n'est jamais dégradé quand `semantic_search_enabled=False`
 - [ ] Ajouter tests backend pour les trois modes (`lexical`, `semantic`, `hybrid`)
+
+### 4.2 — Frontend
+
+- [ ] Ajouter `apiSearchMode: "lexical" | "semantic" | "hybrid"` dans `SearchContext` (distinct de `searchMode: "simple" | "advanced"` existant) — valeur par défaut : `"hybrid"`
+- [ ] Envoyer `mode: apiSearchMode` dans `buildSearchPayload()` (`front/app/lib/search-payload.ts`)
+- [ ] Ajouter `semantic_score?: number` à `SearchDoc` dans `front/app/types.ts` (champ optionnel debug — ne pas l'afficher dans les composants publics)
+- [ ] Vérifier que `front/app/lib/api.ts` transmet correctement le paramètre `mode` dans le body de la requête
+- [ ] Ajouter un test Playwright vérifiant que la recherche hybride retourne des résultats sans régression (golden path)
+
+### 4.3 — Finalisation
+
 - [ ] Marquer Ph.4 comme ✅ dans `specs/PLANNING.md`
 
 ---

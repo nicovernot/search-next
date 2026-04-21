@@ -104,6 +104,30 @@ En tant qu'administrateur métier, je veux distinguer les disciplines issues des
 - Solr est distant et déjà intégré ; le remplacer ou le transformer en moteur vectoriel principal serait plus risqué que de lui adjoindre une couche vectorielle.
 - FastAPI expose déjà un schéma OpenAPI natif ; c'est le meilleur point d'appui pour des SDKs réalistes à court terme.
 
+## Frontend
+
+### Décisions prises pour l'intégration frontend
+
+**Séparation `searchMode` / `apiSearchMode`**
+
+Le frontend utilise déjà `searchMode: "simple" | "advanced"` pour distinguer la recherche simple de la recherche avancée (formulaire étendu). Cette variable ne doit pas être confondue avec le mode de recherche API. Une nouvelle variable `apiSearchMode: "lexical" | "semantic" | "hybrid"` sera ajoutée dans `SearchContext` et envoyée dans le payload sous la clé `mode`.
+
+**Transparence de la recherche hybride**
+
+Par défaut, `apiSearchMode = "hybrid"` sans sélecteur exposé dans l'UI publique. La sémantique est transparente pour l'utilisateur final. Aucun bouton "sémantique/lexical" n'est prévu dans l'interface principale.
+
+**Labels de discipline portés par le backend**
+
+Les labels des disciplines (fr/en) sont renvoyés directement dans les buckets de facette par le backend. Pas d'endpoint `/disciplines` séparé, pas de table de référence chargée côté frontend. La facette discipline suit le même pattern que les autres facettes — `Facets.tsx` n'a pas besoin d'être modifié structurellement.
+
+**`semantic_score` jamais visible en UI publique**
+
+Le score de pertinence sémantique n'est pas affiché dans l'interface utilisateur. Il peut être exposé en mode debug (réponse API, headers), mais ne doit pas apparaître dans les composants publics.
+
+**Badges de discipline dans `ResultItem.tsx`**
+
+Les disciplines sont affichées comme badges dans chaque résultat, sur le modèle du composant `AccessBadge` existant. Les labels sont issus directement des données retournées par l'API (pas de mapping côté frontend). Les i18n keys nécessaires couvrent les 6 langues déjà supportées (fr, en, de, it, es, pt).
+
 ## API Evolution
 
 ### Évolutions minimales attendues
@@ -112,7 +136,8 @@ En tant qu'administrateur métier, je veux distinguer les disciplines issues des
 - Étendre le modèle de document retourné avec :
   - `disciplines`
   - `discipline_source`
-  - `semantic_score` si pertinent
+  - `discipline_confidence` (optionnel)
+  - `semantic_score` (debug uniquement, jamais visible en UI publique)
 - Publier une documentation d'API versionnée destinée à d'autres applications.
 - Préserver les usages frontend actuels via compatibilité ascendante pendant la migration.
 
