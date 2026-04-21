@@ -131,7 +131,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
 | Ph.1 | Consolider `/api/v1` et publier OpenAPI | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable |
 | Ph.2 | Ajouter modèle disciplinaire (backend + frontend + facette) | Ph.0 taxonomie validée | Champs + facette discipline opérationnels |
-| Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.1 + Ph.2 | Jobs batch + stockage PG/pgvector |
+| Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
 | Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
 | Ph.5 | Générer SDKs Node.js, Python, PHP + CI sync | Ph.1 (API stable) + Ph.4 (contrat figé) | Packages + exemples + CI |
 

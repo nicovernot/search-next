@@ -78,7 +78,7 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 - **Résultat** : taxonomie disciplinaire validée, périmètre endpoints publics décidé, prérequis infra identifiés, `tasks.md` créé pour la Phase 1.
 - **Dépendances** : spec 012 (`spec.md` + `plan.md`), `TECHNICAL_REQUIREMENTS.md`, specs 001 et 002.
 - **Entrées** : `specs/012-semantic-search-api-platform/spec.md`, `plan.md`, `search_api_solr/app/main.py`, `search_api_solr/app/models/search_models.py`, `search_api_solr/app/api/v1/`.
-- **Sorties** : `tasks.md` Phase 1 + décisions de cadrage documentées dans `plan.md`.
+- **Sorties** : `specs/012-semantic-search-api-platform/tasks.md` Phase 1 + décisions de cadrage enrichissant la section "Decisions Already Recommended" de `plan.md`.
 - **Tests/vérifications** : le namespace `/api/v1` est consolidé, les `response_model` publics couvrent tous les endpoints exposés aux tiers, le contrat OpenAPI est publié et versionné.
 
 ## SKILL 9 — VersionnerAPIPubliqueRésultat
@@ -124,7 +124,7 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 
 ### Prompt — CadrerRechercheSemantiqueRésultat
 
-> Prépare le cadrage de la spec 012 : audite les métadonnées disciplinaires disponibles dans les documents Solr, propose une taxonomie restreinte et validable, décide du périmètre exact des endpoints publics `/api/v1`, et crée `specs/012-semantic-search-api-platform/tasks.md` pour la Phase 1 (stabilisation API). Documente les décisions dans `plan.md` sous une section "Décisions de cadrage". Ne commence pas l'implémentation.
+> Prépare le cadrage de la spec 012 : audite les métadonnées disciplinaires disponibles dans les documents Solr, propose une taxonomie restreinte et validable, décide du périmètre des endpoints destinés aux applications tierces (`/api/v1/search`, `/suggest`, `/facets/config`, `/permissions`) et des endpoints à usage interne uniquement. Crée `specs/012-semantic-search-api-platform/tasks.md` pour la Phase 1 (stabilisation API). Enrichis la section "Decisions Already Recommended" de `plan.md` avec les décisions de cadrage. Ne commence pas l'implémentation.
 
 ### Prompt — VersionnerAPIPubliqueRésultat
 

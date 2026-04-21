@@ -91,10 +91,10 @@ En tant qu'administrateur métier, je veux distinguer les disciplines issues des
 - **Recherche sémantique**: ajout d'un index vectoriel parallèle stocké en PostgreSQL via `pgvector`, interrogé par le backend FastAPI.
 - **Fusion des résultats**: stratégie hybride côté backend avec pondération configurable entre score lexical Solr et score sémantique.
 - **Embeddings**: service Python d'enrichissement batch/asynchrone s'appuyant sur `sentence-transformers`.
-- **Catégorisation disciplinaire**:
-  - phase 1: mapping depuis les métadonnées existantes si disponibles ;
-  - phase 2: classification automatique supervisée ou zero-shot guidée par taxonomie restreinte ;
-  - phase 3: overrides manuels si besoin métier.
+- **Catégorisation disciplinaire** — trois niveaux de priorité, tous implémentés durant la Phase 2 technique du plan :
+  - niveau 1 (prioritaire) : mapping depuis les métadonnées existantes si disponibles ;
+  - niveau 2 (fallback) : classification automatique supervisée ou zero-shot guidée par taxonomie restreinte ;
+  - niveau 3 (correction) : overrides manuels si besoin métier.
 - **SDKs**: génération depuis OpenAPI avec `openapi-generator` ou outil équivalent, puis couche minimale de packaging/documentation par langage.
 
 ### Pourquoi ce choix
@@ -147,5 +147,5 @@ En tant qu'administrateur métier, je veux distinguer les disciplines issues des
 ## Dependencies
 
 - Dépend de `001-search-core` et `002-advanced-search-suite` pour les flux de recherche existants.
-- Dépend de `TECHNICAL_REQUIREMENTS.md` pour la gouvernance des contrats, tests et qualité.
+- Dépend de `TECHNICAL_REQUIREMENTS.md` pour la gouvernance des contrats, tests et qualité — en particulier § 3 (contrats API versionnés, SDK), § 9 (tests), § 11 (exigences recherche sémantique et enrichissements).
 - Impacte potentiellement `docs/ARCHITECTURE.md`, la documentation d'environnement et les pipelines d'indexation à venir.

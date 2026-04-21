@@ -48,7 +48,8 @@ specs/
 │   └── spec.md
 ├── 012-semantic-search-api-platform/ ⚪ Backlog prioritaire — recherche sémantique, catégorisation disciplinaire, API mutualisable + SDK PHP/Python/Node.js
 │   ├── spec.md
-│   └── plan.md
+│   ├── plan.md
+│   └── tasks.md
 └── README.md
 ```
 
