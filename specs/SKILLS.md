@@ -75,20 +75,29 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 ## SKILL 8 — CadrerRechercheSemantiqueRésultat
 
 - **Intention** : cadrer et préparer la spec 012 (recherche sémantique, catégorisation disciplinaire, API mutualisable) en lien avec les équipes métier et techniques.
-- **Résultat** : taxonomie disciplinaire validée, périmètre endpoints publics décidé, prérequis infra identifiés, `tasks.md` créé pour la Phase 1.
+- **Résultat** : taxonomie disciplinaire validée, périmètre endpoints publics décidé, prérequis infra identifiés, découpage `Lot 1 / Lot 2` documenté, `tasks.md` maintenu à jour.
 - **Dépendances** : spec 012 (`spec.md` + `plan.md`), `TECHNICAL_REQUIREMENTS.md`, specs 001 et 002.
 - **Entrées** : `specs/012-semantic-search-api-platform/spec.md`, `plan.md`, `search_api_solr/app/main.py`, `search_api_solr/app/models/search_models.py`, `search_api_solr/app/api/v1/`.
-- **Sorties** : `specs/012-semantic-search-api-platform/tasks.md` Phase 1 + décisions de cadrage enrichissant la section "Decisions Already Recommended" de `plan.md`.
-- **Tests/vérifications** : le namespace `/api/v1` est consolidé, les `response_model` publics couvrent tous les endpoints exposés aux tiers, le contrat OpenAPI est publié et versionné.
+- **Sorties** : `specs/012-semantic-search-api-platform/tasks.md` réaligné, décisions de cadrage enrichissant la section "Decisions Already Recommended" de `plan.md`, priorités de livraison clarifiées.
+- **Tests/vérifications** : les documents n'impliquent pas à tort que `/api/v1` ou la sémantique sont déjà livrés ; le Lot 1 est clairement identifié comme prérequis du Lot 2.
 
 ## SKILL 9 — VersionnerAPIPubliqueRésultat
 
 - **Intention** : consolider le namespace `/api/v1` partiel et publier un contrat OpenAPI stable pour les usages externes.
-- **Résultat** : `/search`, `/suggest`, `/facets/config` déplacés sous `app/api/v1/` avec compatibilité ascendante ; contrat OpenAPI versionné et exportable.
+- **Résultat** : `/search`, `/suggest`, `/facets/config` déplacés sous `app/api/v1/` avec compatibilité ascendante ; contrat OpenAPI versionné et exportable ; champs documentaires futurs préparés côté contrat.
 - **Dépendances** : SKILL 8 (cadrage 012), spec 012 Phase 1, `TECHNICAL_REQUIREMENTS.md` § 3.
 - **Entrées** : `search_api_solr/app/main.py`, `search_api_solr/app/api/v1/`, `search_api_solr/app/models/search_models.py`.
-- **Sorties** : router `v1` complet, alias de compatibilité, `openapi.json` exporté, tests backend mis à jour.
+- **Sorties** : router `v1` complet, alias de compatibilité, `openapi.json` exporté, tests backend mis à jour, contrat documentaire prêt pour les phases disciplines/sémantique.
 - **Tests/vérifications** : `make test`, vérification que les routes racine retournent toujours les bonnes réponses pendant la transition, contrat OpenAPI générable sans erreur.
+
+## SKILL 10 — PréparerContratDisciplinesRésultat
+
+- **Intention** : figer le contrat backend/frontend des disciplines avant l'implémentation de la pipeline d'enrichissement.
+- **Résultat** : champs `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` ajoutés comme champs optionnels et rétrocompatibles dans les modèles et types.
+- **Dépendances** : SKILL 9, spec 012 Phase 1 et Phase 2.
+- **Entrées** : `search_api_solr/app/models/document.py`, `search_api_solr/app/models/search_models.py`, `front/app/types.ts`, `front/app/components/ResultItem.tsx`.
+- **Sorties** : contrat documentaire stable, frontend compatible, aucune activation prématurée de la sémantique.
+- **Tests/vérifications** : tests backend sur les schémas API, vérification que le frontend tolère l'absence de valeurs enrichies.
 
 ---
 
@@ -124,8 +133,12 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 
 ### Prompt — CadrerRechercheSemantiqueRésultat
 
-> Prépare le cadrage de la spec 012 : audite les métadonnées disciplinaires disponibles dans les documents Solr, propose une taxonomie restreinte et validable, décide du périmètre des endpoints destinés aux applications tierces (`/api/v1/search`, `/suggest`, `/facets/config`, `/permissions`) et des endpoints à usage interne uniquement. Crée `specs/012-semantic-search-api-platform/tasks.md` pour la Phase 1 (stabilisation API). Enrichis la section "Decisions Already Recommended" de `plan.md` avec les décisions de cadrage. Ne commence pas l'implémentation.
+> Prépare le cadrage de la spec 012 : audite les métadonnées disciplinaires disponibles dans les documents Solr, propose une taxonomie restreinte et validable, décide du périmètre des endpoints destinés aux applications tierces (`/api/v1/search`, `/suggest`, `/facets/config`, `/permissions`) et des endpoints à usage interne uniquement. Réaligne `spec.md`, `plan.md` et `tasks.md` autour d'un découpage `Lot 1 = contrat/API` puis `Lot 2 = disciplines + sémantique`. Enrichis la section "Decisions Already Recommended" de `plan.md` avec les décisions de cadrage. Ne commence pas l'implémentation.
 
 ### Prompt — VersionnerAPIPubliqueRésultat
 
 > Consolide le namespace `/api/v1` partiel : déplace `/search`, `/suggest` et `/facets/config` depuis `main.py` vers `search_api_solr/app/api/v1/`, en conservant des alias de compatibilité sur les routes racine pendant la transition du frontend. Exporte le contrat OpenAPI (`/api/v1/openapi.json`). Mets à jour les tests backend et vérifie avec `make test`. Ne touche pas à la logique métier ni aux services.
+
+### Prompt — PréparerContratDisciplinesRésultat
+
+> Fige le contrat documentaire cible de la spec 012 avant la pipeline d'enrichissement : ajoute les champs optionnels `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` aux modèles backend et aux types frontend, sans activer encore la sémantique ni la facette discipline. Vérifie que l'OpenAPI expose bien ces champs et que le frontend reste rétrocompatible.

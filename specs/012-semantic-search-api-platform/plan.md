@@ -9,6 +9,33 @@ Faire évoluer l'application actuelle en plateforme de recherche hybride réutil
 - `search_api_solr/app/models/search_models.py` fournit une base typée à étendre ;
 - Solr reste le moteur lexical, PostgreSQL et Redis sont déjà présents dans la stack.
 
+## Delivery Strategy
+
+L'ordre de livraison recommandé est volontairement plus conservateur que l'ordre naturel de lecture de la spec :
+
+### Lot 1 — Stabilisation API et contrat
+
+Objectif : rendre l'API publiable et prête pour les enrichissements futurs, sans activer encore la recherche sémantique.
+
+- consolider `/api/v1` ;
+- typer `SearchResponse.results` avec `DocumentResponse` ;
+- préparer les champs documentaires `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` comme champs optionnels ;
+- publier `openapi.json` exploitable ;
+- conserver la compatibilité frontend pendant la transition.
+
+### Lot 2 — Disciplines puis recherche hybride
+
+Objectif : ajouter d'abord la valeur métier sur les disciplines, puis brancher la couche vectorielle derrière feature flag.
+
+- audit Solr + taxonomie validée ;
+- stockage PostgreSQL des enrichissements ;
+- merge Solr ↔ PostgreSQL dans les réponses ;
+- facette discipline + badges frontend ;
+- pipeline embeddings + classifieur ;
+- activation progressive de `semantic` / `hybrid`.
+
+Règle de pilotage : **aucun travail de recherche sémantique ne démarre avant que le contrat API du Lot 1 soit stabilisé**.
+
 ## Target Architecture
 
 ```
@@ -263,13 +290,16 @@ Un document absent du résultat pgvector (pas encore indexé) obtient un score R
 
 > **Prérequis technique identifié** : `SearchResponse.results` est actuellement `list[Any]`. Tant que ce champ n'est pas typé `list[DocumentResponse]`, le contrat OpenAPI n'expose pas la structure réelle des documents — les disciplines ajoutées en Phase 2 seraient invisibles du schéma. Ce typage doit être résolu en Phase 1 avant de publier l'OpenAPI de référence.
 
+> **Règle d'exécution** : cette phase constitue le **Lot 1**. Elle inclut aussi la préparation du contrat documentaire cible, même si les champs ne sont pas encore alimentés par PostgreSQL.
+
 1. Déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/` avec compatibilité ascendante (alias ou redirection depuis les routes racine le temps de la transition frontend).
 2. Typer `SearchResponse.results` en `list[DocumentResponse]` pour rendre le contrat document exploitable par OpenAPI et les SDKs.
-3. Compléter les `response_model` publics pour les endpoints encore implicites.
-4. Publier un `openapi.json` versionné et documenté.
-5. Décider si `/auth/*` est exposé aux applications tierces (SDK) ou réservé au frontend — documenter dans "Decisions Already Recommended".
-6. Décrire les erreurs, quotas et modes d'auth (JWT uniquement — pas d'API key dans la stack actuelle) des endpoints destinés aux applications tierces.
-7. Préparer des exemples d'intégration hors frontend Next.js.
+3. Ajouter au modèle documentaire les champs optionnels `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` pour figer le contrat avant alimentation réelle.
+4. Compléter les `response_model` publics pour les endpoints encore implicites.
+5. Publier un `openapi.json` versionné et documenté.
+6. Décider si `/auth/*` est exposé aux applications tierces (SDK) ou réservé au frontend — documenter dans "Decisions Already Recommended".
+7. Décrire les erreurs, quotas et modes d'auth (JWT uniquement — pas d'API key dans la stack actuelle) des endpoints destinés aux applications tierces.
+8. Préparer des exemples d'intégration hors frontend Next.js.
 
 ### Phase 2 - Socle disciplinaire
 
@@ -401,11 +431,13 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 
 ## Recommended Order
 
-1. Stabiliser l'API publique et le contrat OpenAPI.
-2. Ajouter la discipline dans le modèle documentaire sans activer encore la sémantique.
-3. Mettre en place la pipeline d'enrichissement et `pgvector`.
-4. Activer le mode hybride derrière feature flag.
-5. Générer et publier les SDKs.
+1. **Lot 1** : stabiliser l'API publique et le contrat OpenAPI.
+2. **Lot 1** : ajouter les champs documentaires futurs comme champs optionnels sans activer encore la sémantique.
+3. **Lot 2** : valider la taxonomie et l'audit Solr.
+4. **Lot 2** : mettre en place la discipline dans le modèle documentaire, la facette et le merge PostgreSQL.
+5. **Lot 2** : mettre en place la pipeline d'enrichissement et `pgvector`.
+6. **Lot 2** : activer le mode hybride derrière feature flag.
+7. Générer et publier les SDKs.
 
 ## Decisions Already Recommended
 
@@ -413,12 +445,12 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 - Utiliser PostgreSQL + `pgvector` pour le vectoriel.
 - Utiliser Python pour l'enrichissement et la classification.
 - Générer les SDKs depuis OpenAPI au lieu d'écrire trois clients divergents.
+- Livrer la spec 012 en deux lots : d'abord contrat/API, ensuite disciplines + sémantique.
 - Démarrer avec une taxonomie disciplinaire restreinte et validée métier.
 - Pipeline d'enrichissement = script CLI Python autonome (sync, hors FastAPI) — pas de migration async DB pour cette phase.
 - `discipline_confidence` : `float` 0.0–1.0 ; `discipline_source` : `Literal["source_metadata", "inferred", "manual_override"]`.
 - Feature flag sémantique : champ `semantic_search_enabled: bool = False` dans `Settings`, variable d'env `SEMANTIC_SEARCH_ENABLED`.
 - Stratégie de fusion hybride : **RRF (k=60)** — à confirmer ou remplacer après Phase 0 selon le corpus d'évaluation.
-
 - Export Solr par **cursor-based pagination** (`cursorMark` + `sort=id asc`) — l'offset classique est interdit sur grand corpus.
 - Texte d'entrée embedding : `f"{title}. {subtitle or ''}. {overview or ''}"` (décision provisoire, à confirmer après audit Phase 0).
 - Stratégie de mises à jour : L1 polling nightly (`datemisenligne`) + L2 ré-indexation complète hebdomadaire. L3 événementiel hors périmètre Phase 3.

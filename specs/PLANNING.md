@@ -76,35 +76,36 @@ Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items
 2. Relancer `pnpm run test:e2e` (68 tests Playwright).
 3. Relancer `make test` (backend Docker).
 
-### Bloc 1 — Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
+### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
 
 Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas le travail technique sur le namespace `/api/v1`, et inversement.
 
 4. **[Métier]** Valider la taxonomie disciplinaire et le jeu d'évaluation lexical vs hybride.
 5. **[Technique]** Consolider `/api/v1` — déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/`, publier `openapi.json`.
-6. Réunir les décisions de cadrage (taxonomie + périmètre public) dans `plan.md` avant de démarrer la Phase 2.
+6. Préparer le contrat documentaire cible (`disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score`) comme champs optionnels et rétrocompatibles.
+7. Réunir les décisions de cadrage (taxonomie + périmètre public) dans `plan.md` avant de démarrer la Phase 2.
 
-### Bloc 2 — Socle disciplinaire (Phase 2) — dépend du Bloc 1 complet
+### Bloc 2 — Lot 2A : Socle disciplinaire (Phase 2) — dépend du Bloc 1 complet
 
-7. Ajouter `disciplines`, `discipline_source`, `discipline_confidence` aux modèles backend et frontend.
-8. Ajouter la facette discipline à la config backend et à l'UI.
+8. Alimenter réellement `disciplines`, `discipline_source`, `discipline_confidence` via PostgreSQL / enrichissements.
+9. Ajouter la facette discipline à la config backend et à l'UI.
 
-### Bloc 3 — Pipeline d'enrichissement IA (Phase 3) — dépend du Bloc 2
+### Bloc 3 — Lot 2B : Pipeline d'enrichissement IA (Phase 3) — dépend du Bloc 2
 
-9. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
-10. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
+10. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
+11. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
 
-### Bloc 4 — Recherche hybride (Phase 4) — dépend du Bloc 3
+### Bloc 4 — Lot 2C : Recherche hybride (Phase 4) — dépend du Bloc 3
 
-11. Ajouter `SearchMode` aux modèles de requête.
-12. Fusionner scores Solr et pgvector côté backend.
-13. Déployer derrière feature flag par environnement.
+12. Ajouter `SearchMode` aux modèles de requête.
+13. Fusionner scores Solr et pgvector côté backend.
+14. Déployer derrière feature flag par environnement.
 
 ### Bloc 5 — SDKs officiels (Phase 5) — dépend du Bloc 1 (API stable) + Bloc 4 (contrat figé)
 
-14. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
-15. Packager, versionner, documenter chaque SDK.
-16. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
+15. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
+16. Packager, versionner, documenter chaque SDK.
+17. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
 
 ### En parallèle / opportuniste
 
@@ -129,8 +130,8 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
 | Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
 | Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
-| Ph.1 | Consolider `/api/v1` et publier OpenAPI | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable |
-| Ph.2 | Ajouter modèle disciplinaire (backend + frontend + facette) | Ph.0 taxonomie validée | Champs + facette discipline opérationnels |
+| Ph.1 | Consolider `/api/v1`, typer les réponses et préparer le contrat documentaire | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable + champs documentaires optionnels |
+| Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie validée + Ph.1 contrat prêt | Champs + facette discipline opérationnels |
 | Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
 | Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
 | Ph.5 | Générer SDKs Node.js, Python, PHP + CI sync | Ph.1 (API stable) + Ph.4 (contrat figé) | Packages + exemples + CI |
@@ -161,7 +162,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
 | Docs / architecture | ✅ Synchronisés (2026-04-20) |
-| Spec 012 | ⚪ À lancer — recherche sémantique, disciplines, API mutualisable, SDKs |
+| Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
 
 ### Écarts connus (dette acceptée)
 
