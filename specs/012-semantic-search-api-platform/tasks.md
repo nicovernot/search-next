@@ -74,15 +74,52 @@
 
 ## Phase 3 — Pipeline d'enrichissement IA (à détailler après Phase 2)
 
-> Prérequis : Phase 0 (modèle embedding choisi, taxonomie) + Phase 2 (modèle disciplinaire en base).
+> Prérequis : Phase 0 (modèle embedding choisi, champs Solr audités, taxonomie) + Phase 2 (modèle disciplinaire en base).
+
+### 3.1 — Infrastructure
 
 - [ ] Vérifier la version PostgreSQL de l'infra cible (pgvector requiert PG ≥ 14)
 - [ ] Ajouter `pgvector>=0.3.0` et `sentence-transformers>=3.0` à `requirements.txt`
-- [ ] Créer migration Alembic : `CREATE EXTENSION IF NOT EXISTS vector` + table `document_enrichments` (`doc_id`, `embedding vector(N)`, `disciplines`, `discipline_source`, `discipline_confidence`, `model_version`, `computed_at`)
-- [ ] Implémenter le job CLI Python d'embeddings batch (script autonome, session DB synchrone)
-- [ ] Implémenter le classifieur disciplinaire niveau 2 guidé par taxonomie
+- [ ] Créer migration Alembic : `CREATE EXTENSION IF NOT EXISTS vector` + table `document_enrichments`
+  - Colonnes : `doc_id`, `embedding vector(N)`, `disciplines`, `discipline_source`, `discipline_confidence`, `model_version`, `computed_at`, `text_input`
+  - Index : `CREATE INDEX ON document_enrichments USING ivfflat (embedding vector_cosine_ops)` pour la recherche ANN
+
+### 3.2 — Export Solr par curseur
+
+- [ ] Étendre `SolrClient` avec une méthode `export_cursor(fields, batch_size=500)` utilisant `cursorMark` Solr
+  - Paramètres : `q=*:*`, `sort=id asc`, `rows=500`, `cursorMark=*` → itérer jusqu'à `cursorMark` stable
+  - Champs à récupérer : `id`, `title`, `subtitle`, `overview` (+ champs disciplinaires audités en Phase 0)
+  - **Ne pas utiliser** l'offset `start` classique (explosion mémoire Solr > 10 000 docs)
+- [ ] Valider que le Solr distant accepte les requêtes cursor (droits, config `sort` obligatoire sur champ unique)
+
+### 3.3 — Job CLI d'indexation
+
+- [ ] Créer `search_api_solr/scripts/enrichment_job.py` (script CLI autonome, session DB synchrone)
+  - Mode **full** : cursor complet sur tout le corpus
+  - Mode **incremental** : filtre `datemisenligne:[{last_run} TO NOW]` (champ existant dans `DocumentBase`)
+  - Batch embedding : 32–64 docs selon VRAM, configurable via argument CLI
+  - Texte d'entrée : `f"{title}. {subtitle or ''}. {overview or ''}"` après nettoyage `None`
+  - Upsert pgvector par batch de 500 (`INSERT ... ON CONFLICT (doc_id, model_version) DO UPDATE`)
+- [ ] Stocker `text_input` utilisé pour traçabilité et débogage de qualité
+- [ ] Ajouter `--dry-run` pour estimer le nombre de docs sans écrire en base
+
+### 3.4 — Stratégie de mises à jour
+
+- [ ] Configurer le cron **L1 — polling nightly** : relancer le mode `incremental` chaque nuit
+- [ ] Configurer le cron **L2 — ré-indexation complète** hebdomadaire (weekend, hors heures de pointe)
+- [ ] Documenter la procédure de ré-indexation après changement de modèle :
+  - Requête des docs obsolètes : `SELECT doc_id FROM document_enrichments WHERE model_version != '{new_version}'`
+  - Relancer le job en mode ciblé sur ces `doc_id`
+
+### 3.5 — Classifieur disciplinaire
+
+- [ ] Implémenter le classifieur niveau 2 guidé par taxonomie (zero-shot ou supervisé selon corpus d'éval Phase 0)
 - [ ] Stocker provenance, version modèle, horodatage et score de confiance
-- [ ] Documenter comment relancer/versionner les enrichissements si le modèle change
+
+### 3.6 — Validation
+
+- [ ] Vérifier la couverture : `SELECT COUNT(*) FROM document_enrichments` vs `numFound` Solr
+- [ ] Valider le critère SC-002 : ≥ 90 % des documents ont une discipline exploitable
 - [ ] Marquer Ph.3 comme ✅ dans `specs/PLANNING.md`
 
 ---
