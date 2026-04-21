@@ -21,6 +21,20 @@ Le code actuel fournit déjà une base favorable :
 
 La nouvelle capacité doit rester réaliste par rapport à cette architecture : la recherche sémantique ne remplace pas Solr, elle s'ajoute sous forme de recherche hybride.
 
+## Implementation Strategy
+
+Le cadrage fonctionnel est conservé, mais l'exécution recommandée est découpée en deux lots pour limiter le risque de contrat et éviter de lancer trop tôt la couche IA :
+
+- **Lot 1 — Stabilisation API et contrat** : consolider `/api/v1`, typer les réponses publiques, préparer le contrat documentaire cible (`disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score`) sans activer encore la sémantique.
+- **Lot 2 — Socle disciplinaire puis recherche hybride** : valider la taxonomie métier, exposer les disciplines dans l'API et l'UI, créer la pipeline d'enrichissement, puis seulement activer `semantic` / `hybrid` derrière feature flag.
+
+Le projet est donc pensé comme une montée en charge contract-first :
+
+1. stabiliser le namespace API et l'OpenAPI ;
+2. figer les champs documentaires à venir ;
+3. brancher les enrichissements métier ;
+4. ajouter la recherche vectorielle sans dégrader le lexical.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Recherche hybride sémantique (Priority: P1)
@@ -132,12 +146,12 @@ Les disciplines sont affichées comme badges dans chaque résultat, sur le modè
 
 ### Évolutions minimales attendues
 
-- Ajouter un paramètre explicite de mode de recherche : `mode=lexical|semantic|hybrid`.
-- Étendre le modèle de document retourné avec :
-  - `disciplines`
-  - `discipline_source`
-  - `discipline_confidence` (optionnel)
-  - `semantic_score` (debug uniquement, jamais visible en UI publique)
+- **Lot 1 — contrat sans activation fonctionnelle** :
+  - déplacer ou aliaser les endpoints publics sous `/api/v1/...` ;
+  - typer `SearchResponse.results` avec le modèle documentaire complet ;
+  - ajouter `mode: "lexical" | "semantic" | "hybrid"` à `SearchRequest` (défaut `"hybrid"`, ignoré tant que `semantic_search_enabled=False`) ;
+  - préparer les champs `disciplines`, `discipline_source`, `discipline_confidence` et `semantic_score` comme champs optionnels rétrocompatibles — `semantic_score` est exposé dans la réponse API uniquement en mode debug, jamais rendu dans l'UI publique.
+- **Lot 2 — enrichissements et recherche hybride** : valider la taxonomie métier, exposer les disciplines dans l'API et l'UI, créer la pipeline batch d'enrichissement, puis activer `semantic` / `hybrid` derrière feature flag.
 - Publier une documentation d'API versionnée destinée à d'autres applications.
 - Préserver les usages frontend actuels via compatibilité ascendante pendant la migration.
 
@@ -165,6 +179,7 @@ Les disciplines sont affichées comme badges dans chaque résultat, sur le modè
 
 - Ne pas promettre une qualité sémantique générale sans corpus d'évaluation métier.
 - Ne pas inventer une taxonomie trop fine avant validation par les équipes documentaires.
+- Ne pas coupler la livraison des disciplines et la livraison de la recherche hybride dans un même lot si le contrat API n'est pas encore figé.
 - Ne pas rendre la recherche synchrone dépendante du calcul d'embeddings.
 - Ne pas maintenir trois SDKs entièrement artisanaux ; partir d'une génération contract-first.
 - Ne pas casser les contrats déjà consommés par le frontend Next.js pendant la phase de transition.
