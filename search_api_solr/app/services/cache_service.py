@@ -37,7 +37,7 @@ class CacheService:
 
             # Test de connexion
             await self.redis.ping()
-            logger.info(f"Redis cache connected successfully: {settings.redis_url}")
+            logger.info("Redis cache connected successfully")
 
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")

@@ -162,10 +162,10 @@ async def get_document_permissions(
         remote_ip = ip
     elif forwarded_user_ip:
         remote_ip = forwarded_user_ip
-        logger.info(f"IP lue depuis X-Forwarded-For: {remote_ip}")
+        logger.debug("IP resolved from X-Forwarded-For header")
     elif settings.dev and settings.test_ip:
         remote_ip = settings.test_ip
-        logger.info(f"[DEV] IP simulée depuis TEST_IP: {remote_ip}")
+        logger.debug("[DEV] Using TEST_IP override")
     try:
         return await service.get_document_permissions(urls, remote_ip)
     except Exception as e:

@@ -88,9 +88,10 @@ def validate_environment():
         # Charger et valider la configuration
         config = EnvironmentConfig()
 
+        from urllib.parse import urlparse
+        solr_host = urlparse(str(config.solr_url)).hostname or "unknown"
         logger.info(f"Environment validation successful: {config.node_env}")
-        logger.info(f"Solr configuration: {config.solr_url}/{config.solr_collection}")
-        logger.info(f"API base URL: {config.api_base_url}")
+        logger.info(f"Solr: {solr_host}/{config.solr_collection}")
         logger.info(f"Log level: {config.log_level}")
 
         # Exporter les variables validées pour utilisation dans l'app

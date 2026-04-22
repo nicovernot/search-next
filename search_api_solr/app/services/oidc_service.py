@@ -112,7 +112,7 @@ async def exchange_code(code: str, state: str) -> dict:
             timeout=15,
         )
         if not resp.is_success:
-            log.error("OIDC token exchange failed: %s", resp.text)
+            log.error("OIDC token exchange failed: HTTP %s", resp.status_code)
             raise ValueError("oidc_token_exchange_failed")
         token_data = resp.json()
 

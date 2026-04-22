@@ -3,6 +3,14 @@ import re
 from typing import Any
 from urllib.parse import quote_plus, urlencode
 
+
+def _mask_ip(ip: str | None) -> str:
+    """Masque le dernier octet d'une IPv4, ou les 4 derniers chars d'une IPv6."""
+    if not ip:
+        return "null"
+    parts = ip.rsplit(".", 1)
+    return parts[0] + ".xxx" if len(parts) == 2 else ip[:-4] + "****"
+
 import httpx
 
 from app.core.logging import get_logger
@@ -160,7 +168,7 @@ class DocsPermissionsClient:
             # Si l'organisation a purchased = true, alors isPermitted = true
             if organization and organization.purchased:
                 is_permitted = True
-                logger.info(f"Document {url} autorisé via purchased=true")
+                logger.debug("Document autorisé via purchased=true")
 
             formatted_docs.append({
                 'isPermitted': is_permitted,
@@ -188,7 +196,7 @@ class DocsPermissionsClient:
             fields = ['url', 'idparent', 'container_url']
             params = self._create_solr_params(docs_urls, organization.shortname, fields=fields)
 
-            logger.info(f"Recherche de parents pour URLs: {docs_urls}")
+            logger.debug("Recherche de parents pour %d URL(s)", len(docs_urls))
             solr_response = await self.solr_client.execute_solr_query(params)
 
             if not solr_response or solr_response['responseHeader']['status'] != 0:
@@ -218,7 +226,7 @@ class DocsPermissionsClient:
         # Passer plusieurs URLs (comma-join) supprime le champ `formats` de la réponse.
         first_url = quote_plus(docs_urls[0])
         url = f"{settings.auth_api_url}?ip={remote_ip}&url={first_url}"
-        logger.info(f"Calling auth URL: {url}")
+        logger.debug("Calling auth API: %s", settings.auth_api_url)
 
         async with httpx.AsyncClient() as client:
             try:
@@ -231,7 +239,7 @@ class DocsPermissionsClient:
                     return None
 
                 user_data = response.json()
-                logger.info(f"Parsed user data: {user_data}")
+                logger.debug("Auth response received: has_username=%s", bool(user_data.get("username")))
 
                 # Si pas de username (shortname), on considère qu'il n'y a pas d'organisation (ex: freemium/anonyme)
                 if not user_data.get('username'):
@@ -259,8 +267,8 @@ class DocsPermissionsClient:
     async def handle_query(self, urls_str: str, remote_ip: str) -> DocsPermissionsResponse:
         """ Point d'entrée principal de la logique """
 
-        logger.info(f"URLs received: {urls_str or 'null'}")
-        logger.info(f"Remote IP: {remote_ip or 'null'}")
+        logger.debug("URLs received: %d", len(urls_str.split(",")) if urls_str else 0)
+        logger.debug("Remote IP: %s", _mask_ip(remote_ip))
 
         if not remote_ip:
             logger.error("No remote IP, returning empty response")
@@ -305,13 +313,13 @@ class DocsPermissionsClient:
         if has_parent:
             parent_url = parent_info.get('parentUrl')
             if parent_url:
-                logger.info(f"Récupération de l'organisation du parent: {parent_url}")
+                logger.debug("Fetching parent organisation")
                 parent_organization = await self._get_organization(remote_ip, [parent_url])
                 if parent_organization:
                     if not parent_organization.formats and organization.formats:
                         parent_organization.formats = organization.formats
                     effective_organization = parent_organization
-                    logger.info(f"Organisation du parent récupérée: {effective_organization.dict()}")
+                    logger.debug("Parent organisation resolved: shortname=%s", effective_organization.shortname)
 
         return await self._fetch_permissions(effective_organization, docs_urls)
 
