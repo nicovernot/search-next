@@ -1,12 +1,12 @@
 # app/services/docs_permissions_client.py
-import logging
 import re
 from typing import Any
 from urllib.parse import quote_plus, urlencode
 
-import httpx  # Librairie pour les requêtes HTTP asynchrones
+import httpx
 
-from app.models import DocsPermissionsResponse, Organization  # Importez vos modèles Pydantic
+from app.core.logging import get_logger
+from app.models import DocsPermissionsResponse, Organization
 from app.settings import (
     FQ_IDS_ARE,
     FQ_SUBSCRIBERS_IS,
@@ -15,8 +15,7 @@ from app.settings import (
     settings,
 )
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class SolrClient:
     """ Simulation d'un client Solr pour l'interface """

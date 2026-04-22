@@ -10,11 +10,17 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.settings import SOLR_CONFIG, settings
+from app.core.logging import get_logger, setup_logging
+
+# Point d'initialisation unique du logging — avant tout autre import applicatif
+setup_logging(settings.log_level)
+logger = get_logger(__name__)
+
 from app.api.auth import router as auth_router
 from app.api.v1.saved_searches import router as saved_searches_router
 from app.core.env_validation import validate_environment
 from app.core.exceptions import SolrInvalidQueryError, SolrTimeoutError, SolrUnavailableError
-from app.core.logging import get_logger
 from app.models import DocsPermissionsResponse
 from app.models.search_models import (
     FacetsConfigResponse,
@@ -27,10 +33,6 @@ from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
 from app.services.search_builder import SearchBuilder
 from app.services.search_service import PermissionsService, SearchService, SuggestService
 from app.services.solr_client import SolrClient
-from app.settings import SOLR_CONFIG, settings
-
-# Configuration du logging structuré
-logger = get_logger(__name__)
 
 # Validation de l'environnement au démarrage
 try:

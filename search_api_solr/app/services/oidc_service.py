@@ -10,7 +10,6 @@ State is stored in Redis (TTL 10 min) for CSRF protection (NFR-004).
 Falls back to in-memory dict when Redis is unavailable (development only).
 """
 
-import logging
 import secrets
 from urllib.parse import urlencode
 
@@ -18,9 +17,10 @@ import httpx
 from jose import JWTError
 from jose import jwt as jose_jwt
 
+from app.core.logging import get_logger
 from app.settings import settings
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 # In-memory state store — used only when Redis is unavailable
 _state_store: dict[str, bool] = {}
@@ -49,7 +49,7 @@ def _store_state(state: str) -> None:
             r.setex(f"oidc_state:{state}", 600, "1")
             return
     except Exception:  # noqa: S110
-        logging.getLogger(__name__).debug("Redis unavailable for state store, using memory")
+        log.debug("Redis unavailable for state store, using memory")
     _state_store[state] = True
 
 
@@ -65,7 +65,7 @@ def _validate_and_consume_state(state: str) -> bool:
                 return True
             return False
     except Exception:  # noqa: S110
-        logging.getLogger(__name__).debug("Redis unavailable for state validation, using memory")
+        log.debug("Redis unavailable for state validation, using memory")
     return _state_store.pop(state, False)
 
 

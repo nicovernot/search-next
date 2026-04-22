@@ -351,8 +351,8 @@ class Settings(BaseSettings):
                         burst_multiplier=config.get('burst_multiplier', 1.0)
                     )
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                # Log error but continue with empty endpoints
-                print(f"Warning: Invalid rate limit endpoints configuration: {e}")
+                import logging
+                logging.getLogger(__name__).warning("Invalid rate limit endpoints configuration: %s", e)
 
         # Parse IP whitelist
         ip_whitelist = self.rate_limit_ip_whitelist if isinstance(self.rate_limit_ip_whitelist, list) else []
