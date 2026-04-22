@@ -175,5 +175,15 @@ export function useSearchApi({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchState.filters, searchState.pagination.from, searchState.pagination.size]);
 
+  // Re-déclenche la recherche quand facetConfig se charge (null → truthy) pour inclure toutes les facettes
+  const facetConfigLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!facetConfig || facetConfigLoadedRef.current) return;
+    facetConfigLoadedRef.current = true;
+    if (!hasActiveSearch(searchState.query, searchState.filters, searchState.searchMode, searchState.logicalQuery)) return;
+    executeSearchWithOverrides();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facetConfig]);
+
   return { executeSearch, loadSearch };
 }
