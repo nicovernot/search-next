@@ -4,6 +4,7 @@
  */
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { logger } from "../lib/logger";
 import type { FullFacetConfig, FacetsConfigResponse } from "../types";
 
 export function useFacetConfig() {
@@ -20,7 +21,7 @@ export function useFacetConfig() {
           setSearchFields(search_fields);
         }
       })
-      .catch(err => console.error("Failed to load facet config", err));
+      .catch(() => logger.error("Failed to load facet config"));
   }, []);
 
   return { facetConfig, searchFields };
