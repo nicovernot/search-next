@@ -23,7 +23,6 @@ class SuggestResponse(BaseModel):
 
 
 class FacetsConfigResponse(BaseModel):
-    facets: list[Any]
     search_fields: list[str]
 
     model_config = {"extra": "allow"}
