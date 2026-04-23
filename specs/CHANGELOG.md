@@ -27,6 +27,7 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
 | 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
 | 2026-04-19 | docs | Alignement specs/code/docs : dette résiduelle P0/P1/P2/P3 ajoutée au planning, architecture et specs qualité synchronisées | — |
+| 2026-04-23 | 001 | Alignement Search Core avec les filtres réels de la branche : facettes dynamiques via `/facets/config`, `author`/`date`/`subscribers`, facettes spécifiques plateforme | — |
 
 ---
 
