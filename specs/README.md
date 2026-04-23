@@ -44,6 +44,9 @@ specs/
 │   └── tasks.md
 ├── 011-auth-ldap-sso/         ✅ Livré fonctionnellement — durcissement SSO/JWT restant P0
 │   └── spec.md
+├── 012-logging-strategy/      📝 Draft — audit logging, stratégie dev/staging/prod, plan d'assainissement
+│   ├── spec.md
+│   └── plan.md
 └── README.md
 ```
 
@@ -88,4 +91,5 @@ specs/
 | P1 | Contrats API/backend — `/suggest`, `SearchRequest`, response models, erreurs Solr | moyen | P0 | 🔶 À faire |
 | P1 | Cohérence docs/tests — architecture, pytest backend, lint warnings | court | P0/P1 backend | 🔶 À faire |
 | P2 | Maintenabilité frontend — `useSearchApi`, `useUrlSync`, selectors SearchContext, `AuthModal` | moyen | P1 | 🔵 À faire |
+| P2 | Stratégie de logs — homogénéisation backend/front, redaction, conventions dev/prod | moyen | P1 backend | 🔵 À faire |
 | P3 | Nettoyage — dépendances, lockfiles, code mort/commentaires | court | P2 ou indépendant | ⚪ À faire |

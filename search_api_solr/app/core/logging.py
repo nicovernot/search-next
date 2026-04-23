@@ -1,58 +1,46 @@
-# app/core/logging.py
 """
-Configuration centralisée du logging structuré pour l'application
+Configuration centralisée du logging structuré pour l'application.
+
+À appeler une seule fois au démarrage via setup_logging(log_level).
+Tous les loggers applicatifs propagent vers le root logger configuré ici.
 """
 import logging
 import sys
 
 from pythonjsonlogger import jsonlogger
 
+# Loggers tiers verbeux — limités à WARNING pour ne pas polluer les logs métier
+_NOISY_LOGGERS = (
+    "uvicorn.access",
+    "httpx",
+    "httpcore",
+    "multipart",
+)
 
-def setup_logging():
-    """
-    Configure le logging structuré pour l'application
 
-    Returns:
-        logging.Logger: Logger configuré avec format JSON
-    """
-    # Créer un logger pour l'application
-    logger = logging.getLogger("openedition_search")
-    logger.setLevel(logging.INFO)
+def setup_logging(log_level: str = "INFO") -> None:
+    """Configure le root logger avec le formatter JSON et le niveau souhaité."""
+    level = getattr(logging, log_level.upper(), logging.INFO)
 
-    # Supprimer les handlers existants pour éviter les doublons
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
-    # Configuration du formatter JSON
     formatter = jsonlogger.JsonFormatter(
-        fmt='%(asctime)s %(levelname)s %(name)s %(message)s',
-        rename_fields={'levelname': 'severity', 'asctime': 'timestamp'},
-        datefmt='%Y-%m-%dT%H:%M:%SZ'
+        fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
+        rename_fields={"levelname": "severity", "asctime": "timestamp"},
+        datefmt="%Y-%m-%dT%H:%M:%SZ",
     )
 
-    # Configuration du handler pour la sortie standard
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
 
-    logger.addHandler(handler)
+    root = logging.getLogger()
+    root.setLevel(level)
+    for h in root.handlers[:]:
+        root.removeHandler(h)
+    root.addHandler(handler)
 
-    return logger
+    for name in _NOISY_LOGGERS:
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
-def get_logger(name: str = "openedition_search") -> logging.Logger:
-    """
-    Récupère un logger configuré pour un module spécifique
-
-    Args:
-        name: Nom du module pour le logger
-
-    Returns:
-        logging.Logger: Logger configuré
-    """
-    logger = logging.getLogger(name)
-
-    # Si le logger n'a pas de handlers, le configurer
-    if not logger.handlers:
-        setup_logging()
-
-    return logger
+def get_logger(name: str) -> logging.Logger:
+    """Retourne le logger de module — propagation vers le root logger configuré."""
+    return logging.getLogger(name)

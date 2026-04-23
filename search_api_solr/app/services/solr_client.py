@@ -66,19 +66,13 @@ class SolrClient(ISolrClient):
         except httpx.ReadTimeout as e:
             self.logger.error(
                 "Solr search timeout",
-                extra={"context": {"query": query, "timeout": self.timeout}},
+                extra={"context": {"timeout": self.timeout}},
             )
             raise SolrTimeoutError(f"Solr did not respond within {eff_timeout}s") from e
         except httpx.HTTPStatusError as e:
             self.logger.error(
                 "Solr HTTP error",
-                extra={
-                    "context": {
-                        "query": query,
-                        "status_code": e.response.status_code,
-                        "error": str(e),
-                    }
-                },
+                extra={"context": {"status_code": e.response.status_code}},
             )
             if e.response.status_code == 400:
                 raise SolrInvalidQueryError("Solr rejected the query (400)") from e
@@ -88,7 +82,7 @@ class SolrClient(ISolrClient):
         except Exception as e:
             self.logger.error(
                 "Unexpected Solr error",
-                extra={"context": {"query": query, "error": str(e), "type": type(e).__name__}},
+                extra={"context": {"error_type": type(e).__name__}},
                 exc_info=True,
             )
             raise SolrUnavailableError(f"Unexpected error: {type(e).__name__}") from e

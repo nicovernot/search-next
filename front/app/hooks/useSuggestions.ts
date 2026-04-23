@@ -4,6 +4,7 @@
  */
 import { useState, useCallback } from "react";
 import { api } from "../lib/api";
+import { logger } from "../lib/logger";
 
 export function useSuggestions() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -21,7 +22,7 @@ export function useSuggestions() {
       const data = await res.json();
       setSuggestions(data.suggestions || []);
     } catch (err) {
-      console.error("Suggestions error:", err);
+      logger.error("Suggestions fetch failed");
       setSuggestions([]);
     } finally {
       setLoadingSuggestions(false);

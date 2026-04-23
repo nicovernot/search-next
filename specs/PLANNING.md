@@ -1,13 +1,28 @@
 # Planning global des specs
 
-**Audit**: 2026-04-20  
+**Audit**: 2026-04-22  
 **But**: centraliser l'ordre de traitement, les dépendances et les points de cohérence entre specs.
 
 ---
 
 ## État global
 
-Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 sont résolus (2026-04-20). Il reste une dette P2/P3 non bloquante pour la production.
+Toutes les specs fonctionnelles (001–011) sont livrées. Une nouvelle spec transverse `012-logging-strategy` a été ouverte le 2026-04-22 pour homogénéiser l'observabilité applicative et la politique de logs. Les items P0 et P1 historiques sont résolus (2026-04-20). Il reste une dette P2 non bloquante sur le logging et une dette P3 de nettoyage courant.
+
+---
+
+## P2 — Observabilité / stratégie de logs
+
+**À faire :**
+
+| Sujet | Cible |
+|---|---|
+| 📝 Logging backend hétérogène | Unifier `core/logging.py`, bannir `basicConfig`, aligner les loggers de modules |
+| 📝 Logs sensibles dans permissions/auth | Réduire IP, URLs complètes, payloads auth, réponses brutes |
+| 📝 Frontend sans politique de logs | Introduire un wrapper et supprimer les `console.*` applicatifs |
+| 📝 Convention dev/staging/prod incomplète | Fixer niveaux, formats et règles de redaction par environnement |
+
+Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 
 ---
 
@@ -116,6 +131,7 @@ Toutes les specs fonctionnelles (001–011) sont livrées. Les items P0 et P1 so
 | 009 | DRY/KISS/YAGNI | ✅ Livré fonctionnellement — nettoyage P3 |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
+| 012 | Logging strategy | 📝 Draft |
 
 ---
 

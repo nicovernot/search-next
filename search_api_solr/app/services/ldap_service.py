@@ -5,15 +5,15 @@ Binds with a service account to search the user, then re-binds with the user's o
 credentials to verify the password. Only LDAPS (port 636) or StartTLS are permitted.
 """
 
-import logging
 import ssl
 
 from ldap3 import AUTO_BIND_NO_TLS, SUBTREE, Connection, Server, Tls
 from ldap3.core.exceptions import LDAPException
 
+from app.core.logging import get_logger
 from app.settings import settings
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 def _make_server() -> Server:

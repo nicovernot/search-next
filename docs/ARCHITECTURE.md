@@ -174,6 +174,17 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 
 ---
 
+## Logging
+
+Stratégie complète documentée dans [`docs/LOGGING.md`](./LOGGING.md).
+
+| Zone | Mécanisme | Config |
+|------|-----------|--------|
+| Backend | `python-json-logger`, root logger, JSON stdout | `LOG_LEVEL` via Docker Compose |
+| Frontend | `lib/logger.ts` (wrapper niveaux debug/info/warn/error) | `NODE_ENV` |
+
+---
+
 ## État des features
 
 | Feature | Statut | Tests |
