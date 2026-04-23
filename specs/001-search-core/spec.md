@@ -13,8 +13,10 @@ FastAPI/Solr et affiche les résultats avec facettes et pagination.
 
 - En tant qu'utilisateur, je peux saisir une requête et obtenir des résultats
   paginés depuis le corpus OpenEdition.
-- En tant qu'utilisateur, je peux filtrer les résultats par plateforme, type
-  de document, accès et langue.
+- En tant qu'utilisateur, je peux filtrer les résultats via les filtres
+  actuellement disponibles (plateforme, type de document, accès et langue),
+  avec une structure prévue pour accueillir d'autres filtres plus tard sans
+  remise en cause du socle existant.
 - En tant qu'utilisateur, je peux naviguer entre les pages de résultats.
 - En tant qu'utilisateur, je peux changer la langue de l'interface (fr, en,
   es, de, it, pt).
@@ -23,7 +25,8 @@ FastAPI/Solr et affiche les résultats avec facettes et pagination.
 
 - [ ] La barre de recherche propose des suggestions après 300 ms de debounce
 - [ ] Les résultats affichent titre, auteurs, description tronquée, plateforme, type
-- [ ] Les facettes (platform, type, access, translations) s'affichent si non vides
+- [ ] Les facettes actuelles (platform, type, access, translations)
+  s'affichent si non vides
 - [ ] Les filtres actifs sont visibles sous forme de tags supprimables
 - [ ] La pagination s'affiche dès que `total > 10`
 - [ ] Le sélecteur de langue recharge les traductions sans rechargement de page
@@ -85,6 +88,9 @@ front/
   debounce 300 ms, puis soumission explicite de la recherche.
 - Les facettes consommées par le frontend sont déjà normalisées au format
   `{ buckets: [{ key, doc_count }] }`.
+- Les filtres actuellement exposés constituent le périmètre de référence du
+  produit ; de nouveaux filtres pourront être ajoutés ultérieurement sans
+  invalider ce comportement de base.
 - Tailwind CSS 4 avec `front/app/globals.css` pour les tokens et styles globaux.
 
 ## Test Cases (Playwright End-to-End)
