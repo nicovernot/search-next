@@ -4,6 +4,16 @@
  */
 import type { Filters, FullFacetConfig, LogicalQuery } from "../types";
 
+const DEFAULT_COMMON_FACETS = [
+  "platform",
+  "access",
+  "translations",
+  "type",
+  "author",
+  "date",
+  "subscribers",
+];
+
 export function buildSearchPayload(
   query: string,
   searchMode: "simple" | "advanced",
@@ -18,10 +28,7 @@ export function buildSearchPayload(
 
   const facets = facetConfig
     ? Object.keys(facetConfig.common || {}).map((fk) => ({ identifier: fk, type: "list" }))
-    : [
-        { identifier: "platform", type: "list" },
-        { identifier: "type", type: "list" },
-      ];
+    : DEFAULT_COMMON_FACETS.map((identifier) => ({ identifier, type: "list" }));
 
   return {
     query: { query: query || "*" },

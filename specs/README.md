@@ -50,6 +50,9 @@ specs/
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
+├── 013-logging-strategy/      ⚪ Draft transverse — logging applicatif
+│   ├── spec.md
+│   └── plan.md
 └── README.md
 ```
 
@@ -91,6 +94,7 @@ specs/
 | Priorité | Spec | Effort | Prérequis | État |
 |----------|------|--------|-----------|------|
 | Vérification | Relancer `pnpm run lint`, `pnpm run test:e2e`, `make test` dans l'environnement cible | court | services disponibles | 🔁 À faire avant release |
-| P1 | 012 — Recherche sémantique, catégorisation disciplinaire, API mutualisable + SDKs | long | validation métier taxonomie + infra embeddings | ⚪ À cadrer |
+| P1 | 012 — Recherche sémantique, catégorisation disciplinaire, API mutualisable + SDKs | long | périmètre public API + validation métier taxonomie + infra embeddings | ⚪ À cadrer |
+| P1 transverse | 013 — Logging applicatif | moyen | décision de priorité exploitation/sécurité | ⚪ Draft |
 | P2 optionnel | Migrer progressivement les composants de `useSearch()` vers les hooks selectors | moyen | aucun | ⚪ Opportuniste |
 | P2 optionnel | Réduire `AuthModal.tsx` si de nouveaux modes d'auth sont ajoutés | moyen | aucun | ⚪ Opportuniste |

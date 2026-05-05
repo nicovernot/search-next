@@ -113,7 +113,7 @@ test-front-ui: ## Lancer les tests E2E Playwright avec UI
 
 test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containerisé
 	@$(MAKE) sync-env ENV=test
-	$(DOCKER_COMPOSE) up -d api frontend
+	CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://localhost:3003,http://127.0.0.1:3000,http://127.0.0.1:3003,http://0.0.0.0:3000,http://0.0.0.0:3003,http://localhost:8003 NEXT_PUBLIC_API_URL=http://api:8007 $(DOCKER_COMPOSE) up -d --force-recreate api frontend
 	@echo "Waiting for services to be ready..."
 	@sleep 15
 	docker run --rm --network search-next_search-next_network \

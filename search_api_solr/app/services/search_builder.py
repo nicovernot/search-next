@@ -3,8 +3,6 @@ from urllib.parse import urlencode
 
 from app.core.logging import get_logger
 from app.models.search_models import SearchRequest
-
-logger = get_logger(__name__)
 from app.services.facet_config import (
     COMMON_FACETS_MAPPING,
     PLATFORM_SPECIFIC_FACETS,
@@ -17,6 +15,8 @@ from app.services.field_config import (
 )
 from app.services.interfaces import ISearchBuilder
 from app.services.query_logic_parser import QueryLogicParser
+
+logger = get_logger(__name__)
 
 SOLR_BASE_HANDLER = "/select"
 SOLR_QUERY_HANDLER = "/select"

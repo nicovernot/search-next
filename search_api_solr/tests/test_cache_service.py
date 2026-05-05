@@ -269,6 +269,7 @@ class TestCacheIntegration:
         """Test que SearchService utilise correctement le cache"""
         from unittest.mock import Mock
 
+        from app.models.search_models import PaginationModel, QueryModel, SearchRequest
         from app.services.search_service import SearchService
 
         # Patcher le cache_service au bon endroit (import local dans la fonction)
@@ -284,13 +285,19 @@ class TestCacheIntegration:
             mock_solr_client.search.return_value = {"response": {"docs": [], "numFound": 0}}
 
             service = SearchService(mock_builder, mock_solr_client)
-            request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
+            request = SearchRequest(
+                query=QueryModel(query="test"),
+                filters=[],
+                pagination=PaginationModel(from_=0, size=10),
+                facets=[],
+            )
+            request_dict = request.model_dump(by_alias=True)
 
             # Première recherche - pas de cache
             result = await service.execute_cached_search(request)
 
             # Vérifier que le cache a été consulté et mis à jour
-            mock_cache.get_search_cache.assert_called_once_with(request)
+            mock_cache.get_search_cache.assert_called_once_with(request_dict)
             mock_cache.set_search_cache.assert_called_once()
 
             # Vérifier que Solr a été appelé
@@ -302,6 +309,7 @@ class TestCacheIntegration:
         """Test que SearchService retourne les résultats du cache quand disponibles"""
         from unittest.mock import Mock
 
+        from app.models.search_models import PaginationModel, QueryModel, SearchRequest
         from app.services.search_service import SearchService
 
         # Configurer le cache pour retourner des données
@@ -317,13 +325,19 @@ class TestCacheIntegration:
             mock_solr_client = AsyncMock()
 
             service = SearchService(mock_builder, mock_solr_client)
-            request = {"query": "test", "filters": [], "pagination": {"from": 0, "size": 10}}
+            request = SearchRequest(
+                query=QueryModel(query="test"),
+                filters=[],
+                pagination=PaginationModel(from_=0, size=10),
+                facets=[],
+            )
+            request_dict = request.model_dump(by_alias=True)
 
             # Recherche avec cache hit
             result = await service.execute_cached_search(request)
 
             # Vérifier que le cache a été consulté
-            mock_cache.get_search_cache.assert_called_once_with(request)
+            mock_cache.get_search_cache.assert_called_once_with(request_dict)
 
             # Vérifier que Solr n'a PAS été appelé
             mock_solr_client.search.assert_not_called()
