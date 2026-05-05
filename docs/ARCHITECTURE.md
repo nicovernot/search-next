@@ -1,6 +1,6 @@
 # Architecture — OpenEdition Search
 
-**Dernier audit**: 2026-04-20
+**Dernier audit**: 2026-05-05
 **Branch active**: `main`  
 **État global**: Specs 001–011 livrées. Dette bloquante P0/P1/P2/P3 soldée ou acceptée explicitement dans `specs/PLANNING.md`.
 
@@ -69,17 +69,21 @@
 ┌─────────────────────▼────────────────────────────────────────┐
 │                    BACKEND (FastAPI)                          │
 │                                                              │
-│  Endpoints:                                                  │
-│  ├── POST /search, GET /search                              │
-│  ├── GET /suggest                                           │
-│  ├── GET /facets/config                                     │
-│  ├── GET /permissions                                       │
+│  Endpoints publics versionnés:                              │
+│  ├── POST /api/v1/search, GET /api/v1/search                │
+│  ├── GET /api/v1/suggest                                    │
+│  ├── GET /api/v1/facets/config                              │
+│  ├── GET /api/v1/permissions                                │
+│  ├── GET /api/v1/openapi.json                               │
+│  ├── GET/POST/DELETE /api/v1/saved-searches (JWT)           │
+│  │   Aliases racine conservés pendant la transition          │
+│  │   (/search, /suggest, /facets/config, /permissions,       │
+│  │    /saved-searches)                                      │
 │  ├── POST /auth/login, POST /auth/register                  │
 │  ├── POST /auth/ldap/login                                  │
 │  ├── GET  /auth/sso/login  (redirect → IdP)                │
 │  ├── GET  /auth/sso/callback  (émet sso_code court)       │
-│  ├── GET  /auth/sso/exchange   (échange code → JWT)        │
-│  └── GET/POST/DELETE /saved-searches                        │
+│  └── GET  /auth/sso/exchange   (échange code → JWT)        │
 │                                                              │
 │  Services (DI via Depends()):                               │
 │  ├── SearchService → SearchBuilder → SolrClient            │
@@ -105,10 +109,12 @@
 
 ## Flux de données principaux
 
+Le contrat public versionné et des exemples `curl` sont documentés dans [`API_V1.md`](./API_V1.md).
+
 ### Recherche simple
 ```
 SearchBar → useSearchApi.executeSearch()
-  → POST /search { query, filters, pagination, facets }
+  → POST /api/v1/search { query, filters, pagination, facets }
   → SearchBuilder.build_search_url()
   → SolrClient.search() [+ Redis cache 5 min]
   → Normalisation facettes
@@ -120,7 +126,7 @@ SearchBar → useSearchApi.executeSearch()
 ```
 AdvancedQueryBuilder → useSearchState.setLogicalQuery(RuleGroupType)
   opérateurs : =, contains, beginsWith, endsWith, !=, notContains…
-  → POST /search { logical_query: {...}, query: { query: "*" } }
+  → POST /api/v1/search { logical_query: {...}, query: { query: "*" } }
   → QueryLogicParser.convert_to_solr_query_string()
      ex: { combinator:"and", rules:[{field:"titre", op:"contains", value:"histoire"}] }
      →   fq=naked_titre:histoire
@@ -203,7 +209,7 @@ Stratégie complète documentée dans [`docs/LOGGING.md`](./LOGGING.md).
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
 | Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (21) |
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
-| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (14) |
+| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (12, LDAP + SSO) |
 
 ---
 
@@ -246,7 +252,7 @@ La dette bloquante ci-dessous est résolue. Les suites restantes sont listées d
 
 ### Vérification récente
 
-| Commande | Résultat audit 2026-04-20 |
+| Commande | Résultat audit 2026-05-05 |
 |---|---|
 | `cd front && pnpm run lint` | À relancer avant release |
 | `cd front && pnpm run test:e2e` | 68 tests documentés, à relancer avant release |

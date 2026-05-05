@@ -1,6 +1,6 @@
 # Feature Specification: Stratégie de logs applicatifs
 
-**Feature Branch**: `feature/012-logging-strategy`  
+**Feature Branch**: `feature/013-logging-strategy`  
 **Created**: 2026-04-22  
 **Status**: Draft
 

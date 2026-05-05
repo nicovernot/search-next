@@ -112,4 +112,4 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | `tests/url-sync.spec.ts` | **21 tests** — sync URL, back/forward, hydratation, filtres, pagination, QueryBuilder encodé |
 | `tests/auth-ldap-sso.spec.ts` | **12 tests** — LDAP UI, erreurs, SSO callback, échange token/code, coexistence local/fédéré |
 
-**Total : 66 tests E2E** documentés dans `front/tests`.
+**Total : 68 tests E2E** documentés dans `front/tests`.

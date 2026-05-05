@@ -1,38 +1,32 @@
 # app/main.py
+# ruff: noqa: E402
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
-from app.settings import SOLR_CONFIG, settings
 from app.core.logging import get_logger, setup_logging
+from app.core.rate_limit import limiter
+from app.settings import settings
 
 # Point d'initialisation unique du logging — avant tout autre import applicatif
 setup_logging(settings.log_level)
 logger = get_logger(__name__)
 
 from app.api.auth import router as auth_router
+from app.api.v1.facets import router as facets_router
+from app.api.v1.openapi import router as openapi_router
+from app.api.v1.permissions import router as permissions_router
 from app.api.v1.saved_searches import router as saved_searches_router
+from app.api.v1.search import router as search_router
+from app.api.v1.suggest import router as suggest_router
 from app.core.env_validation import validate_environment
-from app.core.exceptions import SolrInvalidQueryError, SolrTimeoutError, SolrUnavailableError
-from app.models import DocsPermissionsResponse
-from app.models.search_models import (
-    FacetsConfigResponse,
-    SearchRequest,
-    SearchResponse,
-    SuggestResponse,
-)
 from app.services.cache_service import cache_service
-from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
-from app.services.search_builder import SearchBuilder
-from app.services.search_service import PermissionsService, SearchService, SuggestService
-from app.services.solr_client import SolrClient
 
 # Validation de l'environnement au démarrage
 try:
@@ -45,7 +39,6 @@ except Exception as e:
 app = FastAPI()
 
 # Rate limiting
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -108,150 +101,13 @@ if settings.trusted_hosts:
 
 # Includes des routers
 app.include_router(auth_router)
-app.include_router(saved_searches_router)
+for public_router in (search_router, suggest_router, facets_router, permissions_router):
+    app.include_router(public_router, prefix="/api/v1")
+    app.include_router(public_router, include_in_schema=False)
 
-# --- Injection de Dépendance ---
-
-def get_solr_client() -> ISolrClient:
-    """ Fournit une instance du client Solr """
-    return SolrClient(base_url=SOLR_CONFIG['base_url'])
-
-def get_search_builder() -> ISearchBuilder:
-    """ Fournit une instance du SearchBuilder """
-    return SearchBuilder(solr_base_url=SOLR_CONFIG['base_url'])
-
-def get_search_service(
-    builder: ISearchBuilder = Depends(get_search_builder),
-    solr_client: ISolrClient = Depends(get_solr_client)
-) -> ISearchService:
-    """ Fournit une instance du service de recherche """
-    return SearchService(builder, solr_client)
-
-def get_suggest_service(
-    builder: ISearchBuilder = Depends(get_search_builder),
-    solr_client: ISolrClient = Depends(get_solr_client)
-) -> SuggestService:
-    """ Fournit une instance du service de suggestion """
-    return SuggestService(builder, solr_client)
-
-def get_permissions_service(
-    solr_client: ISolrClient = Depends(get_solr_client)
-) -> PermissionsService:
-    """ Fournit une instance du service de permissions """
-    return PermissionsService(solr_client)
-
-# --- Endpoint ---
-
-@app.get("/permissions")
-@limiter.limit("15/minute")
-async def get_document_permissions(
-    request: Request,
-    urls: str = Query(..., description="Liste des URLs de documents séparées par des virgules"),
-    ip: str = Query(None, description="Adresse IP à vérifier (optionnel)"),
-    service: PermissionsService = Depends(get_permissions_service)
-) -> DocsPermissionsResponse:
-    """Endpoint de permissions découplé."""
-    # Priorité : ?ip= → X-Forwarded-For (route handler Next.js) → TEST_IP dev → client direct
-    forwarded_for_header = request.headers.get("x-forwarded-for")
-    forwarded_user_ip = (
-        forwarded_for_header.split(",")[0].strip() if forwarded_for_header else None
-    )
-
-    remote_ip = request.client.host if request.client else None
-    if ip:
-        remote_ip = ip
-    elif forwarded_user_ip:
-        remote_ip = forwarded_user_ip
-        logger.debug("IP resolved from X-Forwarded-For header")
-    elif settings.dev and settings.test_ip:
-        remote_ip = settings.test_ip
-        logger.debug("[DEV] Using TEST_IP override")
-    try:
-        return await service.get_document_permissions(urls, remote_ip)
-    except Exception as e:
-        logger.error(f"Error in permissions endpoint: {e}")
-        return DocsPermissionsResponse(
-            data={"organization": None, "docs": None},
-            info={"error": str(e)}
-        )
-
-
-
-@app.post("/search", response_model=SearchResponse)
-@limiter.limit("120/minute")
-async def perform_search(
-    request: Request,
-    search_request: SearchRequest,
-    service: ISearchService = Depends(get_search_service),
-):
-    """Endpoint de recherche POST — délègue au SearchService (cache + Solr)."""
-    try:
-        return await service.execute_cached_search(search_request)
-    except HTTPException:
-        raise
-    except SolrTimeoutError as e:
-        raise HTTPException(status_code=503, detail="Search service unavailable (timeout)") from e
-    except SolrInvalidQueryError as e:
-        raise HTTPException(status_code=400, detail="Invalid search query") from e
-    except SolrUnavailableError as e:
-        logger.error(f"Solr unavailable: {e}")
-        raise HTTPException(status_code=503, detail="Search service unavailable") from e
-    except Exception as e:
-        logger.error(f"Unexpected search error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error") from e
-
-@app.get("/search", response_model=SearchResponse)
-@limiter.limit("120/minute")
-async def search_via_get(
-    request: Request,
-    q: str = Query(..., description="Terme de recherche"),
-    filters: list[str] = Query([], description="Filtres 'identifier:value' (ex: platform:OB)"),
-    facets: list[str] = Query([], description="Facettes à récupérer (ex: platform)"),
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(10, ge=1, le=100, description="Nombre de résultats par page"),
-    service: ISearchService = Depends(get_search_service),
-):
-    """Recherche via paramètres URL (GET) — construit un SearchRequest et délègue au service."""
-    from app.models.search_models import FacetModel, FilterModel, PaginationModel, QueryModel
-
-    filter_models = [
-        FilterModel(identifier=identifier, value=value)
-        for f in filters
-        if ":" in f
-        for identifier, value in [f.split(":", 1)]
-    ]
-    facet_models = [FacetModel(identifier=f, type="list") for f in facets]
-    search_request = SearchRequest(
-        query=QueryModel(query=q),
-        filters=filter_models,
-        pagination=PaginationModel(from_=(page - 1) * size, size=size),
-        facets=facet_models,
-    )
-
-    try:
-        return await service.execute_cached_search(search_request)
-    except HTTPException:
-        raise
-    except SolrTimeoutError as e:
-        raise HTTPException(status_code=503, detail="Search service unavailable (timeout)") from e
-    except SolrInvalidQueryError as e:
-        raise HTTPException(status_code=400, detail="Invalid search query") from e
-    except SolrUnavailableError as e:
-        logger.error(f"Solr unavailable: {e}")
-        raise HTTPException(status_code=503, detail="Search service unavailable") from e
-    except Exception as e:
-        logger.error(f"Unexpected search error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error") from e
-
-@app.get("/suggest", response_model=SuggestResponse)
-@limiter.limit("30/minute")
-async def suggest(
-    request: Request,
-    q: str = Query(..., min_length=1, description="Terme à compléter"),
-    service: SuggestService = Depends(get_suggest_service),
-):
-    """Endpoint d'autocomplétion — délègue au SuggestService (cache + Solr)."""
-    return await service.fetch_autocomplete_suggestions(q)
+app.include_router(saved_searches_router, prefix="/api/v1")
+app.include_router(saved_searches_router, include_in_schema=False)
+app.include_router(openapi_router, prefix="/api/v1")
 
 @app.get("/cache/stats")
 async def get_cache_stats():
@@ -270,12 +126,6 @@ async def clear_cache(
         "message": f"Cache cleared for pattern: {pattern}",
         "deleted_keys": deleted_count
     }
-
-@app.get("/facets/config", response_model=FacetsConfigResponse)
-async def get_facets_config():
-    """Retourne la configuration complète des facettes + champs de recherche avancée."""
-    from app.services.facet_config import FACET_CONFIG, SEARCH_FIELDS_MAPPING
-    return {**FACET_CONFIG, "search_fields": list(SEARCH_FIELDS_MAPPING.keys())}
 
 @app.get("/health")
 async def health_check():

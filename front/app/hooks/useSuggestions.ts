@@ -21,7 +21,7 @@ export function useSuggestions() {
       if (!res.ok) throw new Error("Failed to fetch suggestions");
       const data = await res.json();
       setSuggestions(data.suggestions || []);
-    } catch (err) {
+    } catch {
       logger.error("Suggestions fetch failed");
       setSuggestions([]);
     } finally {

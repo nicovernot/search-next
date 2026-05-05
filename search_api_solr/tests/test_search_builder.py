@@ -59,7 +59,7 @@ class TestSearchBuilder:
 
         assert settings.solr_base_url in url
         assert 'q=test' in url
-        assert 'df=titre' in url
+        assert 'df=naked_titre' in url
         assert 'start=0' in url
         assert 'rows=10' in url
 
@@ -154,4 +154,3 @@ class TestSearchBuilder:
         assert 'facet=true' in url
         # L'encodage d'URL peut varier, on vérifie la présence de la chaîne décodée ou encodée
         assert 'facet.query=subscribers%3Aamu' in url or 'facet.query=subscribers:amu' in url
-
