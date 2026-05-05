@@ -1,4 +1,3 @@
-import logging
 import secrets
 from datetime import timedelta
 
@@ -7,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core import security
+from app.core.logging import get_logger
 from app.db.session import get_db
 from app.models.auth_models import LdapLogin, Token, UserCreate, UserLogin, UserResponse
 from app.models.user import User
@@ -14,7 +14,7 @@ from app.settings import settings
 
 SSO_CODE_TTL = 60  # secondes — le code court expire après 60 s
 
-log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

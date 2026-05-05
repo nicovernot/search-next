@@ -1,8 +1,10 @@
-import logging
 from typing import Any
 from urllib.parse import urlencode
 
+from app.core.logging import get_logger
 from app.models.search_models import SearchRequest
+
+logger = get_logger(__name__)
 from app.services.facet_config import (
     COMMON_FACETS_MAPPING,
     PLATFORM_SPECIFIC_FACETS,
@@ -185,7 +187,7 @@ class SearchBuilder(ISearchBuilder):
                 if logical_fq:
                     fq_list.append(logical_fq)
             except Exception as e:
-                logging.getLogger("uvicorn").error(f"Error parsing logical query: {e}")
+                logger.error("Error parsing logical query: %s", e)
 
         query_params["fq"] = fq_list
 

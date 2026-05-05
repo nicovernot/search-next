@@ -1,5 +1,8 @@
 import json
+import logging
 from pathlib import Path
+
+_logger = logging.getLogger(__name__)
 
 
 def load_facet_config_from_json() -> dict:
@@ -11,7 +14,7 @@ def load_facet_config_from_json() -> dict:
                 with open(file_path, encoding="utf-8") as f:
                     configs[file_path.stem] = json.load(f)
             except Exception as e:
-                print(f"Error loading {file_path}: {e}")
+                _logger.error("Error loading %s: %s", file_path, e)
     return configs
 
 FACET_CONFIG = load_facet_config_from_json()

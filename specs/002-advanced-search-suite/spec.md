@@ -38,7 +38,7 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 
 ### Functional Requirements
 - **FR-001**: Le système DOIT fournir un mode bascule pour la recherche avancée.
-- **FR-002**: Le système DOIT inclure la facette "Auteur" partout où des filtres existent.
+- **FR-002**: Le système DOIT inclure la facette "Auteur" partout où des filtres existent, sans retirer les filtres déjà en place ; la liste des filtres reste évolutive à mesure que de nouveaux besoins métier apparaissent.
 - **FR-003**: Le système DOIT intégrer un compositeur visuel pour créer une requête AND, OR, NOT.
 - **FR-004**: Les champs textuels de recherche DOIVENT bénéficier de l'autocomplétion (endpoint unifié).
 - **FR-005**: Le système BACKEND DOIT supporter une base PostgreSQL pour les utilisateurs et l'authentification.

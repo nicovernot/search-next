@@ -6,7 +6,7 @@
 
 ## Overview
 
-Synchroniser l'état complet de la recherche (query, filtres actifs, page courante, mode simple/avancé) avec les paramètres d'URL, afin de permettre le partage de liens et la navigation back/forward du navigateur.
+Synchroniser l'état complet de la recherche (query, filtres actifs, page courante, mode simple/avancé) avec les paramètres d'URL, afin de permettre le partage de liens et la navigation back/forward du navigateur. Le mécanisme doit couvrir les filtres actuellement disponibles et rester compatible avec l'ajout futur de nouveaux filtres.
 
 ## Implémentation
 
@@ -47,7 +47,7 @@ En tant qu'utilisateur avancé, je veux que ma requête logique (AND/OR/NOT cons
 ## Requirements
 
 ### Functional Requirements
-- **FR-001** ✅ : L'URL DOIT refléter en temps réel la query (`q=`), les filtres actifs (`f_[field]=value`), la page (`page=`) et le mode de recherche (`mode=simple|advanced`).
+- **FR-001** ✅ : L'URL DOIT refléter en temps réel la query (`q=`), les filtres actifs (`f_[field]=value`), la page (`page=`) et le mode de recherche (`mode=simple|advanced`), en conservant les filtres actuels comme référence tout en permettant l'ajout ultérieur de nouveaux champs de filtre.
 - **FR-002** ✅ : Le chargement d'une URL avec paramètres DOIT restaurer l'état de recherche et lancer la recherche automatiquement.
 - **FR-003** ✅ : La navigation back/forward DOIT mettre à jour l'état de recherche en cohérence avec l'URL visitée.
 - **FR-004** ✅ : La mise à jour de l'URL DOIT utiliser `router.push` (nouvelle entrée d'historique) pour les nouvelles recherches, et `router.replace` (remplacement silencieux) pour les changements de page/filtre/mode.
