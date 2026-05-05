@@ -27,7 +27,7 @@
 
 - [x] T015 Créer ou compléter `CONTRIBUTING.md` avec les règles de nommage
 - [x] T016 Documenter l'exception `t = useTranslations()`
-- [ ] T017 Ajouter une section courte dans `docs/ARCHITECTURE.md` (à faire lors de la sync doc post-007)
+- [x] T017 Ajouter une section courte dans `docs/ARCHITECTURE.md`
 - [x] T018 Ajouter une règle ESLint `id-length` en warning avec exceptions documentées
 
 ## Phase 5 — Vérification

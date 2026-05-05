@@ -1,28 +1,13 @@
 # Planning global des specs
 
-**Audit**: 2026-04-22  
-**But**: centraliser l'ordre de traitement, les dépendances et les points de cohérence entre specs.
+**Audit**: 2026-04-20  
+**But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
 
 ## État global
 
-Toutes les specs fonctionnelles (001–011) sont livrées. Une nouvelle spec transverse `012-logging-strategy` a été ouverte le 2026-04-22 pour homogénéiser l'observabilité applicative et la politique de logs. Les items P0 et P1 historiques sont résolus (2026-04-20). Il reste une dette P2 non bloquante sur le logging et une dette P3 de nettoyage courant.
-
----
-
-## P2 — Observabilité / stratégie de logs
-
-**À faire :**
-
-| Sujet | Cible |
-|---|---|
-| 📝 Logging backend hétérogène | Unifier `core/logging.py`, bannir `basicConfig`, aligner les loggers de modules |
-| 📝 Logs sensibles dans permissions/auth | Réduire IP, URLs complètes, payloads auth, réponses brutes |
-| 📝 Frontend sans politique de logs | Introduire un wrapper et supprimer les `console.*` applicatifs |
-| 📝 Convention dev/staging/prod incomplète | Fixer niveaux, formats et règles de redaction par environnement |
-
-Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
+Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Une nouvelle initiative prioritaire est ouverte : `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
 
 ---
 
@@ -61,8 +46,8 @@ Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 
 | # | Sujet | Résolution |
 |---|---|---|
-| ✅ 11 | `useSearchApi` 197 lignes | `buildSearchPayload` + `hasActiveSearch` extraits dans `lib/search-payload.ts` ; hook ~160L (complexité stale closures inhérente documentée) (2026-04-20) |
-| ✅ 12 | `useUrlSync` 143 lignes | `buildUrlParams`, `readFiltersFromParams`, `parseSavedSearchData` extraits dans `lib/url-search-state.ts` ; hook ~65L, parsing testable sans React (2026-04-20) |
+| ✅ 11 | `useSearchApi` trop long | `buildSearchPayload` + `hasActiveSearch` extraits dans `lib/search-payload.ts` ; hook ~179L (complexité stale closures inhérente documentée) (2026-04-20) |
+| ✅ 12 | `useUrlSync` trop long | `buildUrlParams`, `readFiltersFromParams`, `parseSavedSearchData` extraits dans `lib/url-search-state.ts` ; hook ~79L, parsing testable sans React (2026-04-20) |
 | ✅ 13 | `SearchContext` consommé globalement | 5 hooks sélecteurs ajoutés : `useSearchQuery`, `useSearchResults`, `useSearchFilters`, `useSearchSuggestions`, `useSearchPermissions` (2026-04-20) |
 | ✅ 14 | `AuthModal` volumineux | `LdapLoginForm` extrait dans `components/LdapLoginForm.tsx` — état LDAP et handlers encapsulés (2026-04-20) |
 
@@ -83,9 +68,80 @@ Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 
 ## Ordre d'exécution recommandé
 
-1. **P0 et P1** ✅ Terminés (2026-04-20)
-2. **P2** ✅ Terminé (2026-04-20)
-3. **P3** ✅ Terminé (2026-04-20)
+### Bloc 0 — Vérification release (prérequis immédiat)
+
+À faire avant tout démarrage de la spec 012 pour partir sur une base verte.
+
+1. Relancer `pnpm run lint` dans l'environnement cible.
+2. Relancer `pnpm run test:e2e` (68 tests Playwright).
+3. Relancer `make test` (backend Docker).
+
+### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
+
+Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas le travail technique sur le namespace `/api/v1`, et inversement.
+
+4. **[Métier]** Valider la taxonomie disciplinaire et le jeu d'évaluation lexical vs hybride.
+5. **[Technique]** Consolider `/api/v1` — déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/`, publier `openapi.json`.
+6. Préparer le contrat documentaire cible (`disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score`) comme champs optionnels et rétrocompatibles.
+7. Réunir les décisions de cadrage (taxonomie + périmètre public) dans `plan.md` avant de démarrer la Phase 2.
+
+### Bloc 2 — Lot 2A : Socle disciplinaire (Phase 2) — dépend du Bloc 1 complet
+
+8. Alimenter réellement `disciplines`, `discipline_source`, `discipline_confidence` via PostgreSQL / enrichissements.
+9. Ajouter la facette discipline à la config backend et à l'UI.
+
+### Bloc 3 — Lot 2B : Pipeline d'enrichissement IA (Phase 3) — dépend du Bloc 2
+
+10. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
+11. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
+
+### Bloc 4 — Lot 2C : Recherche hybride (Phase 4) — dépend du Bloc 3
+
+12. Ajouter `SearchMode` aux modèles de requête.
+13. Fusionner scores Solr et pgvector côté backend.
+14. Déployer derrière feature flag par environnement.
+
+### Bloc 5 — SDKs officiels (Phase 5) — dépend du Bloc 1 (API stable) + Bloc 4 (contrat figé)
+
+15. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
+16. Packager, versionner, documenter chaque SDK.
+17. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
+
+### En parallèle / opportuniste
+
+- Migrer les composants de `useSearch()` vers les hooks selectors lors des prochaines touches.
+
+---
+
+## Reste à faire
+
+### Vérification release (avant tout)
+
+| Item | Pourquoi | Sortie attendue |
+|---|---|---|
+| Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
+| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright documentés | Suite E2E verte ou écarts documentés |
+| Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
+
+### Spec 012 — par phase et dépendances
+
+| Phase | Item | Prérequis | Sortie attendue |
+|---|---|---|---|
+| ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
+| Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
+| Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
+| Ph.1 | Consolider `/api/v1`, typer les réponses et préparer le contrat documentaire | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable + champs documentaires optionnels |
+| Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie validée + Ph.1 contrat prêt | Champs + facette discipline opérationnels |
+| Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
+| Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
+| Ph.5 | Générer SDKs Node.js, Python, PHP + CI sync | Ph.1 (API stable) + Ph.4 (contrat figé) | Packages + exemples + CI |
+
+### Optionnel / opportuniste
+
+| Item | Pourquoi | Sortie attendue |
+|---|---|---|
+| Migrer composants `useSearch()` → hooks selectors | Réduire le couplage UI résiduel | PRs ciblées par composant touché |
+| Extraire `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
 ---
 
@@ -93,12 +149,12 @@ Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 
 | Sujet | État |
 |---|---|
-| Specs 001–011 | ✅ Toutes livrées fonctionnellement |
+| Specs 001–011 | ✅ Toutes livrées |
 | Auth LDAP/SSO + transport JWT | ✅ Complet (2026-04-20) |
-| URL sync (004) | ✅ Livré — 19 tests E2E |
+| URL sync (004) | ✅ Livré — 21 tests E2E |
 | Permissions (005) | ✅ Livré — badges, proxy IP, fallback `unknown` |
-| Refactor SearchContext (007) | ✅ Livré — assembleur 115L, 6 hooks SOLID |
-| Qualité code (008/009/010) | ✅ Livré — P2 soldé (2026-04-20) |
+| Refactor SearchContext (007) | ✅ Livré — assembleur + 6 hooks SOLID + selectors |
+| Qualité code (008/009/010) | ✅ Livré — dette bloquante soldée (2026-04-20) |
 | Tech debt (006) | ✅ Livré — searchFields depuis `/facets/config` |
 | Sécurité prod (P0) | ✅ Résolu (2026-04-20) |
 | Architecture backend (P1) | ✅ Résolu (2026-04-20) |
@@ -106,13 +162,16 @@ Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
 | Docs / architecture | ✅ Synchronisés (2026-04-20) |
+| Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
 
 ### Écarts connus (dette acceptée)
 
-- `useSearchApi.ts` : ~160 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
-- `SearchContext.tsx` : ~150 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
+- `useSearchApi.ts` : ~179 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
+- `SearchContext.tsx` : ~155 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
+- Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
+- `/api/v1` partiel : `saved_searches` est déjà sous `app/api/v1/` mais `/search`, `/suggest`, `/facets/config` restent à la racine — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
 
 ---
 
@@ -126,12 +185,12 @@ Référence : [`012-logging-strategy/spec.md`](012-logging-strategy/spec.md)
 | 004 | URL sync | ✅ Livré |
 | 005 | Permissions | ✅ Livré |
 | 006 | Tech debt | ✅ Livré |
-| 007 | Refactor SearchContext | ✅ Livré — P2 soldé (2026-04-20) |
-| 008 | Code quality SOLID | ✅ Livré — P0/P1/P2 soldés |
-| 009 | DRY/KISS/YAGNI | ✅ Livré fonctionnellement — nettoyage P3 |
+| 007 | Refactor SearchContext | ✅ Livré — dette taille acceptée |
+| 008 | Code quality SOLID | ✅ Livré — dette bloquante soldée |
+| 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
-| 012 | Logging strategy | 📝 Draft |
+| 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
 
 ---
 

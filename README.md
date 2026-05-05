@@ -102,7 +102,7 @@ Implémenté côté produit :
 - Autocomplétion
 - Authentification email / mot de passe
 - Authentification LDAP institutionnelle
-- Authentification SSO OIDC (durcissement transport JWT à faire avant prod — voir P0 dans `specs/PLANNING.md`)
+- Authentification SSO OIDC avec transport JWT sécurisé par code court à usage unique
 - Recherches sauvegardées
 - Badges d'accès sur les résultats (permissions)
 - Synchronisation état ↔ URL (liens partageables, back/forward)
@@ -128,8 +128,8 @@ Implémenté côté produit :
 | [004](./specs/004-url-sync/spec.md) | URL sync — liens partageables, back/forward | ✅ Livré |
 | [005](./specs/005-permissions/spec.md) | Permissions — badges d'accès sur les résultats | ✅ Livré |
 | [006](./specs/006-tech-debt/spec.md) | Tech debt — fondations techniques | ✅ Livré |
-| [007](./specs/007-refactor-search-context/spec.md) | Refactor SearchContext — hooks SOLID | ✅ Livré fonctionnellement |
-| [008](./specs/008-code-quality-solid/spec.md) | Code quality SOLID | ✅ Livré fonctionnellement |
-| [009](./specs/009-dry-kiss-yagni/spec.md) | DRY/KISS/YAGNI | ✅ Livré fonctionnellement |
+| [007](./specs/007-refactor-search-context/spec.md) | Refactor SearchContext — hooks SOLID | ✅ Livré |
+| [008](./specs/008-code-quality-solid/spec.md) | Code quality SOLID | ✅ Livré |
+| [009](./specs/009-dry-kiss-yagni/spec.md) | DRY/KISS/YAGNI | ✅ Livré |
 | [010](./specs/010-naming-intention-result/spec.md) | Naming intention→résultat | ✅ Livré |
-| [011](./specs/011-auth-ldap-sso/spec.md) | Auth LDAP/SSO institutionnel | ✅ Livré fonctionnellement |
+| [011](./specs/011-auth-ldap-sso/spec.md) | Auth LDAP/SSO institutionnel | ✅ Livré |

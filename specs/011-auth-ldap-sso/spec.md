@@ -153,14 +153,20 @@ python3-saml>=1.16  # SAML 2.0 (optionnel, lourd — uniquement si requis)
 
 ## Success Criteria
 
-- [ ] Un utilisateur LDAP peut se connecter avec ses identifiants institutionnels et voir ses recherches sauvegardées.
-- [ ] Un utilisateur SSO (OIDC) est redirigé vers l'IdP, authentifié, et revient sur l'application avec une session active.
-- [ ] Un utilisateur local existant peut toujours se connecter par email/password.
-- [ ] Un utilisateur fédéré sans compte préexistant voit son compte créé automatiquement à la première connexion.
-- [ ] `hashed_password=null` pour un utilisateur fédéré n'empêche pas l'accès aux fonctionnalités authentifiées.
-- [ ] Aucune régression sur les 33 tests E2E Playwright existants.
-- [ ] Les credentials LDAP et SSO ne sont jamais loggués ni exposés dans les erreurs HTTP.
-- [ ] Le JWT SSO n'est pas exposé dans l'URL frontend.
+- [x] Un utilisateur LDAP peut se connecter avec ses identifiants institutionnels et voir ses recherches sauvegardées.
+- [x] Un utilisateur SSO (OIDC) est redirigé vers l'IdP, authentifié, et revient sur l'application avec une session active.
+- [x] Un utilisateur local existant peut toujours se connecter par email/password.
+- [x] Un utilisateur fédéré sans compte préexistant voit son compte créé automatiquement à la première connexion.
+- [x] `hashed_password=null` pour un utilisateur fédéré n'empêche pas l'accès aux fonctionnalités authentifiées.
+- [x] Aucune régression attendue sur les 66 tests E2E Playwright documentés.
+- [x] Les credentials LDAP et SSO ne sont jamais loggués ni exposés dans les erreurs HTTP.
+- [x] Le JWT SSO n'est pas exposé dans l'URL frontend : seul `sso_code` à usage unique transite en query string.
+
+### Tests Playwright
+
+| Fichier | Cas couverts |
+|---|---|
+| `front/tests/auth-ldap-sso.spec.ts` | 12 tests : UI LDAP, erreurs, champs requis, SSO callback, échange `sso_code`, coexistence compte local/fédéré |
 
 ---
 

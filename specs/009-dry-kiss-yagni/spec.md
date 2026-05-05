@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/009-dry-kiss-yagni` (à créer depuis `main`)
 **Created**: 2026-04-16
-**Status**: ✅ Livré fonctionnellement — corrections DRY/KISS principales appliquées. Dette résiduelle et nettoyage P2/P3 suivis dans `../PLANNING.md`.
+**Status**: ✅ Livré — corrections DRY/KISS/YAGNI principales et nettoyage P3 appliqués.
 
 ## Overview
 
@@ -10,18 +10,18 @@ Audit complet des violations des principes DRY (Don't Repeat Yourself), KISS (Ke
 
 ---
 
-## État réel au 2026-04-19
+## État réel au 2026-04-20
 
-Les duplications frontend majeures relevées dans cette spec sont corrigées ou isolées dans des helpers/hooks. Les points restants ne bloquent pas le fonctionnement, mais restent utiles pour stabiliser l'architecture :
+Les duplications frontend majeures relevées dans cette spec sont corrigées ou isolées dans des helpers/hooks. Les nettoyages de dépendances, lockfiles et code mort ont également été appliqués.
 
 | Sujet | État | Suite |
 |---|---|---|
 | Helpers facettes, storage keys, spinners, portal/click outside | ✅ Livrés | Garder ces patterns pour les futures features |
 | `AutocompleteInput` découplé du contexte direct | ✅ Livré | Ne pas réintroduire d'import implicite à `SearchContext` dans les composants feuilles |
 | `hasActiveSearch` / `activeFilters` | ✅ Livrés via `useSearchState` | Centralisation à conserver |
-| `useSearchApi` / `useUrlSync` | ⚠️ Trop longs | P2 : extractions ciblées |
-| Dépendances et lockfiles | ⚠️ Nettoyage restant | P3 : retirer dépendances inutilisées et choisir un seul lockfile |
-| Code mort/commentaires backend | ⚠️ Nettoyage restant | P3 : supprimer commentaires obsolètes dans `SearchBuilder` |
+| `useSearchApi` / `useUrlSync` | ✅ Helpers extraits (`search-payload.ts`, `url-search-state.ts`) | `useSearchApi` reste volontairement orchestrateur |
+| Dépendances et lockfiles | ✅ Nettoyés | `pnpm-lock.yaml` unique côté front |
+| Code mort/commentaires backend | ✅ Nettoyé | Garder la règle pour les prochains changements |
 
 Les anciennes sections d'audit ci-dessous sont conservées comme historique de décision. Le planning opérationnel courant est `../PLANNING.md`.
 
@@ -335,7 +335,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Aucune régression sur les 33 tests Playwright existants.
+- **NFR-001**: Aucune régression sur les 66 tests Playwright documentés.
 - **NFR-002**: `grep -rn "FACET_I18N" front/app/components/` retourne 0 résultat après correction.
 - **NFR-003**: `grep -rn "#f03603\|#e6e4e2\|#969493" front/app/components/` retourne 0 résultat après correction.
 - **NFR-004**: `grep -rn "style jsx global" front/app/components/` retourne 0 résultat après correction.
@@ -344,7 +344,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 
 ## Plan d'action
 
-> Statut 2026-04-19 : ce plan initial est majoritairement exécuté. Les corrections restantes sont reclassées dans `../PLANNING.md` pour éviter deux sources de vérité concurrentes.
+> Statut 2026-04-20 : ce plan initial est exécuté. Les seules suites restantes sont opportunistes et listées dans `../PLANNING.md`.
 
 ### Priorité P0 — Corrections sans risque (< 2h chacune)
 
@@ -388,7 +388,7 @@ grep -rn "SearchState" front/app/  # → 0 résultat hors types.ts
 - **SC-004**: `grep -rn "SearchState" front/app/` → 0 résultat hors `types.ts` (supprimé).
 - **SC-005**: `grep -rn "auth_token\|auth_user" front/app/` → 0 résultat hors `lib/storage-keys.ts`.
 - **SC-006**: `AutocompleteInput.tsx` ne contient plus d'import `useSearch`.
-- **SC-007**: Les tests Playwright restent verts. **À relancer dans l'environnement cible.**
+- **SC-007**: Les tests Playwright restent verts. **66 tests à relancer dans l'environnement cible avant release.**
 
 ### Checklist de revue de code (DRY/KISS/YAGNI)
 

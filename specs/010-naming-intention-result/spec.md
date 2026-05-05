@@ -306,7 +306,7 @@ Ces renommages touchent des exports ou des méthodes publiques — vérifier tou
 - **SC-002**: `grep -rn "\.map((d) =>\|\.filter((v) =>\|\.some((v) =>\|\.map((s) =>" front/app/` → 0 résultat.
 - **SC-003**: `grep -rn "^const BASE " front/app/lib/api.ts` → 0 résultat.
 - **SC-004**: `grep -rn "\bconst res =\|\bconst data =" front/app/context/SearchContext.tsx` → 0 résultat.
-- **SC-005**: Les 33 tests Playwright restent verts après tous les renommages.
+- **SC-005**: Les 66 tests Playwright documentés restent verts après tous les renommages.
 - **SC-006**: `CONTRIBUTING.md` existe avec les 7 règles documentées.
 
 ---

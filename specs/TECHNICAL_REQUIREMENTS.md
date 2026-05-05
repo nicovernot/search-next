@@ -26,6 +26,7 @@ Les specs `008`, `009` et `010` appliquent ces règles à la dette existante :
 | Données | PostgreSQL pour users/recherches sauvegardées |
 | Cache | Redis pour cache search/suggest/permissions |
 | Search | Apache Solr distant |
+| Recherche sémantique cible | PostgreSQL + `pgvector` + pipeline Python d'embeddings |
 | Tests E2E | Playwright |
 | Infra locale | Docker Compose et Makefile |
 
@@ -49,6 +50,7 @@ Toute nouvelle dépendance doit être justifiée par un besoin mesurable. Une li
 - Les services doivent rester injectables ou mockables via les dépendances existantes.
 - Les modèles Pydantic doivent valider les payloads publics ; `Any` est interdit sauf adaptateur explicitement documenté.
 - Les accès Solr doivent passer par les clients/services existants, pas être recodés dans les endpoints.
+- Les enrichissements IA lourds (embeddings, classification) doivent passer par une pipeline asynchrone dédiée, pas par le chemin critique HTTP.
 - Les erreurs publiques doivent utiliser des codes HTTP stables et compréhensibles.
 
 ---
@@ -58,6 +60,8 @@ Toute nouvelle dépendance doit être justifiée par un besoin mesurable. Une li
 - Toute réponse publique doit avoir une structure stable et typée.
 - Les erreurs attendues doivent retourner un code HTTP métier (`400`, `401`, `403`, `404`, `409`, `422`) plutôt qu'une erreur serveur générique.
 - Les changements de contrat doivent être reflétés dans les types frontend.
+- Toute API destinée à d'autres applications de l'unité doit être explicitement versionnée et documentée via OpenAPI.
+- Les SDK multi-langages doivent être générés ou régénérables à partir du contrat OpenAPI de référence.
 - Les endpoints appelés par le navigateur doivent être compatibles CORS ou proxifiés côté Next.js.
 - Les appels dépendant de l'IP utilisateur doivent passer par une chaîne fiable de headers (`X-Forwarded-For` côté route handler, lecture explicite côté FastAPI).
 
@@ -173,8 +177,8 @@ pnpm run test:e2e   # Playwright
 Backend :
 
 ```bash
+make test           # Référence — pytest via Docker Compose (pipx run pytest échoue sans virtualenv dédié)
 cd search_api_solr
-pytest              # Tests unitaires et d'intégration
 ruff check .        # Linter (pycodestyle, pyflakes, bugbear, bandit, annotations)
 ruff check . --fix  # Auto-correction des violations simples
 ```
@@ -198,10 +202,22 @@ Si une commande ne peut pas être lancée, la raison doit être documentée dans
 - Le planning global vit dans [`PLANNING.md`](PLANNING.md).
 - La dette résiduelle validée par audit doit être suivie dans [`PLANNING.md`](PLANNING.md), même quand une spec est livrée fonctionnellement.
 - `docs/ARCHITECTURE.md` décrit l'état architectural, mais ce fichier reste la source de vérité pour les exigences techniques transverses.
+- Les specs touchant l'API mutualisée doivent documenter le contrat public, la stratégie de versionnement et l'impact SDK.
 
 ---
 
-## 11. Définition de terminé technique
+## 11. Recherche sémantique et enrichissements documentaires
+
+- La recherche sémantique doit être pensée comme un mode complémentaire à la recherche lexicale existante, pas comme un remplacement implicite.
+- Le stockage vectoriel cible doit privilégier l'outillage déjà présent dans le projet ; `pgvector` sur PostgreSQL est la cible par défaut sauf contrainte démontrée.
+- Les modèles d'embedding doivent être multilingues, auto-hébergeables et compatibles avec les corpus académiques du projet.
+- La catégorisation disciplinaire doit d'abord réutiliser les métadonnées source disponibles avant de recourir à une inférence automatique.
+- Toute discipline calculée automatiquement doit exposer une provenance et, si pertinent, un score de confiance.
+- Les enrichissements documentaires doivent être recalculables et versionnables indépendamment du frontend.
+
+---
+
+## 12. Définition de terminé technique
 
 Une modification est techniquement terminée quand :
 
@@ -215,7 +231,7 @@ Une modification est techniquement terminée quand :
 
 ---
 
-## 12. Ordre de résolution des conflits
+## 13. Ordre de résolution des conflits
 
 Quand deux documents semblent se contredire :
 
