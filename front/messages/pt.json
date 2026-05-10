@@ -89,5 +89,9 @@
   "access_open": "Acesso aberto",
   "access_institutional": "Acesso institucional",
   "access_restricted": "Acesso restrito",
-  "access_unknown": "Acesso desconhecido"
+  "access_unknown": "Acesso desconhecido",
+  "discipline_label": "Disciplina",
+  "discipline_source_source_metadata": "Metadados fonte",
+  "discipline_source_inferred": "Inferido",
+  "discipline_source_manual_override": "Correção manual"
 }

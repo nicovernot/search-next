@@ -1,5 +1,7 @@
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
+from app.db.session import get_db
 from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
 from app.services.search_builder import SearchBuilder
 from app.services.search_service import (
@@ -24,9 +26,10 @@ def get_search_builder() -> ISearchBuilder:
 def get_search_service(
     builder: ISearchBuilder = Depends(get_search_builder),
     solr_client: ISolrClient = Depends(get_solr_client),
+    db: Session = Depends(get_db),
 ) -> ISearchService:
     """Fournit une instance du service de recherche."""
-    return SearchService(builder, solr_client)
+    return SearchService(builder, solr_client, db)
 
 
 def get_suggest_service(
