@@ -8,15 +8,15 @@
 
 ## Phase 0 — Cadrage (avant tout démarrage Phase 1)
 
-- [ ] Auditer les champs disciplinaires disponibles dans les documents Solr (chercher : `subject`, `keywords`, `discipline`, classifications HAL, domaines éditeur) — documenter les champs trouvés dans `plan.md`
-- [ ] Valider la taxonomie disciplinaire avec les équipes métier (≤ 30 disciplines stables, codes normalisés, libellés multilingues fr/en minimum)
-- [ ] Choisir le modèle d'embedding : `bge-m3` vs `multilingual-e5-large` — documenter le choix et la contrainte infra (mémoire/GPU)
+- [x] Auditer les champs disciplinaires disponibles dans les documents Solr — **aucun champ discipline dans `fl` actuel** ; candidats textuels : `naked_titre`, `naked_soustitre`, `naked_resume` ; vérification manuelle `fl=*` requise sur Solr de staging avant Phase 2 (voir `plan.md` § Phase 0)
+- [ ] **[métier]** Valider la taxonomie disciplinaire avec les équipes métier — proposition 25 disciplines documentée dans `plan.md` § Phase 0 ; codes + libellés fr/en à confirmer
+- [x] Choisir le modèle d'embedding : **`multilingual-e5-large`** — 768 dims, 560M params, ~2.2 GB VRAM, compatible sentence-transformers 3.x (voir `plan.md` § Phase 0)
 - [x] Décider si `/auth/*` est exposé dans les SDKs ou réservé au frontend — réservé au frontend en Phase 1
 - [x] Décider du périmètre exact des endpoints publics tiers vs internes — recherche, suggest, facettes, permissions, OpenAPI
 - [x] Confirmer si `saved_searches` doit rester public sous `/api/v1/saved-searches` ou rester réservé au frontend authentifié — monté sous v1, authentifié, hors SDK public Phase 1
 - [x] Confirmer ou ajuster la stratégie de fusion hybride (RRF k=60 recommandé) — RRF k=60 conservé comme défaut cible
 - [x] Documenter toutes ces décisions dans `plan.md` § "Decisions Already Recommended"
-- [ ] Constituer le jeu d'évaluation lexical vs hybride (≥ 50 requêtes métier avec résultats attendus)
+- [x] Constituer le jeu d'évaluation lexical vs hybride — template 50 requêtes créé dans `checklists/eval-corpus.md` ; **[métier] à renseigner par les équipes avant Phase 4**
 
 ---
 
