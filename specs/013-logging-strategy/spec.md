@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/013-logging-strategy`  
 **Created**: 2026-04-22  
-**Status**: ⚪ Partiellement livré — socle backend JSON et wrapper frontend présents ; durcissement/redaction encore à terminer
+**Status**: ✅ Livré — socle backend JSON, wrapper frontend, redaction données sensibles, f-strings structurés, règle ESLint `no-console` (2026-05-10)
 
 ## Objectif
 

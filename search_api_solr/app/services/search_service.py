@@ -130,7 +130,10 @@ class SuggestService:
                 return []
             return [s.get("term") for s in raw if s.get("term")]
         except Exception as parse_error:
-            self.logger.error(f"Error parsing Solr suggest response: {parse_error}")
+            self.logger.error(
+                "Error parsing Solr suggest response",
+                extra={"context": {"error": str(parse_error)}},
+            )
             return []
 
     async def fetch_autocomplete_suggestions(self, query: str) -> dict[str, Any]:
@@ -139,23 +142,25 @@ class SuggestService:
 
         cached = await cache_service.get_suggest_cache(query)
         if cached:
-            self.logger.debug(f"Returning cached suggestions for query: {query}")
+            self.logger.debug("Returning cached suggestions", extra={"context": {"query": query}})
             return cached
 
         suggest_url = self.builder.build_suggest_url(query)
-        self.logger.debug(f"Suggest URL: {suggest_url}")
 
         try:
             solr_data = await self.solr_client.search(suggest_url)
         except Exception as e:
-            self.logger.error(f"Suggest Solr call failed: {e}")
+            self.logger.error("Suggest Solr call failed", extra={"context": {"error": str(e)}})
             return {"suggestions": []}
 
         suggestions = self._parse_solr_suggestions(solr_data, query)
         result: dict[str, Any] = {"suggestions": suggestions}
 
         await cache_service.set_suggest_cache(query, result)
-        self.logger.info(f"Suggest completed for query: {query} ({len(suggestions)} results)")
+        self.logger.info(
+            "Suggest completed",
+            extra={"context": {"query": query, "num_suggestions": len(suggestions)}},
+        )
         return result
 
 class PermissionsService:
@@ -176,7 +181,11 @@ class PermissionsService:
             # 1. Vérifier le cache d'abord
             cached_result = await cache_service.get_permissions_cache(urls, ip)
             if cached_result:
-                self.logger.debug(f"Returning cached permissions for URLs: {urls}")
+                url_count = len(urls.split(",")) if urls else 0
+                self.logger.debug(
+                    "Returning cached permissions",
+                    extra={"context": {"url_count": url_count}},
+                )
                 return cached_result
 
             # 2. Appel réel via DocsPermissionsClient
@@ -193,5 +202,5 @@ class PermissionsService:
             return result
 
         except Exception as e:
-            self.logger.error(f"Permissions check failed: {e}")
+            self.logger.error("Permissions check failed", extra={"context": {"error": str(e)}})
             return {"data": {"organization": None, "docs": None}, "info": {"error": str(e)}}

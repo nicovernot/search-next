@@ -152,7 +152,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 | Item | Pourquoi | Sortie attendue |
 |---|---|---|
-| Durcir `012-logging-strategy` | Finaliser la redaction et verrouiller la convention logging | Logs backend homogènes + règle/recherche empêchant `console.*` hors wrapper |
+| ~~Durcir `013-logging-strategy`~~ | ✅ Livré (2026-05-10) | — |
 | Migrer composants `useSearch()` → hooks selectors | Réduire le couplage UI résiduel | PRs ciblées par composant touché |
 | Extraire `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
@@ -171,7 +171,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Tech debt (006) | ✅ Livré — searchFields depuis `/facets/config` |
 | Sécurité prod (P0) | ✅ Résolu (2026-04-20) |
 | Architecture backend (P1) | ✅ Résolu (2026-04-20) |
-| Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
+| Logging applicatif | ✅ Livré — root logger, redaction, f-strings structurés, ESLint no-console (2026-05-10) |
 | Linter Python (ruff) | ✅ `ruff check .` passe sans erreur |
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
@@ -179,7 +179,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Spec 012 Phase 1 `/api/v1` | ✅ Livré (2026-05-05) — routers, OpenAPI, SearchResponse typé |
 | Spec 012 Phase 0 (cadrage) | ⚪ ~80% — audit Solr ✅, embedding ✅, taxonomie proposée ✅ ; validation métier + corpus éval restants |
 | Spec 012 Phases 2-5 | ⚪ Backlog — dépendent de Phase 0 complète |
-| Spec logging (013) | ⚪ Partiellement livré — durcissement/redaction restant |
+| Spec logging (013) | ✅ Livré (2026-05-10) |
 
 ### Écarts connus (dette acceptée)
 
@@ -211,7 +211,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
 | 012 | Logging strategy → voir 013 | — renuméroté |
 | 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 ~80% (validation métier restante) — Phase 2-5 backlog |
-| 013 | Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
+| 013 | Logging applicatif | ✅ Livré — root logger, redaction, f-strings structurés, ESLint no-console (2026-05-10) |
 
 ---
 
