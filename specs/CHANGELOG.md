@@ -27,16 +27,11 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
 | 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
 | 2026-04-19 | docs | Alignement specs/code/docs : dette résiduelle P0/P1/P2/P3 ajoutée au planning, architecture et specs qualité synchronisées | — |
-<<<<<<< HEAD
 | 2026-04-20 | 004/011 | URL sync (21 tests) et LDAP/SSO (14 tests déclarés, 12 exécutables + 2 skip) documentés ; total E2E porté à 68 déclarés / 66 exécutables | — |
 | 2026-04-20 | P0/P1/P2/P3 | Sécurité production, contrats backend, lint, hooks et nettoyage soldés ; planning basculé en vérification release | — |
-| 2026-05-09 | docs/specs | Cohérence audit : total E2E 68 déclarés / 66 exécutables, dette `useSearchApi` 189 lignes, `/api/v1` partiel, logging partiellement livré | — |
-=======
-| 2026-04-20 | 004/011 | URL sync (21 tests) et LDAP/SSO (12 tests) documentés ; total E2E porté à 68 tests | — |
-| 2026-04-20 | P0/P1/P2/P3 | Sécurité production, contrats backend, lint, hooks et nettoyage soldés ; planning basculé en vérification release | — |
 | 2026-05-05 | docs | Audit de cohérence specs/planning : compteur E2E réaligné à 68, prérequis 012 clarifiés, logging renuméroté en `013-logging-strategy` | — |
-| 2026-05-05 | 012 | Démarrage Phase 1 : routers `/api/v1` search/suggest/facets/permissions/openapi, `SearchResponse.results` typé, aliases racine conservés, backend tests verts | — |
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
+| 2026-05-05 | 012 | Phase 1 : routers `/api/v1` search/suggest/facets/permissions/openapi, `SearchResponse.results` typé, aliases racine conservés, backend tests verts | — |
+| 2026-05-10 | docs/specs | Résolution conflits merge : cohérence docs synchronisée, Phase 1 /api/v1 confirmée livrée | — |
 
 ---
 

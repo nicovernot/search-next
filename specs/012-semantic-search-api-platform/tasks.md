@@ -24,14 +24,6 @@
 
 ### 1.1 — Déplacement des endpoints sous `/api/v1/`
 
-<<<<<<< HEAD
-- [ ] Créer `search_api_solr/app/api/v1/search.py` avec les routes `POST /search` et `GET /search`
-- [ ] Créer `search_api_solr/app/api/v1/suggest.py` avec la route `GET /suggest`
-- [ ] Créer `search_api_solr/app/api/v1/facets.py` avec la route `GET /facets/config`
-- [ ] Inclure les nouveaux routers dans `main.py` sous le préfixe `/api/v1`
-- [ ] Ajouter des aliases de compatibilité sur les routes racine (`/search`, `/suggest`, `/facets/config`) le temps de la transition frontend
-- [ ] Décider si `saved_searches` reste compatible à la racine via alias ou rejoint explicitement le préfixe `/api/v1`
-=======
 - [x] Créer `search_api_solr/app/api/v1/search.py` avec les routes `POST /search` et `GET /search`
 - [x] Créer `search_api_solr/app/api/v1/suggest.py` avec la route `GET /suggest`
 - [x] Créer `search_api_solr/app/api/v1/facets.py` avec la route `GET /facets/config`
@@ -39,7 +31,6 @@
 - [x] Inclure les nouveaux routers dans `main.py` sous le préfixe `/api/v1`
 - [x] Ajouter des aliases de compatibilité sur les routes racine (`/search`, `/suggest`, `/facets/config`, `/permissions`) le temps de la transition frontend
 - [x] Vérifier que `saved_searches` (déjà dans le package `app/api/v1/`) est monté sous le préfixe public décidé
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ### 1.2 — Typer `SearchResponse.results` et compléter les `response_model`
 
