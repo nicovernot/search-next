@@ -31,7 +31,7 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-20 | P0/P1/P2/P3 | Sécurité production, contrats backend, lint, hooks et nettoyage soldés ; planning basculé en vérification release | — |
 | 2026-05-05 | docs | Audit de cohérence specs/planning : compteur E2E réaligné à 68, prérequis 012 clarifiés, logging renuméroté en `013-logging-strategy` | — |
 | 2026-05-05 | 012 | Phase 1 : routers `/api/v1` search/suggest/facets/permissions/openapi, `SearchResponse.results` typé, aliases racine conservés, backend tests verts | — |
-| 2026-05-10 | docs/specs | Résolution conflits merge : cohérence docs synchronisée, Phase 1 /api/v1 confirmée livrée | — |
+| 2026-05-10 | docs/specs | Résolution conflits merge dans 7 fichiers ; Phase 1 /api/v1 marquée ✅ ; PLANNING.md et tasks.md 012 synchronisés avec état réel | — |
 
 ---
 
