@@ -462,5 +462,120 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 - Les routes racine historiques restent disponibles comme aliases de compatibilité pendant la transition frontend.
 
 **Décisions en attente (Phase 0) :**
-- Modèle d'embedding : `bge-m3` (lourd, SOTA multilingue) vs `multilingual-e5-large` (plus léger, bon compromis) — à choisir selon contraintes mémoire/GPU de l'infra.
-- Champs Solr disciplinaires et textuels disponibles : à auditer avant Phase 2.
+- ~~Modèle d'embedding~~ → **décidé : `multilingual-e5-large`** (voir section Phase 0 ci-dessous).
+- ~~Champs Solr disciplinaires~~ → **audité : aucun champ discipline dans `fl` actuel** (voir section Phase 0 ci-dessous).
+- Taxonomie disciplinaire : proposition de 25 codes documentée ci-dessous — **validation métier requise avant Phase 2**.
+- Corpus d'évaluation : template créé dans `checklists/eval-corpus.md` — **50 requêtes à renseigner par les équipes**.
+
+---
+
+## Phase 0 — Résultats d'audit (2026-05-10)
+
+### Audit des champs Solr
+
+**Champs actuellement récupérés (`fl`)** dans `app/services/fields_json/common.json` :
+
+| Champ Solr | Alias Python | Exploitable pour embedding |
+|---|---|---|
+| `titre` | `title` | ✅ Oui — poids 8.0 dans qf |
+| `naked_soustitre` | `subtitle` | ✅ Oui — poids 2.0 dans qf |
+| `naked_resume` | `overview` (max 500 chars) | ✅ Oui — poids 1.0 dans qf |
+| `naked_texte` | — | ⚠️ Long texte intégral — trop volumineux pour embedding direct |
+| `naked_introduction` | — | ⚠️ Disponible mais redondant avec `naked_resume` |
+| `platformID` | `platformID` | ❌ Non (identifiant technique) |
+| `type` | `type` | ❌ Non (catégorie éditoriale) |
+| `anneedatepubli` | `date` | ❌ Non |
+| `contributeurFacetR_auteur` | `authors` | ❌ Non |
+| `site_title` | `site_title` | ❌ Non |
+| `datemisenligne` | `datemisenligne` | ❌ Non |
+
+**Champs disciplinaires/subject dans le schéma Solr actuel : AUCUN dans `fl`.**
+
+Les champs `subject`, `keywords`, `hal_domain`, `jel_code`, `classification`, etc. ne figurent **pas** dans la liste `fl` actuelle. Ils peuvent exister dans le schéma Solr distant (`solrslave-sec.labocleo.org`) sans être demandés.
+
+**Action Phase 2 requise** : tester manuellement sur quelques documents si des champs disciplinaires existent dans Solr (requête `fl=*` sur un doc Solr). Si présents, les ajouter à `fl` → source `"source_metadata"`. Si absents → toute la classification sera `"inferred"` par le pipeline IA.
+
+```bash
+# Commande de vérification à lancer manuellement contre le Solr de staging :
+curl "http://solrslave-sec.labocleo.org/solr/<collection>/select?q=id:OJ-*&rows=1&fl=*&wt=json" | jq '.response.docs[0] | keys'
+```
+
+**Décision retenue pour Phase 3** : texte d'entrée embedding = `f"{title}. {subtitle or ''}. {overview or ''}"` — confirmée. Taille moyenne estimée 200–400 tokens, compatible avec multilingual-e5-large (limite 512 tokens).
+
+---
+
+### Choix du modèle d'embedding ✅
+
+**Décision : `multilingual-e5-large`**
+
+| Critère | multilingual-e5-large | bge-m3 |
+|---|---|---|
+| Params | 560M | 568M |
+| Dimensions | **768** (déjà dans le schéma PG) | 1024 (nécessiterait de changer `vector(768)`) |
+| VRAM | ~2.2 GB | ~2.8 GB |
+| Langues | 100+ dont fr/en/de/es/it/pt ✅ | 100+ ✅ |
+| Perf MTEB multilingual | Très bon | SOTA — légèrement meilleur |
+| Compatibilité sentence-transformers | ✅ `>=3.0` | ✅ `>=3.0` |
+| Hugging Face ID | `intfloat/multilingual-e5-large` | `BAAI/bge-m3` |
+
+**Raison du choix** :
+- La dimension 768 est déjà gravée dans le schéma PG (`embedding vector(768)`) — passer à bge-m3 (1024-dim) forcerait une migration Alembic supplémentaire.
+- Le gain de performance de bge-m3 est marginal sur du texte académique FR/EN de taille moyenne.
+- Contrainte mémoire infra inconnue → conserver le modèle le plus léger compatible.
+
+**À confirmer** si l'infra dispose de GPU ou si le job tourne en CPU-only (impacte le batch size recommandé : 8 en CPU vs 32–64 en GPU).
+
+`model_version` à utiliser dans `document_enrichment` : `"multilingual-e5-large-v1"`.
+
+---
+
+### Taxonomie disciplinaire — proposition (validation métier requise) ⚠️
+
+Contexte : plateforme OpenEdition (OJ = Journals, OB = Books, HO = Hypothèses, CO = Calenda), contenu SHS francophone majoritaire, 6 langues.
+
+**Proposition : 25 disciplines de niveau 1** (codes stables, libellés fr/en minimum) :
+
+| Code | Label FR | Label EN | Périmètre principal |
+|---|---|---|---|
+| `histoire` | Histoire | History | OJ, OB |
+| `sociologie` | Sociologie | Sociology | OJ, OB, HO |
+| `philosophie` | Philosophie | Philosophy | OJ, OB |
+| `anthropologie` | Anthropologie | Anthropology | OJ, OB, HO |
+| `linguistique` | Linguistique et langues | Linguistics & Languages | OJ, OB |
+| `litterature` | Littérature | Literature | OJ, OB |
+| `droit` | Droit | Law | OJ, OB |
+| `sciences-politiques` | Sciences politiques | Political Science | OJ, OB, HO |
+| `economie` | Économie | Economics | OJ, OB |
+| `geographie` | Géographie | Geography | OJ, OB, HO |
+| `psychologie` | Psychologie | Psychology | OJ, OB |
+| `sciences-education` | Sciences de l'éducation | Education Sciences | OJ, OB |
+| `arts` | Arts | Arts | OJ, OB |
+| `medias-communication` | Médias et communication | Media & Communication | OJ, OB, HO |
+| `sciences-information` | Sciences de l'information | Information Science | OJ, OB |
+| `gestion` | Gestion et management | Management | OJ, OB |
+| `urbanisme` | Urbanisme et aménagement | Urban & Regional Planning | OJ, OB |
+| `archeologie` | Archéologie | Archaeology | OJ, OB |
+| `histoire-art` | Histoire de l'art | Art History | OJ, OB |
+| `sciences-religieuses` | Sciences des religions | Religious Studies | OJ, OB |
+| `environnement` | Environnement | Environment | OJ, OB, HO |
+| `sante` | Santé | Health Sciences | OJ, OB |
+| `mathematiques` | Mathématiques | Mathematics | OJ, OB |
+| `informatique` | Informatique | Computer Science | OJ, OB, HO |
+| `pluridisciplinaire` | Pluridisciplinaire | Interdisciplinary | tous |
+
+**Contraintes à valider avec les équipes métier :**
+- [ ] Les 25 codes couvrent-ils le corpus réel (revues + livres + blogs + événements) ?
+- [ ] Certaines disciplines doivent-elles être fusionnées (ex. `histoire` + `histoire-art` → `histoire`) ?
+- [ ] Un niveau hiérarchique est-il nécessaire (ex. `shs` → `sociologie`, `histoire`, ...) ?
+- [ ] Les libellés EN sont-ils corrects pour les partenaires internationaux ?
+- [ ] Un document peut-il avoir plusieurs disciplines ? (le modèle `VARCHAR[]` le permet)
+
+**Note** : si la taxonomie dépasse 30 disciplines ou devient hiérarchique, revoir l'index ivfflat et le modèle de jointure (table `discipline` auto-référentielle `parent_code` déjà prévu).
+
+---
+
+### Corpus d'évaluation
+
+Template créé dans `checklists/eval-corpus.md`. Structure : 50 requêtes métier avec mode attendu (lexical/hybride) et résultats attendus. À renseigner par les équipes avant le démarrage de Phase 4.
+
+**Objectif** : mesurer le gain réel de la recherche hybride sur des requêtes représentatives avant activation en production.

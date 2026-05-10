@@ -136,9 +136,12 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 |---|---|---|---|
 | ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
 | ✅ Ph.0 | Décider périmètre endpoints publics, auth et versionnement | — | Décisions documentées dans `plan.md` (2026-04-21) |
-| ⚪ Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
-| ⚪ Ph.0 | Auditer champs disciplinaires Solr + choisir modèle embedding | Accès Solr | Champs audités + modèle documenté dans `plan.md` |
-| ⚪ Ph.0 | Constituer jeu d'évaluation lexical vs hybride (≥ 50 requêtes) | Taxonomie validée | Corpus d'éval prêt |
+| ✅ Ph.0 | Auditer champs Solr + choisir modèle embedding | Accès code | Aucun champ discipline dans `fl` ; `multilingual-e5-large` retenu (2026-05-10) |
+| ✅ Ph.0 | Proposer taxonomie disciplinaire (25 codes fr/en) | — | Proposition documentée dans `plan.md` (2026-05-10) |
+| ✅ Ph.0 | Créer template corpus d'évaluation | — | `checklists/eval-corpus.md` — 50 requêtes à renseigner (2026-05-10) |
+| 🔲 Ph.0 | **[métier]** Valider taxonomie avec équipes métier | Disponibilité équipes | Codes + libellés approuvés — **bloquant Phase 2** |
+| 🔲 Ph.0 | **[métier]** Renseigner 50 requêtes dans `eval-corpus.md` | Taxonomie validée | Corpus prêt — **bloquant Phase 4** |
+| 🔲 Ph.0 | Vérifier champs Solr disciplinaires via `fl=*` sur staging | Accès Solr staging | Confirmer/infirmer existence `subject`, `hal_domain`, etc. — bloquant `discipline_source` |
 | ✅ Ph.1 | Consolider `/api/v1`, typer les réponses, publier OpenAPI | Ph.0 périmètre + auth décidés | Livré (2026-05-05) — code + backend tests OK |
 | ⚪ Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie + audit Solr | Champs + facette discipline opérationnels |
 | Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
@@ -174,7 +177,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
 | Docs / architecture | ✅ Synchronisés (2026-05-10) |
 | Spec 012 Phase 1 `/api/v1` | ✅ Livré (2026-05-05) — routers, OpenAPI, SearchResponse typé |
-| Spec 012 Phase 0 (cadrage) | ⚪ En cours — taxonomie + audit Solr + modèle embedding restants |
+| Spec 012 Phase 0 (cadrage) | ⚪ ~80% — audit Solr ✅, embedding ✅, taxonomie proposée ✅ ; validation métier + corpus éval restants |
 | Spec 012 Phases 2-5 | ⚪ Backlog — dépendent de Phase 0 complète |
 | Spec logging (013) | ⚪ Partiellement livré — durcissement/redaction restant |
 
@@ -207,7 +210,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
 | 012 | Logging strategy → voir 013 | — renuméroté |
-| 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 (taxonomie/Solr/embedding) en cours — Phase 2-5 backlog |
+| 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 ~80% (validation métier restante) — Phase 2-5 backlog |
 | 013 | Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
 
 ---
