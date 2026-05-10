@@ -71,6 +71,7 @@ export default function ResultItem({
 }) {
   const t = useTranslations();
 
+  const disciplines = doc.disciplines ?? [];
   const title = doc.titre || doc.title || doc.naked_titre || t("noTitle");
   const description = doc.naked_resume || doc.naked_texte || doc.description || "";
   const url = doc.url || "#";
@@ -99,6 +100,14 @@ export default function ResultItem({
           </span>
         )}
         <AccessBadge status={permissionInfo?.status} loading={loadingPermissions} />
+        {disciplines.map((discipline) => (
+          <span
+            key={discipline}
+            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20"
+          >
+            {discipline}
+          </span>
+        ))}
         {permissionInfo?.formats && permissionInfo.formats.length > 0 && permissionInfo.formats.map((fmt) => (
           <span
             key={fmt}

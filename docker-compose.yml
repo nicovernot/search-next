@@ -42,7 +42,7 @@ services:
 
   # Postgres DB pour comptes utilisateurs
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: search-next_postgres
     environment:
       - POSTGRES_USER=search_user

@@ -89,5 +89,9 @@
   "access_open": "Offener Zugang",
   "access_institutional": "Institutioneller Zugang",
   "access_restricted": "Eingeschränkter Zugang",
-  "access_unknown": "Unbekannter Zugang"
+  "access_unknown": "Unbekannter Zugang",
+  "discipline_label": "Fachgebiet",
+  "discipline_source_source_metadata": "Quellenmetadaten",
+  "discipline_source_inferred": "Abgeleitet",
+  "discipline_source_manual_override": "Manuelle Korrektur"
 }

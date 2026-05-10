@@ -103,6 +103,9 @@ class Settings(BaseSettings):
     # Configuration Base de Données
     database_url: str = "postgresql://search_user:search_password@postgres:5432/search_db"
 
+    # Enrichissement sémantique — version du modèle d'embedding actif
+    active_model_version: str = "multilingual-e5-large-v1"
+
     # Configuration Authentification (JWT)
     secret_key: str = "your-secret-key-for-development" # À changer en production !
     algorithm: str = "HS256"

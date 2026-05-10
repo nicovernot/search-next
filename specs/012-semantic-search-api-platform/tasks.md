@@ -66,9 +66,9 @@
 
 ### 2.1 — Schéma PostgreSQL et taxonomie
 
-- [ ] Créer la migration Alembic pour la table `discipline` (code PK, label_fr, label_en, parent_code auto-référentiel)
-- [ ] Peupler la table `discipline` depuis la taxonomie validée en Phase 0 (script de seed ou fixture Alembic)
-- [ ] Créer la migration Alembic pour la table `document_enrichment` :
+- [x] Créer la migration Alembic pour la table `discipline` (code PK, label_fr, label_en, parent_code auto-référentiel) — `alembic/versions/a8f3c2e1b4d5`
+- [ ] **[métier]** Peupler la table `discipline` depuis la taxonomie validée en Phase 0 — **bloquant : taxonomie non encore validée par les équipes**
+- [x] Créer la migration Alembic pour la table `document_enrichment` :
   - `doc_id VARCHAR` (clé Solr — pas de FK SQL, cohérence garantie par le pipeline)
   - `model_version VARCHAR`
   - `embedding vector(N)` (N = 768 pour multilingual-e5-large, 1024 pour bge-m3)
@@ -80,33 +80,28 @@
 
 ### 2.2 — Modèles Pydantic et SQLAlchemy
 
-- [ ] Créer `app/models/document_enrichment.py` (SQLAlchemy ORM, conventions `Base` existantes)
-- [ ] Figer les types Pydantic : `disciplines: list[str]`, `discipline_source: Literal["source_metadata", "inferred", "manual_override"]`, `discipline_confidence: float | None`
-- [ ] Ajouter ces champs à `document.py` (`DocumentBase`) — optionnels (`= None`) pour rétrocompatibilité
-- [ ] Ajouter `active_model_version: str` à `Settings` pour que le service sache quelle version lire
+- [x] Créer `app/models/document_enrichment.py` (SQLAlchemy ORM, conventions `Base` existantes)
+- [x] Figer les types Pydantic : `disciplines: list[str]`, `discipline_source: Literal[...]`, `discipline_confidence: float | None` — déjà dans `DocumentBase` (antérieur)
+- [x] Ajouter ces champs à `document.py` (`DocumentBase`) — déjà présents avec `= None`
+- [x] Ajouter `active_model_version: str` à `Settings` — valeur par défaut `"multilingual-e5-large-v1"`
 
 ### 2.3 — Enrichissement au moment de la réponse (merge Solr ↔ PG)
 
-- [ ] Implémenter `SearchService._enrich_with_pg(solr_docs, db)` :
-  - Requête `IN` sur les `doc_id` des résultats courants (≤ `page_size`, coût négligeable)
-  - Filtre sur `model_version == settings.active_model_version`
-  - Merge des champs disciplines dans chaque doc Solr
-  - Fallback gracieux si enrichissement absent (nouveau doc non encore indexé) : `disciplines=[]`
-- [ ] Injecter la session DB dans `SearchService` via `Depends(get_db)` (pattern existant dans le projet)
+- [x] Implémenter `SearchService._enrich_with_pg(solr_docs, db)` — requête `IN` + filtre `model_version`, merge disciplines, fallback `disciplines=[]`
+- [x] Injecter la session DB dans `SearchService` via `Depends(get_db)` — `get_search_service` dans `dependencies.py`
 
 ### 2.4 — Frontend et facette discipline
 
-- [ ] Ajouter `disciplines: string[]`, `discipline_source: string | null`, `discipline_confidence: number | null` à l'interface `SearchDoc` dans `front/app/types.ts` (champs optionnels pour rétrocompatibilité)
-- [ ] Afficher les disciplines comme badges dans `ResultItem.tsx` (pattern : comme `AccessBadge` — un badge par discipline, style neutre)
-- [ ] Ajouter les i18n keys nécessaires dans les 6 fichiers de traduction (`front/messages/{fr,en,de,it,es,pt}.json`) : au minimum `discipline.label`, `discipline.source.source_metadata`, `discipline.source.inferred`, `discipline.source.manual_override`
-- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) avec les buckets renvoyant label_fr/label_en — `Facets.tsx` n'a pas besoin de modification structurelle (déjà dynamique)
-  - La facette discipline est servie depuis PostgreSQL (pas Solr) — requête `GROUP BY unnest(disciplines)`
-- [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0 (dans le pipeline batch)
+- [x] Ajouter `disciplines`, `discipline_source`, `discipline_confidence` à `SearchDoc` dans `front/app/types.ts`
+- [x] Afficher les disciplines comme badges dans `ResultItem.tsx` (style purple neutre, un badge par discipline)
+- [x] Ajouter les i18n keys dans les 6 fichiers de traduction (`discipline_label`, `discipline_source_*`)
+- [ ] Ajouter la facette discipline à la config backend (`facets_json/`) — requête `GROUP BY unnest(disciplines)` — **après seed taxonomie**
+- [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0 — **dans pipeline batch Phase 3**
 
 ### 2.5 — Override manuel
 
-- [ ] Prévoir le mécanisme d'override manuel via `discipline_source = "manual_override"` — hors UI dans un premier temps (opéré par requête SQL ou script admin)
-- [ ] Marquer Ph.2 comme ✅ dans `specs/PLANNING.md`
+- [x] Mécanisme d'override via `discipline_source = "manual_override"` prévu dans le schéma — opéré par requête SQL ou script admin, hors UI
+- [ ] Marquer Ph.2 comme ✅ dans `specs/PLANNING.md` — **après seed taxonomie + facette discipline**
 
 ---
 

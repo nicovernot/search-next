@@ -10,6 +10,7 @@ from alembic import context
 sys.path.append(os.getcwd())
 
 from app.db.base_class import Base
+from app.models import document_enrichment as _  # noqa: F401 — register ORM models for autogenerate
 from app.settings import settings
 
 # this is the Alembic Config object, which provides

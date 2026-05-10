@@ -2,19 +2,28 @@
 """
 Service de recherche - Encapsulation de la logique métier avec cache Redis
 """
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from app.core.logging import get_logger
 from app.models.search_models import SearchRequest
 from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
 
 class SearchService(ISearchService):
     """Service de recherche implémentant ISearchService avec cache Redis"""
 
-    def __init__(self, builder: ISearchBuilder, solr_client: ISolrClient):
+    def __init__(
+        self,
+        builder: ISearchBuilder,
+        solr_client: ISolrClient,
+        db: "Session | None" = None,
+    ):
         self.builder = builder
         self.solr_client = solr_client
+        self.db = db
         self.logger = get_logger(__name__)
 
         # Reverse mapping: Solr field name -> frontend identifier
@@ -48,6 +57,46 @@ class SearchService(ISearchService):
                 normalized[identifier] = values
 
         return normalized
+
+    async def _enrich_with_pg(
+        self, docs: list[dict], db: "Session"
+    ) -> list[dict]:
+        """Merge les champs disciplinaires depuis PostgreSQL dans les docs Solr."""
+        from app.models.document_enrichment import DocumentEnrichment
+        from app.settings import settings
+
+        if not docs:
+            return docs
+
+        doc_ids = [doc.get("id") for doc in docs if doc.get("id")]
+        if not doc_ids:
+            return docs
+
+        enrichments = (
+            db.query(DocumentEnrichment)
+            .filter(
+                DocumentEnrichment.doc_id.in_(doc_ids),
+                DocumentEnrichment.model_version == settings.active_model_version,
+            )
+            .all()
+        )
+        enrich_map = {e.doc_id: e for e in enrichments}
+
+        for doc in docs:
+            doc_id = doc.get("id")
+            if doc_id and doc_id in enrich_map:
+                enrichment = enrich_map[doc_id]
+                doc["disciplines"] = enrichment.disciplines or []
+                doc["discipline_source"] = enrichment.discipline_source
+                doc["discipline_confidence"] = enrichment.discipline_confidence
+            else:
+                doc.setdefault("disciplines", [])
+
+        self.logger.debug(
+            "PG enrichment applied",
+            extra={"context": {"docs": len(docs), "enriched": len(enrich_map)}},
+        )
+        return docs
 
     async def execute_cached_search(self, request: SearchRequest) -> dict[str, Any]:
         """Effectue une recherche complète avec cache."""
@@ -88,8 +137,13 @@ class SearchService(ISearchService):
             raise
 
         solr_raw_facets = solr_data.get("facet_counts", {}).get("facet_fields", {})
+        docs = solr_data.get("response", {}).get("docs", [])
+
+        if self.db is not None:
+            docs = await self._enrich_with_pg(docs, self.db)
+
         search_result: dict[str, Any] = {
-            "results": solr_data.get("response", {}).get("docs", []),
+            "results": docs,
             "total": solr_data.get("response", {}).get("numFound", 0),
             "facets": self._normalize_facets(solr_raw_facets),
         }

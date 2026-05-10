@@ -14,6 +14,9 @@ export interface SearchDoc {
   contributeurFacet_auteur?: string | string[];
   contributeurFacetR_auteur?: string | string[];
   anneedatepubli?: string | number;
+  disciplines?: string[];
+  discipline_source?: "source_metadata" | "inferred" | "manual_override" | null;
+  discipline_confidence?: number | null;
   [key: string]: unknown;
 }
 
