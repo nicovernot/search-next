@@ -68,4 +68,4 @@ En tant qu'utilisateur avancé, je veux que ma requête logique (AND/OR/NOT cons
 ### Tests Playwright
 | Fichier | Cas couverts |
 |---|---|
-| `tests/url-sync.spec.ts` | URL mise à jour après recherche simple, filtre, changement de page, bascule mode avancé/simple, rechargement de page, hydratation depuis URL (query, mode, filtre, page), back/forward (2 directions, avec filtre), changements de page en replaceState, paramètres invalides (page négative, size non numérique, lq malformé, champ inexistant), restauration QB simple, QB imbriqué (AND/OR), vérification longueur URL < 2000 |
+| `tests/url-sync.spec.ts` | URL mise à jour après recherche simple, filtre, changement de page, bascule mode avancé/simple, rechargement de page, hydratation depuis URL (query, mode, filtre, page), back/forward (2 directions, après retrait de filtre en replaceState), changements de page en replaceState, paramètres invalides (page négative, size non numérique, lq malformé, champ inexistant), restauration QB simple, QB imbriqué (AND/OR), vérification longueur URL < 2000 |

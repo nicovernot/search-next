@@ -6,12 +6,12 @@
  * Couverture :
  *   - Rendu UI LDAP (section conditionnelle, toggle formulaire)
  *   - Erreur LDAP quand le backend LDAP n'est pas configuré (LDAP_ENABLED=false → 503)
- *   - Callback SSO (?sso_error= et ?auth_token= dans l'URL)
+ *   - Callback SSO (?sso_error= et ?sso_code= dans l'URL)
  *   - Coexistence : un compte local reste accessible quand LDAP est activé en UI
  *
  * Tests nécessitant un vrai serveur LDAP / OIDC sont annotés test.skip.
  *
- * Lancer avec : BASE_URL=http://localhost:3000 npx playwright test auth-ldap-sso.spec.ts
+ * Lancer avec : BASE_URL=http://localhost:3003 npx playwright test auth-ldap-sso.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
@@ -171,15 +171,23 @@ test.describe("Callback SSO — traitement URL", () => {
     await expect(page.getByTestId("auth-error")).toBeVisible({ timeout: 5000 });
   });
 
-  test("?auth_token= valide dans l'URL crée une session et est retiré de l'URL", async ({ page }) => {
+  test("?sso_code= valide dans l'URL est échangé puis retiré de l'URL", async ({ page }) => {
     // JWT fake mais parseable côté client (sub + email présents)
     const fakeJwt = buildFakeJwt({ sub: "99999", email: "sso-callback@example.com", exp: 9999999999 });
 
-    await page.goto(`/fr/?auth_token=${fakeJwt}`);
+    await page.route("**/auth/sso/exchange?**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ access_token: fakeJwt, token_type: "bearer" }),
+      });
+    });
+
+    await page.goto("/fr/?sso_code=test-code");
     await expect(page.locator("header")).toBeVisible({ timeout: 15000 });
 
     // Paramètre retiré de l'URL
-    await expect(page).not.toHaveURL(/auth_token/);
+    await expect(page).not.toHaveURL(/sso_code/);
 
     // Session active : boutons post-login visibles
     await expect(page.getByTestId("btn-saved-searches")).toBeVisible({ timeout: 5000 });
@@ -189,12 +197,20 @@ test.describe("Callback SSO — traitement URL", () => {
     await page.getByTestId("btn-logout").click();
   });
 
-  test("?auth_token= invalide (non décodable) n'ouvre pas de session", async ({ page }) => {
-    await page.goto("/fr/?auth_token=not.a.valid.jwt");
+  test("?sso_code= refusé par l'API n'ouvre pas de session", async ({ page }) => {
+    await page.route("**/auth/sso/exchange?**", async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "sso_code_invalid_or_expired" }),
+      });
+    });
+
+    await page.goto("/fr/?sso_code=expired-code");
     await expect(page.locator("header")).toBeVisible({ timeout: 15000 });
 
     // Paramètre retiré de l'URL
-    await expect(page).not.toHaveURL(/auth_token/);
+    await expect(page).not.toHaveURL(/sso_code/);
 
     // Pas de session — boutons login/register visibles
     await expect(page.getByTestId("btn-open-login")).toBeVisible({ timeout: 5000 });

@@ -158,7 +158,7 @@ python3-saml>=1.16  # SAML 2.0 (optionnel, lourd — uniquement si requis)
 - [x] Un utilisateur local existant peut toujours se connecter par email/password.
 - [x] Un utilisateur fédéré sans compte préexistant voit son compte créé automatiquement à la première connexion.
 - [x] `hashed_password=null` pour un utilisateur fédéré n'empêche pas l'accès aux fonctionnalités authentifiées.
-- [x] Aucune régression attendue sur les 66 tests E2E Playwright documentés.
+- [x] Aucune régression attendue sur les 68 tests E2E Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC).
 - [x] Les credentials LDAP et SSO ne sont jamais loggués ni exposés dans les erreurs HTTP.
 - [x] Le JWT SSO n'est pas exposé dans l'URL frontend : seul `sso_code` à usage unique transite en query string.
 
@@ -166,7 +166,7 @@ python3-saml>=1.16  # SAML 2.0 (optionnel, lourd — uniquement si requis)
 
 | Fichier | Cas couverts |
 |---|---|
-| `front/tests/auth-ldap-sso.spec.ts` | 12 tests : UI LDAP, erreurs, champs requis, SSO callback, échange `sso_code`, coexistence compte local/fédéré |
+| `front/tests/auth-ldap-sso.spec.ts` | 14 tests déclarés : 12 exécutables + 2 `test.skip` nécessitant un vrai serveur LDAP/OIDC ; UI LDAP, erreurs, champs requis, SSO callback, échange `sso_code`, coexistence compte local/fédéré |
 
 ---
 

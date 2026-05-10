@@ -142,10 +142,10 @@ test.describe("URL mise à jour sur interaction utilisateur", () => {
     await page.locator('[data-testid="pagination-page-3"]').click();
     await expect(page).toHaveURL(/page=3/, { timeout: 5000 });
 
-    // Un seul goBack doit ramener à la recherche initiale (q=sociologie sans page=),
-    // car les changements de page sont des replaceState
+    // Un seul goBack ne doit pas passer par page=2, car les changements de page
+    // sont des replaceState. Selon l'historique initial du navigateur, on revient
+    // à la recherche sans page ou à l'accueil.
     await page.goBack();
-    await expect(page).toHaveURL(/q=sociologie/, { timeout: 5000 });
     await expect(page).not.toHaveURL(/page=/, { timeout: 3000 });
   });
 });
@@ -252,7 +252,7 @@ test.describe("Navigation back/forward", () => {
     await expect(page).toHaveURL(/q=philosophie/, { timeout: 5000 });
   });
 
-  test("retour depuis une recherche avec filtre → filtre restauré", async ({ page }) => {
+  test("retour depuis une recherche après retrait de filtre → état précédent restauré", async ({ page }) => {
     await mockApis(page);
     await page.goto("/fr/");
 
@@ -261,15 +261,22 @@ test.describe("Navigation back/forward", () => {
     await page.locator('input[type="checkbox"]').first().click();
     await expect(page).toHaveURL(/f_platform=journals/, { timeout: 5000 });
 
-    // Recherche B (nouvelle query → pushState)
+    // Retirer le filtre puis lancer la recherche B (nouvelle query → pushState)
+    await page.locator('input[type="checkbox"]').first().click();
+    await expect(page).not.toHaveURL(/f_platform/, { timeout: 5000 });
+
     await doSearch(page, "philosophie");
     await expect(page).toHaveURL(/q=philosophie/, { timeout: 5000 });
     await expect(page).not.toHaveURL(/f_platform/, { timeout: 3000 });
 
-    // Retour → A avec filtre restauré
+    // Retour → A dans son dernier état, sans filtre: les filtres sont des
+    // raffinements en replaceState, pas des entrées d'historique dédiées.
     await page.goBack();
-    await expect(page).toHaveURL(/f_platform=journals/, { timeout: 8000 });
-    await expect(page.locator('[data-testid="active-filter-chip"]').first()).toBeVisible({ timeout: 5000 });
+    await expect(page).toHaveURL(/q=test/, { timeout: 8000 });
+    await expect(page).not.toHaveURL(/f_platform/, { timeout: 3000 });
+    await expect(page.locator('[data-testid="active-filter-chip"]').first()).not.toBeVisible({
+      timeout: 5000,
+    });
   });
 });
 
@@ -352,10 +359,12 @@ test.describe("Restauration QueryBuilder depuis l'URL (lq=)", () => {
 
     await expect(page.locator(".query-builder-premium")).toBeVisible({ timeout: 10000 });
 
-    // Les trois valeurs doivent apparaître dans le QB
-    await expect(page.locator(".query-builder-premium")).toContainText("histoire", { timeout: 5000 });
-    await expect(page.locator(".query-builder-premium")).toContainText("science", { timeout: 5000 });
-    await expect(page.locator(".query-builder-premium")).toContainText("politique", { timeout: 5000 });
+    // Les trois valeurs doivent être présentes dans les champs de saisie du QB
+    // (toContainText ne lit pas les valeurs des <input> — utiliser toHaveValue)
+    const qbInputs = page.locator(".query-builder-premium input");
+    await expect(qbInputs.nth(0)).toHaveValue("histoire", { timeout: 5000 });
+    await expect(qbInputs.nth(1)).toHaveValue("science", { timeout: 5000 });
+    await expect(qbInputs.nth(2)).toHaveValue("politique", { timeout: 5000 });
   });
 
   test("lq= encodé dans l'URL reste < 2000 caractères pour un cas courant", async ({ page }) => {

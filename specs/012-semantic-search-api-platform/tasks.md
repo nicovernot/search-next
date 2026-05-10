@@ -28,7 +28,7 @@
 - [ ] Créer `search_api_solr/app/api/v1/facets.py` avec la route `GET /facets/config`
 - [ ] Inclure les nouveaux routers dans `main.py` sous le préfixe `/api/v1`
 - [ ] Ajouter des aliases de compatibilité sur les routes racine (`/search`, `/suggest`, `/facets/config`) le temps de la transition frontend
-- [ ] Vérifier que `saved_searches` (déjà sous `/api/v1/`) reste inchangé
+- [ ] Décider si `saved_searches` reste compatible à la racine via alias ou rejoint explicitement le préfixe `/api/v1`
 
 ### 1.2 — Typer `SearchResponse.results` et compléter les `response_model`
 

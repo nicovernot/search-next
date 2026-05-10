@@ -22,7 +22,7 @@ export function useSuggestions() {
       const data = await res.json();
       setSuggestions(data.suggestions || []);
     } catch (err) {
-      logger.error("Suggestions fetch failed");
+      logger.error("Suggestions fetch failed", err);
       setSuggestions([]);
     } finally {
       setLoadingSuggestions(false);

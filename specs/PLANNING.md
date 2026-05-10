@@ -1,6 +1,6 @@
 # Planning global des specs
 
-**Audit**: 2026-04-20  
+**Audit**: 2026-05-09
 **But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
@@ -8,6 +8,8 @@
 ## État global
 
 Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Une nouvelle initiative prioritaire est ouverte : `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
+
+La spec transverse `012-logging-strategy` est partiellement livrée : le backend a une configuration JSON centralisée et le frontend utilise `front/app/lib/logger.ts`. Le reste concerne le durcissement des logs sensibles, l'uniformisation de quelques messages backend et une éventuelle règle lint contre `console.*` direct.
 
 ---
 
@@ -73,7 +75,7 @@ Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items
 À faire avant tout démarrage de la spec 012 pour partir sur une base verte.
 
 1. Relancer `pnpm run lint` dans l'environnement cible.
-2. Relancer `pnpm run test:e2e` (68 tests Playwright).
+2. Relancer `pnpm run test:e2e` (68 tests Playwright déclarés, dont 66 exécutables et 2 skip LDAP/OIDC).
 3. Relancer `make test` (backend Docker).
 
 ### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
@@ -120,7 +122,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | Item | Pourquoi | Sortie attendue |
 |---|---|---|
 | Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
-| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright documentés | Suite E2E verte ou écarts documentés |
+| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC) | Suite E2E verte ou écarts documentés |
 | Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
 
 ### Spec 012 — par phase et dépendances
@@ -140,6 +142,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 
 | Item | Pourquoi | Sortie attendue |
 |---|---|---|
+| Durcir `012-logging-strategy` | Finaliser la redaction et verrouiller la convention logging | Logs backend homogènes + règle/recherche empêchant `console.*` hors wrapper |
 | Migrer composants `useSearch()` → hooks selectors | Réduire le couplage UI résiduel | PRs ciblées par composant touché |
 | Extraire `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
@@ -158,20 +161,21 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | Tech debt (006) | ✅ Livré — searchFields depuis `/facets/config` |
 | Sécurité prod (P0) | ✅ Résolu (2026-04-20) |
 | Architecture backend (P1) | ✅ Résolu (2026-04-20) |
+| Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
 | Linter Python (ruff) | ✅ `ruff check .` passe sans erreur |
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
-| Docs / architecture | ✅ Synchronisés (2026-04-20) |
+| Docs / architecture | ✅ Synchronisés (2026-05-09) |
 | Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
 
 ### Écarts connus (dette acceptée)
 
-- `useSearchApi.ts` : ~179 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
+- `useSearchApi.ts` : ~189 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
 - `SearchContext.tsx` : ~155 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
 - Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
-- `/api/v1` partiel : `saved_searches` est déjà sous `app/api/v1/` mais `/search`, `/suggest`, `/facets/config` restent à la racine — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
+- `/api/v1` partiel : seul le module `saved_searches` vit dans `app/api/v1/`, mais ses routes restent exposées à la racine (`/saved-searches`) comme `/search`, `/suggest`, `/facets/config` et `/permissions` — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
 
 ---
 
@@ -190,6 +194,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
+| 012 | Logging strategy | ⚪ Partiellement livré — durcissement restant |
 | 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
 
 ---

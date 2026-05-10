@@ -27,8 +27,9 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-04-17 | 002 | Correctifs recherche avancée : normalisation opérateurs QB, suppression champ Solr invalide `platformIndex_*`, restriction opérateurs UI, `df=naked_titre` | `87ccb7c` |
 | 2026-04-17 | infra | Cohérence multi-environnements : `CORS_ORIGINS`, `model_config` doublon, `REACT_APP_API_URL`→`NEXT_PUBLIC_API_URL`, `entrypoint.sh` Docker | `87ccb7c` |
 | 2026-04-19 | docs | Alignement specs/code/docs : dette résiduelle P0/P1/P2/P3 ajoutée au planning, architecture et specs qualité synchronisées | — |
-| 2026-04-20 | 004/011 | URL sync (21 tests) et LDAP/SSO (12 tests) documentés ; total E2E porté à 66 tests | — |
+| 2026-04-20 | 004/011 | URL sync (21 tests) et LDAP/SSO (14 tests déclarés, 12 exécutables + 2 skip) documentés ; total E2E porté à 68 déclarés / 66 exécutables | — |
 | 2026-04-20 | P0/P1/P2/P3 | Sécurité production, contrats backend, lint, hooks et nettoyage soldés ; planning basculé en vérification release | — |
+| 2026-05-09 | docs/specs | Cohérence audit : total E2E 68 déclarés / 66 exécutables, dette `useSearchApi` 189 lignes, `/api/v1` partiel, logging partiellement livré | — |
 
 ---
 
@@ -47,3 +48,5 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 009 | DRY/KISS/YAGNI — corrections ciblées | ✅ Livré |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
 | 011 | Auth LDAP/SSO — institutionnel | ✅ Livré, transport JWT SSO sécurisé |
+| 012 | Logging strategy — logs applicatifs | ⚪ Partiellement livré, durcissement restant |
+| 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |

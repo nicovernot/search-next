@@ -175,7 +175,7 @@ Tout nouveau bloc de logique complexe ou composant doit être introduit (en comm
 - **SC-003**: `grep -rn ": any" front/app/` (hors `node_modules`) retourne 0 résultat hors adaptateurs tiers documentés.
 - **SC-004**: `grep -rn "style jsx global" front/app/components/` retourne 0 résultat.
 - **SC-005**: Chaque fichier dans `front/app/hooks/` commence par un commentaire JSDoc décrivant sa responsabilité unique.
-- **SC-006**: Les tests Playwright existants restent verts après toutes les corrections. **66 tests à relancer dans l'environnement cible avant release.**
+- **SC-006**: Les tests Playwright existants restent verts après toutes les corrections. **68 tests déclarés / 66 exécutables à relancer dans l'environnement cible avant release.**
 
 ### Checklist de revue de code
 
