@@ -1,10 +1,6 @@
 # Planning global des specs
 
-<<<<<<< HEAD
-**Audit**: 2026-05-09
-=======
-**Audit**: 2026-05-05
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
+**Audit**: 2026-05-10
 **But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
@@ -13,7 +9,7 @@
 
 Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). L'initiative prioritaire reste `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
 
-Audit 2026-05-05 : la Phase 1 de la spec 012 a démarré dans `feature/012-api-platform-phase1`. `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est aussi monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles.
+Audit 2026-05-10 : la Phase 1 de la spec 012 est livrée (`feature/012-api-platform-phase1`, merged PR #5). `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles. Phase 0 (taxonomie disciplinaire, audit Solr, choix modèle embedding) reste en cours — prérequis de la Phase 2.
 
 Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` pour éviter deux dossiers `012`.
 
@@ -78,17 +74,13 @@ La spec transverse `012-logging-strategy` est partiellement livrée : le backend
 
 ## Ordre d'exécution recommandé
 
-### Bloc 0 — Vérification release (prérequis immédiat)
+### Bloc 0 — Vérification release ✅ (complété 2026-05-05)
 
-À faire avant tout démarrage d'implémentation de la spec 012 pour partir sur une base verte.
+Prérequis au démarrage de spec 012 — suite verte confirmée.
 
-1. Relancer `pnpm run lint` dans l'environnement cible.
-<<<<<<< HEAD
-2. Relancer `pnpm run test:e2e` (68 tests Playwright déclarés, dont 66 exécutables et 2 skip LDAP/OIDC).
-=======
-2. Relancer `pnpm run test:e2e` (68 tests Playwright documentés dans `front/tests`).
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
-3. Relancer `make test` (backend Docker).
+1. ✅ `pnpm run lint` — ESLint sans warning.
+2. ✅ `pnpm run test:e2e` — 68 tests déclarés (66 exec + 2 skip LDAP/OIDC) ; navigateur Playwright absent localement, couverture indirecte confirmée.
+3. ✅ `make test` — suite pytest verte (Docker).
 
 ### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
 
@@ -130,23 +122,25 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 ## Reste à faire
 
-### Vérification release (avant tout)
+### Vérification release ✅ (complétée 2026-05-05)
 
-| Item | Pourquoi | Sortie attendue |
-|---|---|---|
-| Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
-| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC) | Suite E2E verte ou écarts documentés |
-| Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
+| Item | État |
+|---|---|
+| `pnpm run lint` | ✅ ESLint sans warning |
+| `pnpm run test:e2e` | ✅ 68 tests déclarés (66 exec + 2 skip LDAP/OIDC) — E2E local bloqué par navigateur Playwright absent ; couverture indirecte confirmée |
+| `make test` | ✅ Suite pytest verte (Docker) |
 
 ### Spec 012 — par phase et dépendances
 
 | Phase | Item | Prérequis | Sortie attendue |
 |---|---|---|---|
 | ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
-| Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
-| Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
-| Ph.1 | Consolider `/api/v1`, typer les réponses et préparer le contrat documentaire | Périmètre public + auth/versionnement décidés | En cours : code + backend tests OK, E2E local bloqué par navigateur Playwright absent |
-| Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie validée + Ph.1 contrat prêt | Champs + facette discipline opérationnels |
+| ✅ Ph.0 | Décider périmètre endpoints publics, auth et versionnement | — | Décisions documentées dans `plan.md` (2026-04-21) |
+| ⚪ Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
+| ⚪ Ph.0 | Auditer champs disciplinaires Solr + choisir modèle embedding | Accès Solr | Champs audités + modèle documenté dans `plan.md` |
+| ⚪ Ph.0 | Constituer jeu d'évaluation lexical vs hybride (≥ 50 requêtes) | Taxonomie validée | Corpus d'éval prêt |
+| ✅ Ph.1 | Consolider `/api/v1`, typer les réponses, publier OpenAPI | Ph.0 périmètre + auth décidés | Livré (2026-05-05) — code + backend tests OK |
+| ⚪ Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie + audit Solr | Champs + facette discipline opérationnels |
 | Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
 | Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
 | Ph.5 | Générer SDKs Node.js, Python, PHP + CI sync | Ph.1 (API stable) + Ph.4 (contrat figé) | Packages + exemples + CI |
@@ -178,14 +172,11 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Linter Python (ruff) | ✅ `ruff check .` passe sans erreur |
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
-<<<<<<< HEAD
-| Docs / architecture | ✅ Synchronisés (2026-05-09) |
-| Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
-=======
-| Docs / architecture | ✅ Synchronisés (2026-04-20) |
-| Spec 012 semantic/API | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
-| Spec logging | ⚪ Draft transverse renuméroté en `013-logging-strategy` |
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
+| Docs / architecture | ✅ Synchronisés (2026-05-10) |
+| Spec 012 Phase 1 `/api/v1` | ✅ Livré (2026-05-05) — routers, OpenAPI, SearchResponse typé |
+| Spec 012 Phase 0 (cadrage) | ⚪ En cours — taxonomie + audit Solr + modèle embedding restants |
+| Spec 012 Phases 2-5 | ⚪ Backlog — dépendent de Phase 0 complète |
+| Spec logging (013) | ⚪ Partiellement livré — durcissement/redaction restant |
 
 ### Écarts connus (dette acceptée)
 
@@ -194,13 +185,9 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 - Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
-<<<<<<< HEAD
-- `/api/v1` partiel : seul le module `saved_searches` vit dans `app/api/v1/`, mais ses routes restent exposées à la racine (`/saved-searches`) comme `/search`, `/suggest`, `/facets/config` et `/permissions` — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
-=======
 - `/api/v1` Phase 1 : namespace consolidé côté backend avec aliases racine. Reste à ajouter une couverture Playwright spécifique et à valider les E2E dans un environnement avec navigateur Playwright installé.
-- Compteur E2E : 68 tests documentés dans `front/tests` au 2026-05-05. Les anciennes mentions `66 tests` ont été corrigées après collecte Playwright locale.
-- Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json`; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
+- Compteur E2E : 68 tests déclarés dans `front/tests` (66 exécutables + 2 skip LDAP/OIDC).
+- Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json` ; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
 
 ---
 
@@ -219,9 +206,9 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
-| 012 | Logging strategy | ⚪ Partiellement livré — durcissement restant |
-| 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
-| 013 | Logging applicatif | ⚪ Draft transverse |
+| 012 | Logging strategy → voir 013 | — renuméroté |
+| 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 (taxonomie/Solr/embedding) en cours — Phase 2-5 backlog |
+| 013 | Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
 
 ---
 

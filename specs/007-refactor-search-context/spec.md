@@ -22,19 +22,11 @@ Cette spec décrit le découpage en hooks spécialisés sans modifier l'interfac
 | `useUrlSync.ts` | 79 lignes après extraction `url-search-state.ts` | ✅ Dans le seuil |
 | Hooks spécialisés | `useFacetConfig`, `useSuggestions`, `usePermissions`, `useSearchState`, `useSearchApi`, `useUrlSync` | ✅ Livré |
 | Selectors | `useSearchQuery`, `useSearchResults`, `useSearchFilters`, `useSearchSuggestions`, `useSearchPermissions` | ✅ Livré |
-<<<<<<< HEAD
 | Tests | 68 tests E2E déclarés dans `front/tests` (66 exécutables + 2 skip LDAP/OIDC) | 🔁 À relancer avant release |
 
 ## Contraintes
 
 - **Aucune régression** : les 68 tests Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC) doivent rester verts après refactorisation.
-=======
-| Tests | 68 tests E2E documentés dans `front/tests` | 🔁 À relancer avant release |
-
-## Contraintes
-
-- **Aucune régression** : les 68 tests Playwright documentés doivent rester verts après refactorisation.
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 - **Interface publique inchangée** : `useSearch()` expose exactement les mêmes propriétés et fonctions — les composants consommateurs ne sont pas modifiés.
 - **Pas de nouvelle dépendance** : uniquement React hooks natifs.
 
@@ -114,11 +106,7 @@ Déplacer `runSearch`, `executeSearch`, `loadSearch`, `latestRef`, `skipEffectRe
 ### Étape 7 — Vérification (obligatoire)
 
 ```bash
-<<<<<<< HEAD
 pnpm run test:e2e   # 68 tests déclarés, 66 exécutables en environnement standard
-=======
-pnpm run test:e2e   # 68 tests doivent passer
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 ```
 
 ## Fichiers à créer / modifier
