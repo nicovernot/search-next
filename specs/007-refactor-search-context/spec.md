@@ -18,15 +18,23 @@ Cette spec décrit le découpage en hooks spécialisés sans modifier l'interfac
 |---|---|---|
 | `SearchContext.tsx` assembleur | 155 lignes, compose les hooks et expose les interfaces slice/selectors | ✅ Livré, taille acceptée |
 | `useSearchState.ts` | 83 lignes | ✅ Dans le seuil |
-| `useSearchApi.ts` | 179 lignes après extraction `buildSearchPayload` / `hasActiveSearch` | ✅ Accepté |
+| `useSearchApi.ts` | 189 lignes après extraction `buildSearchPayload` / `hasActiveSearch` | ✅ Accepté |
 | `useUrlSync.ts` | 79 lignes après extraction `url-search-state.ts` | ✅ Dans le seuil |
 | Hooks spécialisés | `useFacetConfig`, `useSuggestions`, `usePermissions`, `useSearchState`, `useSearchApi`, `useUrlSync` | ✅ Livré |
 | Selectors | `useSearchQuery`, `useSearchResults`, `useSearchFilters`, `useSearchSuggestions`, `useSearchPermissions` | ✅ Livré |
+<<<<<<< HEAD
+| Tests | 68 tests E2E déclarés dans `front/tests` (66 exécutables + 2 skip LDAP/OIDC) | 🔁 À relancer avant release |
+
+## Contraintes
+
+- **Aucune régression** : les 68 tests Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC) doivent rester verts après refactorisation.
+=======
 | Tests | 68 tests E2E documentés dans `front/tests` | 🔁 À relancer avant release |
 
 ## Contraintes
 
 - **Aucune régression** : les 68 tests Playwright documentés doivent rester verts après refactorisation.
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 - **Interface publique inchangée** : `useSearch()` expose exactement les mêmes propriétés et fonctions — les composants consommateurs ne sont pas modifiés.
 - **Pas de nouvelle dépendance** : uniquement React hooks natifs.
 
@@ -73,7 +81,7 @@ front/app/
 ### Measurable Outcomes
 - **SC-001**: Les tests Playwright existants passent sans modification après refactorisation. **À relancer dans l'environnement cible.**
 - **SC-002**: `SearchContext.tsx` fait moins de 60 lignes après refactorisation. **Remplacé par critère accepté : assembleur sans logique métier lourde + selectors slice.**
-- **SC-003**: Aucun hook individuel ne dépasse 120 lignes. **Atteint pour `useUrlSync`; exception acceptée pour `useSearchApi` (179 lignes, orchestration de recherche + stale closures).**
+- **SC-003**: Aucun hook individuel ne dépasse 120 lignes. **Atteint pour `useUrlSync`; exception acceptée pour `useSearchApi` (189 lignes, orchestration de recherche + stale closures).**
 - **SC-004**: `grep -n "useState\|useCallback\|useRef\|useEffect" front/app/context/SearchContext.tsx` retourne 0 résultat (toute la logique est dans les hooks). **Atteint.**
 - **SC-005**: `usePermissions` peut être importé et testé indépendamment de `SearchContext`. **Atteint structurellement.**
 
@@ -106,7 +114,11 @@ Déplacer `runSearch`, `executeSearch`, `loadSearch`, `latestRef`, `skipEffectRe
 ### Étape 7 — Vérification (obligatoire)
 
 ```bash
+<<<<<<< HEAD
+pnpm run test:e2e   # 68 tests déclarés, 66 exécutables en environnement standard
+=======
 pnpm run test:e2e   # 68 tests doivent passer
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 ```
 
 ## Fichiers à créer / modifier

@@ -14,11 +14,16 @@ client = TestClient(app)
 async def test_search_get_endpoint():
     """Vérifie que l'endpoint GET construit correctement la SearchRequest"""
 
+<<<<<<< HEAD
+    # On mocke _execute_search pour vérifier les arguments passés
+    with patch("app.services.search_service.SearchService.execute_cached_search", new_callable=AsyncMock) as mock_execute:
+=======
     # On mocke execute_cached_search pour vérifier les arguments passés
     with patch(
         "app.services.search_service.SearchService.execute_cached_search",
         new_callable=AsyncMock,
     ) as mock_execute:
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
         mock_execute.return_value = {"results": [], "total": 0, "facets": {}}
 
         response = client.get(
@@ -39,7 +44,7 @@ async def test_search_get_endpoint():
 
         # Récupérer l'objet SearchRequest passé
         call_args = mock_execute.call_args
-        request = call_args[0][0] # Premier argument positionnel
+        request = call_args[0][0]  # Premier argument positionnel (SearchRequest)
 
         # Vérifier la construction de la requête
         assert request.query.query == "test"

@@ -190,8 +190,9 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
             ))}
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4" data-testid="auth-form">
+          <div className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4" data-testid="auth-form">
             {/* Email */}
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
@@ -290,6 +291,8 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
               )}
             </button>
 
+            </form>
+
             {/* SSO / LDAP — visible only in login tab when enabled */}
             {tab === "login" && (ssoEnabled || ldapEnabled) && (
               <div className="pt-2">
@@ -346,7 +349,7 @@ export default function AuthModal({ open, initialTab, onClose }: AuthModalProps)
                 </>
               )}
             </p>
-          </form>
+          </div>
         </div>
       </div>
     </div>,

@@ -110,6 +110,10 @@ En tant qu'utilisateur international, je veux que l'interface soit traduite dans
 | `tests/search.spec.ts` | **2 tests** — chargement page, recherche simple |
 | `tests/permissions.spec.ts` | **4 tests** — badge open access, restricted, institutional, dégradé silencieux si l'API permissions échoue |
 | `tests/url-sync.spec.ts` | **21 tests** — sync URL, back/forward, hydratation, filtres, pagination, QueryBuilder encodé |
-| `tests/auth-ldap-sso.spec.ts` | **12 tests** — LDAP UI, erreurs, SSO callback, échange token/code, coexistence local/fédéré |
+| `tests/auth-ldap-sso.spec.ts` | **14 tests déclarés** — 12 exécutables + 2 `test.skip` nécessitant un vrai serveur LDAP/OIDC ; LDAP UI, erreurs, SSO callback, échange `sso_code`, coexistence local/fédéré |
 
+<<<<<<< HEAD
+**Total : 68 tests E2E déclarés** dans `front/tests`, dont 66 exécutables en environnement standard et 2 `test.skip` dépendants d'un vrai LDAP/OIDC.
+=======
 **Total : 68 tests E2E** documentés dans `front/tests`.
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958

@@ -15,7 +15,7 @@ Passer d'un logging partiellement structuré et hétérogène à une politique s
 | Backend `core/logging.py` | Base JSON existante mais probablement incomplètement propagée | Moyen |
 | Backend services | Mix `get_logger`, `logging.getLogger`, `basicConfig`, messages interpolés | Élevé |
 | Permissions/auth | Logs potentiellement sensibles (IP, URL complètes, réponse auth) | Élevé |
-| Frontend | `console.error` ponctuels sans wrapper | Moyen |
+| Frontend | Wrapper `front/app/lib/logger.ts` présent ; convention encore non imposée par lint | Faible à moyen |
 | Exploitation | Différenciation dev/prod existante mais non normée | Moyen |
 
 ## Stratégie
@@ -72,9 +72,9 @@ Sortie attendue :
 
 Travail :
 
-- créer `front/app/lib/logger.ts` ;
-- remplacer les `console.error` existants ;
-- définir le comportement dev/prod ;
+- conserver `front/app/lib/logger.ts` comme point d'entrée unique ;
+- vérifier que les hooks/composants métier ne réintroduisent pas `console.*` direct ;
+- définir/valider le comportement dev/prod ;
 - éventuellement ajouter une règle lint pour interdire `console.*` hors exceptions.
 
 Sortie attendue :

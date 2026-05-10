@@ -1,7 +1,12 @@
 # Architecture — OpenEdition Search
 
+<<<<<<< HEAD
+**Dernier audit**: 2026-05-09
+**Branch active**: `chore/bloc0-release-verification`
+=======
 **Dernier audit**: 2026-05-05
 **Branch active**: `main`  
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 **État global**: Specs 001–011 livrées. Dette bloquante P0/P1/P2/P3 soldée ou acceptée explicitement dans `specs/PLANNING.md`.
 
 ---
@@ -183,7 +188,7 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 
 ## Logging
 
-Stratégie complète documentée dans [`docs/LOGGING.md`](./LOGGING.md).
+Socle documenté dans [`docs/LOGGING.md`](./LOGGING.md). La spec transverse `specs/012-logging-strategy` est partiellement livrée : configuration JSON backend et wrapper frontend présents, durcissement/redaction restant.
 
 | Zone | Mécanisme | Config |
 |------|-----------|--------|
@@ -204,12 +209,17 @@ Stratégie complète documentée dans [`docs/LOGGING.md`](./LOGGING.md).
 | Authentification locale JWT (1440 min) | ✅ Complet | auth.spec.ts (15) |
 | Recherches sauvegardées | ✅ Complet | saved-searches.spec.ts (12) |
 | Client API centralisé (`lib/api.ts`) | ✅ Complet | — |
-| Badges d'accès (permissions) | ✅ Complet | permissions.spec.ts |
+| Badges d'accès (permissions) | ✅ Complet | permissions.spec.ts (4) |
 | Champs QB depuis `/facets/config` | ✅ Complet | — |
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
 | Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (21) |
+<<<<<<< HEAD
+| Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts (14 déclarés, 12 exécutables + 2 skip) |
+| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (14 déclarés, 12 exécutables + 2 skip) |
+=======
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
 | Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (12, LDAP + SSO) |
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ---
 
@@ -252,9 +262,13 @@ La dette bloquante ci-dessous est résolue. Les suites restantes sont listées d
 
 ### Vérification récente
 
+<<<<<<< HEAD
+| Commande | Résultat audit 2026-05-09 |
+=======
 | Commande | Résultat audit 2026-05-05 |
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 |---|---|
 | `cd front && pnpm run lint` | À relancer avant release |
-| `cd front && pnpm run test:e2e` | 68 tests documentés, à relancer avant release |
+| `cd front && pnpm run test:e2e` | 68 tests déclarés, dont 66 exécutables et 2 skip LDAP/OIDC, à relancer avant release |
 | `make test` | Commande backend de référence Docker |
 | `python3 -m pytest ...` local Codex | Non lancé : module `pytest` absent dans l'environnement courant |

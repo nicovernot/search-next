@@ -113,12 +113,12 @@ test-front-ui: ## Lancer les tests E2E Playwright avec UI
 
 test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containerisé
 	@$(MAKE) sync-env ENV=test
-	CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://localhost:3003,http://127.0.0.1:3000,http://127.0.0.1:3003,http://0.0.0.0:3000,http://0.0.0.0:3003,http://localhost:8003 NEXT_PUBLIC_API_URL=http://api:8007 $(DOCKER_COMPOSE) up -d --force-recreate api frontend
+	CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://localhost:$(FRONTEND_PORT),http://127.0.0.1:3000,http://127.0.0.1:$(FRONTEND_PORT),http://0.0.0.0:3000,http://0.0.0.0:$(FRONTEND_PORT),http://localhost:$(API_PORT) NEXT_PUBLIC_API_URL=http://localhost:$(API_PORT) INTERNAL_API_URL=http://api:8007 $(DOCKER_COMPOSE) up -d --build --force-recreate api frontend
 	@echo "Waiting for services to be ready..."
 	@sleep 15
-	docker run --rm --network search-next_search-next_network \
+	docker run --rm --network host \
 		-v $(PWD)/front:/app -w /app \
-		-e BASE_URL=http://frontend:3000 \
+		-e BASE_URL=http://localhost:$(FRONTEND_PORT) \
 		-e CI=true \
 		mcr.microsoft.com/playwright:v1.59.1-noble \
 		sh -c "corepack enable && pnpm install --frozen-lockfile --silent && pnpm exec playwright test --reporter=list --project=chromium"

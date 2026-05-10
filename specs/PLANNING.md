@@ -1,6 +1,10 @@
 # Planning global des specs
 
+<<<<<<< HEAD
+**Audit**: 2026-05-09
+=======
 **Audit**: 2026-05-05
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 **But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
@@ -12,6 +16,8 @@ Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items
 Audit 2026-05-05 : la Phase 1 de la spec 012 a démarré dans `feature/012-api-platform-phase1`. `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est aussi monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles.
 
 Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` pour éviter deux dossiers `012`.
+
+La spec transverse `012-logging-strategy` est partiellement livrée : le backend a une configuration JSON centralisée et le frontend utilise `front/app/lib/logger.ts`. Le reste concerne le durcissement des logs sensibles, l'uniformisation de quelques messages backend et une éventuelle règle lint contre `console.*` direct.
 
 ---
 
@@ -77,7 +83,11 @@ Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy`
 À faire avant tout démarrage d'implémentation de la spec 012 pour partir sur une base verte.
 
 1. Relancer `pnpm run lint` dans l'environnement cible.
+<<<<<<< HEAD
+2. Relancer `pnpm run test:e2e` (68 tests Playwright déclarés, dont 66 exécutables et 2 skip LDAP/OIDC).
+=======
 2. Relancer `pnpm run test:e2e` (68 tests Playwright documentés dans `front/tests`).
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 3. Relancer `make test` (backend Docker).
 
 ### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
@@ -125,7 +135,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Item | Pourquoi | Sortie attendue |
 |---|---|---|
 | Relancer `pnpm run lint` | Vérifier l'état frontend sur l'environnement cible | ESLint sans erreur bloquante |
-| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright documentés | Suite E2E verte ou écarts documentés |
+| Relancer `pnpm run test:e2e` | Vérifier les 68 tests Playwright déclarés (66 exécutables + 2 skip LDAP/OIDC) | Suite E2E verte ou écarts documentés |
 | Relancer `make test` | Vérifier backend avec les dépendances Docker | Suite pytest verte |
 
 ### Spec 012 — par phase et dépendances
@@ -145,6 +155,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 | Item | Pourquoi | Sortie attendue |
 |---|---|---|
+| Durcir `012-logging-strategy` | Finaliser la redaction et verrouiller la convention logging | Logs backend homogènes + règle/recherche empêchant `console.*` hors wrapper |
 | Migrer composants `useSearch()` → hooks selectors | Réduire le couplage UI résiduel | PRs ciblées par composant touché |
 | Extraire `AuthModal.tsx` si un nouveau mode d'auth arrive | Éviter un composant auth trop large | Sous-composants ciblés |
 
@@ -163,23 +174,33 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Tech debt (006) | ✅ Livré — searchFields depuis `/facets/config` |
 | Sécurité prod (P0) | ✅ Résolu (2026-04-20) |
 | Architecture backend (P1) | ✅ Résolu (2026-04-20) |
+| Logging applicatif | ⚪ Partiellement livré — durcissement/redaction restant |
 | Linter Python (ruff) | ✅ `ruff check .` passe sans erreur |
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
+<<<<<<< HEAD
+| Docs / architecture | ✅ Synchronisés (2026-05-09) |
+| Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
+=======
 | Docs / architecture | ✅ Synchronisés (2026-04-20) |
 | Spec 012 semantic/API | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
 | Spec logging | ⚪ Draft transverse renuméroté en `013-logging-strategy` |
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ### Écarts connus (dette acceptée)
 
-- `useSearchApi.ts` : ~179 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
+- `useSearchApi.ts` : ~189 lignes après extraction (seuil spec 007 = 120 — complexité stale closures inhérente, non décomposable davantage)
 - `SearchContext.tsx` : ~155 lignes (interfaces slice inline + 5 hooks sélecteurs — justifié par cohésion)
 - Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
+<<<<<<< HEAD
+- `/api/v1` partiel : seul le module `saved_searches` vit dans `app/api/v1/`, mais ses routes restent exposées à la racine (`/saved-searches`) comme `/search`, `/suggest`, `/facets/config` et `/permissions` — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
+=======
 - `/api/v1` Phase 1 : namespace consolidé côté backend avec aliases racine. Reste à ajouter une couverture Playwright spécifique et à valider les E2E dans un environnement avec navigateur Playwright installé.
 - Compteur E2E : 68 tests documentés dans `front/tests` au 2026-05-05. Les anciennes mentions `66 tests` ont été corrigées après collecte Playwright locale.
 - Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json`; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ---
 
@@ -198,6 +219,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 009 | DRY/KISS/YAGNI | ✅ Livré — nettoyage P3 soldé |
 | 010 | Naming intention→résultat | ✅ Livré |
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
+| 012 | Logging strategy | ⚪ Partiellement livré — durcissement restant |
 | 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
 | 013 | Logging applicatif | ⚪ Draft transverse |
 

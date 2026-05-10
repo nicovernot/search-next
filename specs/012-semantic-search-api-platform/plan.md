@@ -286,7 +286,7 @@ Un document absent du résultat pgvector (pas encore indexé) obtient un score R
 
 ### Phase 1 - Stabilisation de l'API comme produit
 
-> **Point de départ** : `app/api/v1/saved_searches.py` existe déjà sous `/api/v1/`. En revanche, `/search`, `/suggest` et `/facets/config` sont encore définis à la racine dans `main.py`. La Phase 1 doit consolider ce namespace partiel avant tout usage externe.
+> **Point de départ** : seul le fichier `app/api/v1/saved_searches.py` existe déjà dans le dossier `api/v1`, mais son router est inclus sans préfixe et expose encore `/saved-searches` à la racine. `/search`, `/suggest`, `/facets/config` et `/permissions` sont également définis à la racine dans `main.py`. La Phase 1 doit consolider ce namespace partiel avant tout usage externe.
 
 > **Prérequis technique identifié** : `SearchResponse.results` est actuellement `list[Any]`. Tant que ce champ n'est pas typé `list[DocumentResponse]`, le contrat OpenAPI n'expose pas la structure réelle des documents — les disciplines ajoutées en Phase 2 seraient invisibles du schéma. Ce typage doit être résolu en Phase 1 avant de publier l'OpenAPI de référence.
 

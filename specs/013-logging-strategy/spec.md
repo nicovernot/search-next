@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feature/013-logging-strategy`  
 **Created**: 2026-04-22  
-**Status**: Draft
+**Status**: ⚪ Partiellement livré — socle backend JSON et wrapper frontend présents ; durcissement/redaction encore à terminer
 
 ## Objectif
 
@@ -40,13 +40,13 @@ Conclusion : oui, l'application possède déjà une notion de logs `dev` et `pro
 
 ### 3. Frontend Next.js
 
-Le frontend n'a pas de stratégie de logs applicatifs formalisée.
+Le frontend dispose maintenant d'un wrapper applicatif dans [`front/app/lib/logger.ts`](/home/nico/projets/search-next/front/app/lib/logger.ts:1).
 
-Constat :
+Constat actuel :
 
-- présence de `console.error` ad hoc dans [`front/app/hooks/useSuggestions.ts`](/home/nico/projets/search-next/front/app/hooks/useSuggestions.ts:24) ;
-- présence de `console.error` ad hoc dans [`front/app/hooks/useFacetConfig.ts`](/home/nico/projets/search-next/front/app/hooks/useFacetConfig.ts:23) ;
-- absence de wrapper dédié (`logger.ts`, instrumentation client, corrélation requête, masquage des données sensibles).
+- `useSuggestions.ts` et `useFacetConfig.ts` passent par `logger.error()` ;
+- les appels `console.*` directs restants sont confinés au wrapper ;
+- il reste à décider si une règle lint doit interdire `console.*` hors `lib/logger.ts`.
 
 ### 4. Points de risque identifiés
 
@@ -81,15 +81,13 @@ Le backend mélange :
 - des logs texte interpolés (`f"..."`) dans [`main.py`](/home/nico/projets/search-next/search_api_solr/app/main.py:163) et [`env_validation.py`](/home/nico/projets/search-next/search_api_solr/app/core/env_validation.py:91) ;
 - des loggers standards non raccordés à la convention applicative (`auth.py`, `ldap_service.py`, `oidc_service.py`).
 
-#### Risque E — Pas de politique frontend explicite
+#### Risque E — Politique frontend encore non vérifiée par l'outillage
 
-Le frontend utilise `console.error` comme mécanisme de dernier recours mais sans règle :
+Le wrapper existe, mais la convention repose encore sur la revue humaine :
 
-- quand logger ;
-- quoi logger ;
-- quoi masquer ;
-- quelle différence entre erreur utilisateur, erreur réseau et erreur attendue ;
-- comment éviter le bruit en production.
+- aucune règle lint n'interdit `console.*` hors `lib/logger.ts` ;
+- les arguments passés à `logger.error()` ne sont pas contrôlés automatiquement ;
+- la différence entre erreur utilisateur, erreur réseau et erreur attendue reste à formaliser dans les composants.
 
 ## Décisions de conception
 
@@ -226,8 +224,8 @@ La stratégie cible est :
 
 ### Phase 4 — Standard frontend
 
-- introduire un wrapper `logger.ts` ;
-- remplacer les `console.error` existants ;
+- conserver `front/app/lib/logger.ts` comme point d'entrée unique ;
+- vérifier qu'aucun `console.*` direct ne réapparaît hors wrapper ;
 - documenter les usages autorisés.
 
 ### Phase 5 — Documentation et exploitation

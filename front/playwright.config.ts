@@ -15,6 +15,7 @@ export default defineConfig({
     navigationTimeout: 20000,
     launchOptions: {
       args: ['--disable-crash-reporter', '--disable-crashpad'],
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
     },
   },
   projects: [
