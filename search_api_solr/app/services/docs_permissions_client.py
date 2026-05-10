@@ -33,7 +33,7 @@ class SolrClient:
 
     async def execute_solr_query(self, params: dict[str, Any]) -> dict[str, Any] | None:
         url = f"{self.base_url}/select?{urlencode(params, doseq=True)}"
-        logger.info(f"Requête Solr exécutée: {url}")
+        logger.debug("Solr query executed", extra={"context": {"base_url": self.base_url, "params_count": len(params)}})
 
         async with httpx.AsyncClient() as client:
             try:
@@ -41,10 +41,10 @@ class SolrClient:
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as e:
-                logger.error(f"Échec de la requête Solr: {e}")
+                logger.error("Solr request failed", extra={"context": {"error": str(e)}})
                 return None
             except Exception as e:
-                logger.error(f"Erreur lors de l'accès à Solr: {e}")
+                logger.error("Solr access error", extra={"context": {"error": str(e)}})
                 return None
 
 
@@ -217,7 +217,7 @@ class DocsPermissionsClient:
             return {'parentId': None, 'parentUrl': None}
 
         except Exception as e:
-            logger.error(f"Erreur lors de la vérification des parents: {e}")
+            logger.error("Parent lookup failed", extra={"context": {"error": str(e)}})
             return {'parentId': None, 'parentUrl': None}
 
     async def _get_organization(self, remote_ip: str, docs_urls: list[str]) -> Organization | None:
@@ -236,7 +236,7 @@ class DocsPermissionsClient:
 
                 # Le code PHP acceptait 200 et 302, httpx gère ça via follow_redirects
                 if response.status_code not in [200]:
-                    logger.error(f"Auth API returned non-success HTTP code: {response.status_code}")
+                    logger.error("Auth API non-success status", extra={"context": {"status_code": response.status_code}})
                     return None
 
                 user_data = response.json()
@@ -261,7 +261,7 @@ class DocsPermissionsClient:
                 return Organization(**organization_data)
 
             except Exception as e:
-                logger.error(f"Failed to get organization from auth API: {e}")
+                logger.error("Organization lookup from auth API failed", extra={"context": {"error": str(e)}})
                 return None
 
 

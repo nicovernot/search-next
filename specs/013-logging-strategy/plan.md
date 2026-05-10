@@ -8,15 +8,16 @@ Passer d'un logging partiellement structuré et hétérogène à une politique s
 - frontend sobre et encadré ;
 - séparation claire entre diagnostic dev et exploitation prod.
 
-## État initial
+## État — audit 2026-05-10
 
-| Zone | État | Risque |
+| Zone | État | Risque résiduel |
 |---|---|---|
-| Backend `core/logging.py` | Base JSON existante mais probablement incomplètement propagée | Moyen |
-| Backend services | Mix `get_logger`, `logging.getLogger`, `basicConfig`, messages interpolés | Élevé |
-| Permissions/auth | Logs potentiellement sensibles (IP, URL complètes, réponse auth) | Élevé |
-| Frontend | Wrapper `front/app/lib/logger.ts` présent ; convention encore non imposée par lint | Faible à moyen |
-| Exploitation | Différenciation dev/prod existante mais non normée | Moyen |
+| Backend `core/logging.py` | ✅ Root logger configuré — propagation correcte vers tous les modules | Aucun |
+| Backend `basicConfig` | ✅ Supprimé — plus aucun appel dans le code métier | Aucun |
+| Backend services — données sensibles | ✅ URL Solr complète → DEBUG structuré (`base_url` + `params_count`) ; IP déjà masquée via `_mask_ip` | Aucun |
+| Backend services — f-strings | ✅ Convertis en `extra={"context": ...}` dans `SuggestService`, `PermissionsService`, `docs_permissions_client.py` | Aucun |
+| Frontend | ✅ Wrapper `logger.ts` en place + règle ESLint `no-console` ajoutée | Aucun |
+| Exploitation | Différenciation dev/prod présente (`settings.log_level`, Docker) — non normée formellement | Faible |
 
 ## Stratégie
 

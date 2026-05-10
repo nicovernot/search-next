@@ -15,6 +15,14 @@ const eslintConfig = defineConfig([
       // Nommage Intention→Résultat : avertir sur les identifiants trop courts
       // Exceptions : t (next-intl), i (index de boucle), e (event local), x/y (coordonnées)
       "id-length": ["warn", { min: 2, exceptions: ["t", "i", "e", "x", "y"] }],
+      // Interdire console.* hors du wrapper logger — utiliser front/app/lib/logger.ts
+      "no-console": "error",
+    },
+  },
+  {
+    files: ["**/lib/logger.ts"],
+    rules: {
+      "no-console": "off",
     },
   },
   // Override default ignores of eslint-config-next.

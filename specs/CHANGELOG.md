@@ -32,6 +32,8 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-05-05 | docs | Audit de cohérence specs/planning : compteur E2E réaligné à 68, prérequis 012 clarifiés, logging renuméroté en `013-logging-strategy` | — |
 | 2026-05-05 | 012 | Phase 1 : routers `/api/v1` search/suggest/facets/permissions/openapi, `SearchResponse.results` typé, aliases racine conservés, backend tests verts | — |
 | 2026-05-10 | docs/specs | Résolution conflits merge dans 7 fichiers ; Phase 1 /api/v1 marquée ✅ ; PLANNING.md et tasks.md 012 synchronisés avec état réel | — |
+| 2026-05-10 | 012 | Phase 0 cadrage complété : audit Solr (aucun champ discipline dans `fl`), modèle embedding `multilingual-e5-large` retenu, taxonomie 25 disciplines proposée, template corpus éval créé — validation métier restante | `44a9bba` |
+| 2026-05-10 | 013 | Logging durcissement livré : URL Solr complète → DEBUG structuré, f-strings → `extra={"context"}` dans SuggestService/PermissionsService/docs_permissions_client, règle ESLint `no-console` ajoutée | feat/013-logging-durcissement |
 
 ---
 
@@ -50,5 +52,5 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 009 | DRY/KISS/YAGNI — corrections ciblées | ✅ Livré |
 | 010 | Naming intention→résultat — renommages frontend + backend | ✅ Livré |
 | 011 | Auth LDAP/SSO — institutionnel | ✅ Livré, transport JWT SSO sécurisé |
-| 012 | Logging strategy — logs applicatifs | ⚪ Partiellement livré, durcissement restant |
-| 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
+| 012 | Recherche sémantique + API platform | ⚪ Phase 1 ✅ — Phase 0 ~80% (validation métier restante) — Phases 2–5 backlog |
+| 013 | Logging applicatif — stratégie et durcissement | ✅ Livré (2026-05-10) |
