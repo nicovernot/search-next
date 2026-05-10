@@ -154,4 +154,3 @@ class TestSearchBuilder:
         assert 'facet=true' in url
         # L'encodage d'URL peut varier, on vérifie la présence de la chaîne décodée ou encodée
         assert 'facet.query=subscribers%3Aamu' in url or 'facet.query=subscribers:amu' in url
-

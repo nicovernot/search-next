@@ -18,6 +18,7 @@ services:
       - DEV=true
       - TEST_IP=${TEST_IP:-139.124.244.81}
       - AUTH_API_URL=https://auth.openedition.org/auth_by_url/
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3003,http://127.0.0.1:3000,http://127.0.0.1:3003,http://0.0.0.0:3000,http://0.0.0.0:3003,http://localhost:8003}
     volumes:
       # Volume pour le développement (hot reload)
       - ./search_api_solr:/app
@@ -84,10 +85,10 @@ services:
       context: .
       dockerfile: ./front/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-8003}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8003}
     container_name: search-next_frontend
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8003}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8003}
       # URL interne Docker pour les route handlers Next.js (server-side) → service name + port interne
       - INTERNAL_API_URL=http://api:8007
       - HOSTNAME=0.0.0.0

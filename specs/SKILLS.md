@@ -1,10 +1,35 @@
 # Skills opérationnels — OpenEdition Search
 
-**Statut**: référence de pilotage IA  
-**Mise à jour**: 2026-04-21  
+**Statut**: référence de pilotage IA
+**Mise à jour**: 2026-05-05
 **But**: découper les travaux futurs en compétences indépendantes, assignables à un agent IA sans réouvrir tout le contexte projet.
 
-Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit les skills à mobiliser pour maintenir, vérifier et étendre le projet.
+Les specs 001–013 décrivent les fonctionnalités livrées, en cours ou cadrées. Ce fichier décrit les skills à mobiliser pour maintenir, vérifier et étendre le projet.
+
+---
+
+## Règle transversale — Commit uniquement vert
+
+Un commit de code ne doit être créé que si les vérifications requises pour son périmètre passent.
+
+**Gate minimal avant tout commit :**
+
+1. `git diff --check`
+2. `cd front && corepack pnpm run lint` si le frontend, les specs frontend ou l'environnement front changent
+3. `make test` si le backend, Docker, les contrats API, les modèles ou les specs backend changent
+4. `make test-front-ci` si un flux utilisateur, l'auth, la recherche, les facettes, les permissions, les saved searches, l'URL sync, Docker front/API ou `NEXT_PUBLIC_API_URL` changent
+
+**Règle de blocage :**
+
+- Si une commande requise échoue, corriger avant de commit.
+- Si l'échec vient d'un prérequis local manquant, utiliser la commande containerisée de référence (`make test`, `make test-front-ci`) avant de conclure.
+- Si la suite reste rouge, ne pas commit tant que l'utilisateur n'a pas explicitement demandé un commit malgré tests rouges.
+- En cas d'override explicite, le commit doit être annoncé comme dégradé dans la réponse finale avec la commande, le nombre d'échecs et les fichiers/tests concernés.
+
+**État connu au 2026-05-05 :**
+
+- `make test` passe : 98 tests backend.
+- `make test-front-ci` est rouge : 40 passed, 26 failed, 2 skipped. Les échecs touchent surtout auth/saved-searches/session, plus quelques scénarios search/url-sync. Tout commit touchant le frontend critique doit d'abord stabiliser cette suite ou obtenir un override explicite.
 
 ---
 
@@ -70,7 +95,7 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 - **Dépendances** : tous les skills de vérification.
 - **Entrées** : `git status`, résultats lint/tests, specs et docs.
 - **Sorties** : planning de release court, ordonné par priorité.
-- **Tests/vérifications** : toutes les commandes de référence documentées ou impossibilités expliquées.
+- **Tests/vérifications** : toutes les commandes de référence documentées ; les impossibilités expliquées ne suffisent pas pour un commit de code sans override explicite.
 
 ## SKILL 8 — CadrerRechercheSemantiqueRésultat
 
@@ -98,6 +123,40 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 - **Entrées** : `search_api_solr/app/models/document.py`, `search_api_solr/app/models/search_models.py`, `front/app/types.ts`, `front/app/components/ResultItem.tsx`.
 - **Sorties** : contrat documentaire stable, frontend compatible, aucune activation prématurée de la sémantique.
 - **Tests/vérifications** : tests backend sur les schémas API, vérification que le frontend tolère l'absence de valeurs enrichies.
+
+## SKILL 11 — GarderCommitVertRésultat
+
+- **Intention** : empêcher les commits avec tests requis rouges et rendre le statut qualité vérifiable.
+- **Résultat** : commit créé seulement après gate vert, ou absence de commit avec diagnostic court des échecs.
+- **Dépendances** : tous les skills touchés par le changement.
+- **Entrées** : `git status`, `git diff --stat`, périmètre des fichiers modifiés, résultats des commandes de test.
+- **Sorties** : commit propre si gate vert ; sinon liste d'échecs priorisée et prochaines corrections.
+- **Tests/vérifications** :
+  - Toujours : `git diff --check`
+  - Front touché : `cd front && corepack pnpm run lint`
+  - Backend/API/Docker touché : `make test`
+  - Flux utilisateur critique ou env front/API touché : `make test-front-ci`
+- **Règle stricte** : ne pas lancer `git commit` si une vérification requise échoue, sauf demande explicite de l'utilisateur de committer malgré l'échec.
+- **Points d'attention récurrents** : distinguer `pnpm run test:e2e` local bloqué par navigateur absent de `make test-front-ci`, qui est la référence containerisée pour Playwright.
+
+## SKILL 12 — StabiliserE2EAuthRechercheRésultat
+
+- **Intention** : remettre la suite Playwright containerisée au vert, en priorité sur les régressions auth/session/saved-searches/search/url-sync.
+- **Résultat** : `make test-front-ci` passe, ou les tests réellement externes sont isolés/skippés avec justification stable.
+- **Dépendances** : SKILL 4, SKILL 5, SKILL 11.
+- **Entrées** : `front/tests/*.spec.ts`, `front/app/context/AuthContext.tsx`, `front/app/components/AuthModal.tsx`, `front/app/components/SavedSearchesPanel.tsx`, `front/app/hooks/useSearchApi.ts`, `front/app/lib/api.ts`, `docker-compose*.yml`, `Makefile`, logs API/frontend.
+- **Sorties** : correctifs frontend/backend/env + tests Playwright fiables.
+- **Tests/vérifications** : `make test-front-ci` vert ; si auth backend est en cause, `make test` doit rester vert.
+- **Points d'attention récurrents** : `NEXT_PUBLIC_API_URL` est figé au build Next.js ; en Docker E2E, le navigateur doit pouvoir appeler une URL publique atteignable, tandis que les route handlers Next.js utilisent `INTERNAL_API_URL`.
+
+## Skills complémentaires à créer si le projet grandit
+
+Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à court terme :
+
+- **StabiliserCIPlaywrightRésultat** : factoriser les commandes E2E, traces, screenshots, variables réseau Docker et prérequis navigateur.
+- **MaintenirContratEnvDockerRésultat** : garder cohérents `.env*`, `sync_env.sh`, `docker-compose*.yml`, `Makefile`, ports publics/internes et CORS.
+- **AuditerContratsOpenAPIClientRésultat** : comparer `/api/v1/openapi.json`, types frontend et futurs SDKs avant release.
+- **GérerMigrationsDonnéesRésultat** : encadrer Alembic/PostgreSQL/pgvector quand les phases disciplines et enrichissements démarrent.
 
 ---
 
@@ -142,3 +201,11 @@ Les specs 001–011 décrivent les fonctionnalités livrées. Ce fichier décrit
 ### Prompt — PréparerContratDisciplinesRésultat
 
 > Fige le contrat documentaire cible de la spec 012 avant la pipeline d'enrichissement : ajoute les champs optionnels `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` aux modèles backend et aux types frontend, sans activer encore la sémantique ni la facette discipline. Vérifie que l'OpenAPI expose bien ces champs et que le frontend reste rétrocompatible.
+
+### Prompt — GarderCommitVertRésultat
+
+> Avant de committer, déduis les tests requis depuis les fichiers modifiés. Lance `git diff --check`, puis `pnpm run lint`, `make test` et/ou `make test-front-ci` selon le périmètre. Si une vérification requise échoue, ne commit pas : diagnostique les échecs et corrige-les. Ne fais un commit avec tests rouges que si je le demande explicitement.
+
+### Prompt — StabiliserE2EAuthRechercheRésultat
+
+> Remets `make test-front-ci` au vert. Commence par identifier pourquoi les tests auth/session/saved-searches/search/url-sync échouent en Docker : URL API publique embarquée dans Next.js, CORS, appels auth, persistance localStorage, mocks Playwright, ou timing UI. Corrige le plus petit périmètre possible, puis relance `make test-front-ci` et `make test`.

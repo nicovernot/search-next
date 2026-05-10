@@ -117,6 +117,6 @@ rg -n "getLogger\\(|get_logger\\(" search_api_solr/app
 ## Décisions opérationnelles
 
 - ne pas créer de branche dédiée tant qu'on reste au stade audit/spec ;
-- créer une branche `feature/012-logging-strategy` au démarrage de l'implémentation ;
+- créer une branche `feature/013-logging-strategy` au démarrage de l'implémentation ;
 - traiter backend avant frontend ;
 - considérer ce lot comme transverse qualité + exploitation, pas comme simple nettoyage cosmétique.

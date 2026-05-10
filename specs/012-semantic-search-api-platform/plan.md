@@ -363,9 +363,9 @@ Trois niveaux, du plus simple au plus complet :
 
 **Ré-indexation après changement de modèle**
 
-Le champ `model_version` dans `document_enrichments` permet d'identifier les vecteurs obsolètes :
+Le champ `model_version` dans `document_enrichment` permet d'identifier les vecteurs obsolètes :
 ```sql
-SELECT doc_id FROM document_enrichments WHERE model_version != 'bge-m3-v1'
+SELECT doc_id FROM document_enrichment WHERE model_version != 'bge-m3-v1'
 ```
 Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table garde toujours la version la plus récente (upsert sur `doc_id + model_version`).
 
@@ -378,7 +378,7 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 
 1. Vérifier que la version PostgreSQL de l'infra supporte `pgvector` (≥ PG 14 recommandé).
 2. Ajouter `pgvector>=0.3.0` et `sentence-transformers>=3.0` à `requirements.txt`.
-3. Créer une migration Alembic activant l'extension `vector` et la table `document_enrichments` (`doc_id`, `embedding vector(N)`, `disciplines`, `discipline_source`, `discipline_confidence`, `model_version`, `computed_at`, `text_input` pour traçabilité).
+3. Créer une migration Alembic activant l'extension `vector` et la table `document_enrichment` (`doc_id`, `embedding vector(N)`, `disciplines`, `discipline_source`, `discipline_confidence`, `model_version`, `computed_at`, `text_input` pour traçabilité).
 4. Étendre `SolrClient` ou créer un client export dédié avec méthode `export_cursor(batch_size, fields)` utilisant `cursorMark`.
 5. Implémenter le job CLI `enrichment_job.py` : cursor Solr → extraction texte → batch embedding → upsert pgvector.
 6. Implémenter le cron L1 (polling nightly sur `datemisenligne`) et L2 (ré-indexation complète hebdomadaire).
@@ -389,10 +389,10 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 
 > **Stratégie de fusion recommandée** : **RRF (Reciprocal Rank Fusion)**. Robuste car ne requiert pas de normalisation des scores (scores Solr et pgvector sont sur des échelles différentes). Formule : `score_rrf = Σ 1/(k + rank_i)` avec `k=60` par défaut. Alternative linéaire pondérée si les scores sont normalisés — à décider et documenter dans "Decisions Already Recommended" avant implémentation.
 
-> **Feature flag** : ajouter `semantic_search_enabled: bool = False` dans `search_api_solr/app/settings.py` (modèle `Settings` Pydantic). Désactivé par défaut, activable par variable d'environnement `SEMANTIC_SEARCH_ENABLED=true`. Quand désactivé, le mode `semantic` et `hybrid` retournent une erreur 501 ou basculent silencieusement en `lexical`.
+> **Feature flag** : ajouter `semantic_search_enabled: bool = False` dans `search_api_solr/app/settings.py` (modèle `Settings` Pydantic). Désactivé par défaut, activable par variable d'environnement `SEMANTIC_SEARCH_ENABLED=true`. Quand désactivé, le mode `hybrid` garde la compatibilité en basculant vers `lexical`; le mode `semantic` explicite doit retourner une erreur documentée tant que la sémantique est indisponible.
 
 1. Ajouter `semantic_search_enabled: bool = False` à `Settings` dans `settings.py`.
-2. Ajouter `SearchMode: Literal["lexical", "semantic", "hybrid"] = "lexical"` au modèle `SearchRequest`.
+2. Ajouter `SearchMode: Literal["lexical", "semantic", "hybrid"] = "hybrid"` au modèle `SearchRequest`.
 3. Implémenter la requête vectorielle pgvector dans `search_service.py` (calcul de l'embedding de la requête, recherche ANN dans pgvector).
 4. Fusionner les résultats Solr et pgvector via RRF (ou stratégie décidée en Phase 0).
 5. Exposer `semantic_score` dans les réponses de debug ; masquer en mode production si non pertinent pour l'UI publique.
@@ -456,8 +456,11 @@ Un sous-job de ré-indexation ciblée est relancé sur ces documents. La table g
 - Stratégie de mises à jour : L1 polling nightly (`datemisenligne`) + L2 ré-indexation complète hebdomadaire. L3 événementiel hors périmètre Phase 3.
 - Batch Solr : 500 docs/requête. Batch embedding : 32–64 docs (paramétrable).
 - Upsert pgvector : `INSERT ... ON CONFLICT (doc_id, model_version) DO UPDATE`.
+- Périmètre public Phase 1 : `/api/v1/search`, `/api/v1/suggest`, `/api/v1/facets/config`, `/api/v1/permissions`, `/api/v1/openapi.json`.
+- `/auth/*` reste réservé au frontend pour la Phase 1 ; pas d'exposition SDK officielle tant que la gouvernance auth tierce n'est pas validée.
+- `saved_searches` est monté sous `/api/v1/saved-searches` pour cohérence de namespace, mais reste authentifié et non prioritaire dans les SDKs publics Phase 1.
+- Les routes racine historiques restent disponibles comme aliases de compatibilité pendant la transition frontend.
 
 **Décisions en attente (Phase 0) :**
 - Modèle d'embedding : `bge-m3` (lourd, SOTA multilingue) vs `multilingual-e5-large` (plus léger, bon compromis) — à choisir selon contraintes mémoire/GPU de l'infra.
 - Champs Solr disciplinaires et textuels disponibles : à auditer avant Phase 2.
-- Exposition de `/auth/*` dans les SDKs : oui (JWT tiers) ou non (frontend uniquement) — décision métier/sécurité.

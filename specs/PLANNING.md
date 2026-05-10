@@ -1,13 +1,21 @@
 # Planning global des specs
 
+<<<<<<< HEAD
 **Audit**: 2026-05-09
+=======
+**Audit**: 2026-05-05
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 **But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
 
 ## État global
 
-Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). Une nouvelle initiative prioritaire est ouverte : `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
+Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). L'initiative prioritaire reste `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
+
+Audit 2026-05-05 : la Phase 1 de la spec 012 a démarré dans `feature/012-api-platform-phase1`. `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est aussi monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles.
+
+Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` pour éviter deux dossiers `012`.
 
 La spec transverse `012-logging-strategy` est partiellement livrée : le backend a une configuration JSON centralisée et le frontend utilise `front/app/lib/logger.ts`. Le reste concerne le durcissement des logs sensibles, l'uniformisation de quelques messages backend et une éventuelle règle lint contre `console.*` direct.
 
@@ -72,42 +80,47 @@ La spec transverse `012-logging-strategy` est partiellement livrée : le backend
 
 ### Bloc 0 — Vérification release (prérequis immédiat)
 
-À faire avant tout démarrage de la spec 012 pour partir sur une base verte.
+À faire avant tout démarrage d'implémentation de la spec 012 pour partir sur une base verte.
 
 1. Relancer `pnpm run lint` dans l'environnement cible.
+<<<<<<< HEAD
 2. Relancer `pnpm run test:e2e` (68 tests Playwright déclarés, dont 66 exécutables et 2 skip LDAP/OIDC).
+=======
+2. Relancer `pnpm run test:e2e` (68 tests Playwright documentés dans `front/tests`).
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 3. Relancer `make test` (backend Docker).
 
 ### Bloc 1 — Lot 1 : Cadrage 012 (Phase 0) + Stabilisation API (Phase 1) — partiellement parallèles
 
-Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas le travail technique sur le namespace `/api/v1`, et inversement.
+Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage métier complet ne bloque pas le déplacement technique vers `/api/v1`, mais la Phase 1 doit d'abord décider le périmètre public des endpoints et la stratégie d'auth/versionnement.
 
-4. **[Métier]** Valider la taxonomie disciplinaire et le jeu d'évaluation lexical vs hybride.
-5. **[Technique]** Consolider `/api/v1` — déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/`, publier `openapi.json`.
-6. Préparer le contrat documentaire cible (`disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score`) comme champs optionnels et rétrocompatibles.
-7. Réunir les décisions de cadrage (taxonomie + périmètre public) dans `plan.md` avant de démarrer la Phase 2.
+4. **[Technique/cadrage court]** Décider le périmètre public : `/search`, `/suggest`, `/facets/config`, `/permissions`, et statut de `/auth/*` dans les SDKs.
+5. **[Technique]** Consolider `/api/v1` — déplacer `/search`, `/suggest`, `/facets/config`, `/permissions` sous `app/api/v1/`, monter `saved_searches` sous le même préfixe public si confirmé, publier `openapi.json`.
+6. **[Contrat]** Typer `SearchResponse.results` en `list[DocumentResponse]` et préparer `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` comme champs optionnels rétrocompatibles.
+7. **[Métier]** Valider la taxonomie disciplinaire, auditer Solr et constituer le jeu d'évaluation lexical vs hybride.
+8. Réunir les décisions de cadrage (taxonomie + périmètre public + modèle d'embedding + RRF) dans `plan.md` avant de démarrer la Phase 2.
 
 ### Bloc 2 — Lot 2A : Socle disciplinaire (Phase 2) — dépend du Bloc 1 complet
 
-8. Alimenter réellement `disciplines`, `discipline_source`, `discipline_confidence` via PostgreSQL / enrichissements.
-9. Ajouter la facette discipline à la config backend et à l'UI.
+9. Alimenter réellement `disciplines`, `discipline_source`, `discipline_confidence` via PostgreSQL / enrichissements.
+10. Ajouter la facette discipline à la config backend et à l'UI.
 
 ### Bloc 3 — Lot 2B : Pipeline d'enrichissement IA (Phase 3) — dépend du Bloc 2
 
-10. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
-11. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
+11. Créer la table d'enrichissement PostgreSQL et activer `pgvector`.
+12. Implémenter le job Python d'embeddings batch + classifieur disciplinaire.
 
 ### Bloc 4 — Lot 2C : Recherche hybride (Phase 4) — dépend du Bloc 3
 
-12. Ajouter `SearchMode` aux modèles de requête.
-13. Fusionner scores Solr et pgvector côté backend.
-14. Déployer derrière feature flag par environnement.
+13. Ajouter `SearchMode` aux modèles de requête.
+14. Fusionner scores Solr et pgvector côté backend.
+15. Déployer derrière feature flag par environnement.
 
 ### Bloc 5 — SDKs officiels (Phase 5) — dépend du Bloc 1 (API stable) + Bloc 4 (contrat figé)
 
-15. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
-16. Packager, versionner, documenter chaque SDK.
-17. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
+16. Générer les clients Node.js, Python et PHP depuis l'OpenAPI.
+17. Packager, versionner, documenter chaque SDK.
+18. Mettre en place la vérification CI de synchronisation SDK ↔ OpenAPI.
 
 ### En parallèle / opportuniste
 
@@ -132,7 +145,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | ✅ Ph.0 | Ouvrir spec + plan 012 | — | Spec + plan validés (2026-04-21) |
 | Ph.0 | Valider taxonomie disciplinaire et jeu d'évaluation | Équipes métier disponibles | Taxonomie approuvée + corpus d'éval constitué |
 | Ph.0 | Décider périmètre endpoints publics et stratégie versionnement | — | Décisions documentées dans `plan.md` |
-| Ph.1 | Consolider `/api/v1`, typer les réponses et préparer le contrat documentaire | Ph.0 technique décidé | `/api/v1` complet + `openapi.json` stable + champs documentaires optionnels |
+| Ph.1 | Consolider `/api/v1`, typer les réponses et préparer le contrat documentaire | Périmètre public + auth/versionnement décidés | En cours : code + backend tests OK, E2E local bloqué par navigateur Playwright absent |
 | Ph.2 | Alimenter le modèle disciplinaire et la facette | Ph.0 taxonomie validée + Ph.1 contrat prêt | Champs + facette discipline opérationnels |
 | Ph.3 | Pipeline embeddings + classifieur + pgvector | Ph.2 (technique) + Ph.1 (gouvernance — API stable avant enrichissements) | Jobs batch + stockage PG/pgvector |
 | Ph.4 | Recherche hybride derrière feature flag | Ph.3 | Mode `semantic` et `hybrid` exploitable |
@@ -165,8 +178,14 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | Linter Python (ruff) | ✅ `ruff check .` passe sans erreur |
 | Linter frontend (ESLint) | ✅ `pnpm run lint` passe sans warning |
 | Tests backend (pytest) | ✅ Commande : `make test` (Docker) |
+<<<<<<< HEAD
 | Docs / architecture | ✅ Synchronisés (2026-05-09) |
 | Spec 012 | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
+=======
+| Docs / architecture | ✅ Synchronisés (2026-04-20) |
+| Spec 012 semantic/API | ⚪ Backlog prioritaire structuré en 2 lots — 1) contrat/API, 2) disciplines + sémantique + SDKs |
+| Spec logging | ⚪ Draft transverse renuméroté en `013-logging-strategy` |
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ### Écarts connus (dette acceptée)
 
@@ -175,7 +194,13 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 - Plusieurs composants utilisent encore `useSearch()` global malgré les selectors disponibles — migration opportuniste, non bloquante.
 - `ruff` `ANN` annotations : per-file ignores pour `settings.py`, `core/env_validation.py`, `api/` (Pydantic + FastAPI patterns) — documentés dans `pyproject.toml`
 - `pytest` hors Docker : `pipx run pytest` échoue sans virtualenv dédié — `make test` est la référence
+<<<<<<< HEAD
 - `/api/v1` partiel : seul le module `saved_searches` vit dans `app/api/v1/`, mais ses routes restent exposées à la racine (`/saved-searches`) comme `/search`, `/suggest`, `/facets/config` et `/permissions` — la Phase 1 de la spec 012 doit consolider ce namespace avant tout usage externe
+=======
+- `/api/v1` Phase 1 : namespace consolidé côté backend avec aliases racine. Reste à ajouter une couverture Playwright spécifique et à valider les E2E dans un environnement avec navigateur Playwright installé.
+- Compteur E2E : 68 tests documentés dans `front/tests` au 2026-05-05. Les anciennes mentions `66 tests` ont été corrigées après collecte Playwright locale.
+- Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json`; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ---
 
@@ -196,6 +221,7 @@ Ces deux axes peuvent avancer en parallèle : le cadrage métier ne bloque pas l
 | 011 | Auth LDAP/SSO | ✅ Livré complet |
 | 012 | Logging strategy | ⚪ Partiellement livré — durcissement restant |
 | 012 | Recherche sémantique + API platform | ⚪ Backlog prioritaire |
+| 013 | Logging applicatif | ⚪ Draft transverse |
 
 ---
 

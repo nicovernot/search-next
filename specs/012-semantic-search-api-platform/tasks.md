@@ -1,6 +1,6 @@
 # Tasks 012 — Phase 1 : Stabilisation de l'API comme produit
 
-**Statut**: À faire — prérequis : Phase 0 (périmètre endpoints décidé)  
+**Statut**: À faire — prérequis : décision courte Phase 0 sur périmètre public, auth et versionnement
 **Skill associé**: SKILL 9 — VersionnerAPIPubliqueRésultat  
 **Dépendances code** : `search_api_solr/app/main.py`, `app/api/v1/`, `app/models/search_models.py`
 
@@ -11,10 +11,11 @@
 - [ ] Auditer les champs disciplinaires disponibles dans les documents Solr (chercher : `subject`, `keywords`, `discipline`, classifications HAL, domaines éditeur) — documenter les champs trouvés dans `plan.md`
 - [ ] Valider la taxonomie disciplinaire avec les équipes métier (≤ 30 disciplines stables, codes normalisés, libellés multilingues fr/en minimum)
 - [ ] Choisir le modèle d'embedding : `bge-m3` vs `multilingual-e5-large` — documenter le choix et la contrainte infra (mémoire/GPU)
-- [ ] Décider si `/auth/*` est exposé dans les SDKs ou réservé au frontend — documenter
-- [ ] Décider du périmètre exact des endpoints publics tiers vs internes
-- [ ] Confirmer ou ajuster la stratégie de fusion hybride (RRF k=60 recommandé)
-- [ ] Documenter toutes ces décisions dans `plan.md` § "Decisions Already Recommended"
+- [x] Décider si `/auth/*` est exposé dans les SDKs ou réservé au frontend — réservé au frontend en Phase 1
+- [x] Décider du périmètre exact des endpoints publics tiers vs internes — recherche, suggest, facettes, permissions, OpenAPI
+- [x] Confirmer si `saved_searches` doit rester public sous `/api/v1/saved-searches` ou rester réservé au frontend authentifié — monté sous v1, authentifié, hors SDK public Phase 1
+- [x] Confirmer ou ajuster la stratégie de fusion hybride (RRF k=60 recommandé) — RRF k=60 conservé comme défaut cible
+- [x] Documenter toutes ces décisions dans `plan.md` § "Decisions Already Recommended"
 - [ ] Constituer le jeu d'évaluation lexical vs hybride (≥ 50 requêtes métier avec résultats attendus)
 
 ---
@@ -23,36 +24,46 @@
 
 ### 1.1 — Déplacement des endpoints sous `/api/v1/`
 
+<<<<<<< HEAD
 - [ ] Créer `search_api_solr/app/api/v1/search.py` avec les routes `POST /search` et `GET /search`
 - [ ] Créer `search_api_solr/app/api/v1/suggest.py` avec la route `GET /suggest`
 - [ ] Créer `search_api_solr/app/api/v1/facets.py` avec la route `GET /facets/config`
 - [ ] Inclure les nouveaux routers dans `main.py` sous le préfixe `/api/v1`
 - [ ] Ajouter des aliases de compatibilité sur les routes racine (`/search`, `/suggest`, `/facets/config`) le temps de la transition frontend
 - [ ] Décider si `saved_searches` reste compatible à la racine via alias ou rejoint explicitement le préfixe `/api/v1`
+=======
+- [x] Créer `search_api_solr/app/api/v1/search.py` avec les routes `POST /search` et `GET /search`
+- [x] Créer `search_api_solr/app/api/v1/suggest.py` avec la route `GET /suggest`
+- [x] Créer `search_api_solr/app/api/v1/facets.py` avec la route `GET /facets/config`
+- [x] Créer `search_api_solr/app/api/v1/permissions.py` avec la route `GET /permissions`
+- [x] Inclure les nouveaux routers dans `main.py` sous le préfixe `/api/v1`
+- [x] Ajouter des aliases de compatibilité sur les routes racine (`/search`, `/suggest`, `/facets/config`, `/permissions`) le temps de la transition frontend
+- [x] Vérifier que `saved_searches` (déjà dans le package `app/api/v1/`) est monté sous le préfixe public décidé
+>>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ### 1.2 — Typer `SearchResponse.results` et compléter les `response_model`
 
-- [ ] Typer `SearchResponse.results` en `list[DocumentResponse]` dans `search_models.py` (prérequis pour que le schéma OpenAPI expose la structure des documents et les champs disciplines à venir)
-- [ ] Vérifier que tous les endpoints `/api/v1/*` déclarent un `response_model` Pydantic explicite
-- [ ] Documenter les erreurs HTTP stables par endpoint (400, 401, 403, 404, 422, 503) via `responses=`
-- [ ] Documenter les modes d'auth requis par endpoint (JWT uniquement — pas d'API key dans la stack actuelle)
+- [x] Typer `SearchResponse.results` en `list[DocumentResponse]` dans `search_models.py` (prérequis pour que le schéma OpenAPI expose la structure des documents et les champs disciplines à venir)
+- [x] Vérifier que tous les endpoints `/api/v1/*` déclarent un `response_model` Pydantic explicite
+- [x] Documenter les erreurs HTTP stables par endpoint (400, 401, 403, 404, 422, 503) via `responses=`
+- [x] Documenter les modes d'auth requis par endpoint (JWT uniquement — pas d'API key dans la stack actuelle)
 
 ### 1.3 — Publication du contrat OpenAPI
 
-- [ ] Exposer `/api/v1/openapi.json` (route dédiée ou export du schéma FastAPI)
-- [ ] Vérifier que le schéma généré est exploitable pour `openapi-generator`
-- [ ] Ajouter un exemple d'intégration hors frontend Next.js dans `docs/` ou `README.md`
+- [x] Exposer `/api/v1/openapi.json` (route dédiée ou export du schéma FastAPI)
+- [x] Vérifier que le schéma généré est exploitable pour `openapi-generator`
+- [x] Ajouter un exemple d'intégration hors frontend Next.js dans `docs/` ou `README.md`
 
 ### 1.4 — Tests et compatibilité
 
-- [ ] Adapter les tests backend existants aux nouvelles routes `/api/v1/*`
-- [ ] Ajouter un test vérifiant que les routes racine (alias) retournent les mêmes réponses
+- [x] Adapter les tests backend existants aux nouvelles routes `/api/v1/*`
+- [x] Ajouter un test vérifiant que les routes racine (alias) retournent les mêmes réponses
 - [ ] Ajouter un test Playwright vérifiant que le frontend continue de fonctionner sans régression
-- [ ] Lancer `make test` et `pnpm run test:e2e` — suite verte ou écarts documentés
+- [x] Lancer `make test` et `pnpm run test:e2e` — `make test` vert ; E2E lancés mais bloqués localement par navigateur Playwright absent
 
 ### 1.5 — Mise à jour des specs et docs
 
-- [ ] Mettre à jour `docs/ARCHITECTURE.md` avec le nouveau namespace `/api/v1`
+- [x] Mettre à jour `docs/ARCHITECTURE.md` avec le nouveau namespace `/api/v1`
 - [ ] Marquer Ph.1 comme ✅ dans `specs/PLANNING.md`
 - [ ] Mettre à jour `specs/012-semantic-search-api-platform/tasks.md` (ce fichier) : démarrer les tasks Phase 2
 
@@ -96,7 +107,7 @@
 
 - [ ] Ajouter `disciplines: string[]`, `discipline_source: string | null`, `discipline_confidence: number | null` à l'interface `SearchDoc` dans `front/app/types.ts` (champs optionnels pour rétrocompatibilité)
 - [ ] Afficher les disciplines comme badges dans `ResultItem.tsx` (pattern : comme `AccessBadge` — un badge par discipline, style neutre)
-- [ ] Ajouter les i18n keys nécessaires dans les 6 fichiers de traduction (`front/public/locales/{fr,en,de,it,es,pt}/common.json`) : au minimum `discipline.label`, `discipline.source.source_metadata`, `discipline.source.inferred`, `discipline.source.manual_override`
+- [ ] Ajouter les i18n keys nécessaires dans les 6 fichiers de traduction (`front/messages/{fr,en,de,it,es,pt}.json`) : au minimum `discipline.label`, `discipline.source.source_metadata`, `discipline.source.inferred`, `discipline.source.manual_override`
 - [ ] Ajouter la facette discipline à la config backend (`facets_json/`) avec les buckets renvoyant label_fr/label_en — `Facets.tsx` n'a pas besoin de modification structurelle (déjà dynamique)
   - La facette discipline est servie depuis PostgreSQL (pas Solr) — requête `GROUP BY unnest(disciplines)`
 - [ ] Implémenter le mapping niveau 1 depuis les champs Solr audités en Phase 0 (dans le pipeline batch)
@@ -143,7 +154,7 @@
 - [ ] Configurer le cron **L1 — polling nightly** : relancer le mode `incremental` chaque nuit
 - [ ] Configurer le cron **L2 — ré-indexation complète** hebdomadaire (weekend, hors heures de pointe)
 - [ ] Documenter la procédure de ré-indexation après changement de modèle :
-  - Requête des docs obsolètes : `SELECT doc_id FROM document_enrichments WHERE model_version != '{new_version}'`
+  - Requête des docs obsolètes : `SELECT doc_id FROM document_enrichment WHERE model_version != '{new_version}'`
   - Relancer le job en mode ciblé sur ces `doc_id`
 
 ### 3.5 — Classifieur disciplinaire
@@ -153,7 +164,7 @@
 
 ### 3.6 — Validation
 
-- [ ] Vérifier la couverture : `SELECT COUNT(*) FROM document_enrichments` vs `numFound` Solr
+- [ ] Vérifier la couverture : `SELECT COUNT(*) FROM document_enrichment` vs `numFound` Solr
 - [ ] Valider le critère SC-002 : ≥ 90 % des documents ont une discipline exploitable
 - [ ] Marquer Ph.3 comme ✅ dans `specs/PLANNING.md`
 

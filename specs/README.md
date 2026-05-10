@@ -53,6 +53,9 @@ specs/
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
+├── 013-logging-strategy/      ⚪ Draft transverse — logging applicatif
+│   ├── spec.md
+│   └── plan.md
 └── README.md
 ```
 

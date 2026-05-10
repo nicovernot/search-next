@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.models.document import DocumentResponse
 from app.models.logical_query import QueryGroup
 
 
@@ -13,7 +14,7 @@ class SearchQuery(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    results: list[Any]
+    results: list[DocumentResponse]
     total: int
     facets: Any | None = None
 

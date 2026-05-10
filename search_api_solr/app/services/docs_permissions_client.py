@@ -3,14 +3,6 @@ import re
 from typing import Any
 from urllib.parse import quote_plus, urlencode
 
-
-def _mask_ip(ip: str | None) -> str:
-    """Masque le dernier octet d'une IPv4, ou les 4 derniers chars d'une IPv6."""
-    if not ip:
-        return "null"
-    parts = ip.rsplit(".", 1)
-    return parts[0] + ".xxx" if len(parts) == 2 else ip[:-4] + "****"
-
 import httpx
 
 from app.core.logging import get_logger
@@ -24,6 +16,15 @@ from app.settings import (
 )
 
 logger = get_logger(__name__)
+
+
+def _mask_ip(ip: str | None) -> str:
+    """Masque le dernier octet d'une IPv4, ou les 4 derniers chars d'une IPv6."""
+    if not ip:
+        return "null"
+    parts = ip.rsplit(".", 1)
+    return parts[0] + ".xxx" if len(parts) == 2 else ip[:-4] + "****"
+
 
 class SolrClient:
     """ Simulation d'un client Solr pour l'interface """
