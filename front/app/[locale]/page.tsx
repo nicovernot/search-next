@@ -12,6 +12,7 @@ import AuthModal from "../components/AuthModal";
 import SavedSearchesPanel from "../components/SavedSearchesPanel";
 import { PLATFORMS } from "../lib/platforms";
 import { useAuthModal } from "../hooks/useAuthModal";
+import { useIsClient } from "../hooks/useIsClient";
 
 const AdvancedQueryBuilder = dynamic(() => import("../components/AdvancedQueryBuilder"), {
   ssr: false,
@@ -33,6 +34,7 @@ export default function Home() {
   const { results, loading, query, searchMode, setSearchMode } = useSearch();
   const { user, logout } = useAuth();
   const { open: modalOpen, tab: modalTab, openModal, closeModal } = useAuthModal();
+  const authControlsMounted = useIsClient();
   const hasContent = loading || results.length > 0 || query.length > 0;
 
   return (
@@ -64,7 +66,12 @@ export default function Home() {
           )}
           <ThemeToggle />
           <LanguageSelector />
-          {user ? (
+          {!authControlsMounted ? (
+            <div
+              aria-hidden="true"
+              className="h-10 w-44 rounded-xl bg-secondary border border-border premium-shadow"
+            />
+          ) : user ? (
             <>
               <SavedSearchesPanel />
               <button
