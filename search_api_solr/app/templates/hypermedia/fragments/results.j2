@@ -82,7 +82,9 @@
 </div>
 {% endif %}
 
-{# OOB : met à jour le panneau facettes en même temps que les résultats #}
+{% if oob %}
+{# OOB : uniquement pour les réponses HTMX fragment — évite le double rendu en SSR #}
 <div id="facets" hx-swap-oob="true">
   {% include "fragments/facets.j2" %}
 </div>
+{% endif %}

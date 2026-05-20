@@ -108,8 +108,8 @@ async def hypermedia_search(
     }
     # Réponse HTMX : fragment résultats + facettes OOB
     if _is_htmx(request):
-        return templates.TemplateResponse("fragments/results.j2", ctx)
-    return templates.TemplateResponse("pages/search.j2", ctx)
+        return templates.TemplateResponse("fragments/results.j2", {**ctx, "oob": True})
+    return templates.TemplateResponse("pages/search.j2", {**ctx, "oob": False})
 
 
 @router.get("/search/results", response_class=HTMLResponse)
@@ -129,7 +129,7 @@ async def hypermedia_search_results(
     )
     return templates.TemplateResponse(
         "fragments/results.j2",
-        {"request": request, "q": q, "page": page, "filters": active_filters, **data},
+        {"request": request, "q": q, "page": page, "filters": active_filters, "oob": True, **data},
     )
 
 

@@ -3,12 +3,23 @@
   {% for facet_id, facet_data in facets.items() %}
   {% set buckets = facet_data.buckets if facet_data.buckets else [] %}
   {% if buckets %}
+  {% set section_id = "facet-" ~ facet_id %}
   <section class="mb-6 last:mb-0" aria-labelledby="facet-label-{{ facet_id }}">
     <h3 id="facet-label-{{ facet_id }}"
         class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
       {{ facet_id | replace('_', ' ') | title }}
     </h3>
-    <ul class="space-y-1">
+
+    {% if buckets | length > 8 %}
+    {# Champ de recherche dans la facette — filtrage JS inline #}
+    <input type="search"
+           placeholder="Filtrer…"
+           aria-label="Filtrer les valeurs de {{ facet_id | replace('_', ' ') }}"
+           oninput="filterFacet(this, '{{ section_id }}-list')"
+           class="w-full mb-2 px-2 py-1 text-xs rounded border border-border bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+    {% endif %}
+
+    <ul id="{{ section_id }}-list" class="space-y-1 max-h-60 overflow-y-auto">
       {% for item in buckets %}
       {% set item_key = item.key %}
       {% set item_count = item.doc_count %}
@@ -17,7 +28,7 @@
       {% if is_active %}
       {# Filtre actif — lien pour le retirer #}
       {% set new_filters = filters | rejectattr('identifier', 'equalto', facet_id) | list %}
-      <li>
+      <li data-facet-value="{{ item_key | lower }}">
         <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
@@ -35,7 +46,7 @@
 
       {% else %}
       {# Filtre inactif — lien pour l'ajouter #}
-      <li>
+      <li data-facet-value="{{ item_key | lower }}">
         <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"

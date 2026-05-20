@@ -51,6 +51,15 @@
       var dark = document.documentElement.classList.contains('dark');
       document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
     });
+
+    // Filtre inline des valeurs de facette
+    function filterFacet(input, listId) {
+      var term = input.value.toLowerCase();
+      var items = document.getElementById(listId).querySelectorAll('li[data-facet-value]');
+      items.forEach(function (li) {
+        li.style.display = li.dataset.facetValue.includes(term) ? '' : 'none';
+      });
+    }
   </script>
 
   {% if debug %}

@@ -49,15 +49,17 @@
 - [x] `make build-hypermedia-css` / `make watch-hypermedia-css` opérationnels
 - [ ] Tests Playwright : back/forward ≥ 5 étapes, URL partageable restaure l'état
 
-## Phase 6 — Alignement visuel React ⚪
+## Phase 6 — Alignement visuel React ✅
 
-- [ ] **P1 — Design system (classes sémantiques)** : migrer toutes les classes hardcodées vers les tokens sémantiques dans les 4 templates (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`)
-- [ ] **P2 — Header glassmorphique** : remplacer le header plat par `glass premium-shadow rounded-2xl mx-2 mt-2`, logo `Open`+`Edition` bicolore, `sticky top-2 z-10`
-- [ ] **P3 — Formulaire premium** : `glass rounded-3xl premium-shadow p-2`, bouton `bg-highlight text-white hover:bg-highlight/90`, input transparent
-- [ ] **P4 — Panel facettes premium** : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow` sur l'`<aside>`
-- [ ] **P5 — Cartes résultats** : `bg-card border-border rounded-xl` remplace `border-gray-200 rounded-lg`
-- [ ] **P6 — Empty state** : visuel avec emoji 🔍 + `border-dashed border-border` quand aucun résultat
-- [ ] **Build CSS** : relancer `cd tailwind-hypermedia && npm run build` pour générer les classes sémantiques
+- [x] **P1 — Design system (classes sémantiques)** : classes hardcodées migrées vers tokens (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`)
+- [x] **P2 — Header glassmorphique** : `glass premium-shadow rounded-2xl mx-2 mt-2 sticky top-2 z-10`, logo `Open`+`Edition` bicolore
+- [x] **P3 — Formulaire premium** : `glass rounded-3xl premium-shadow p-2`, bouton `bg-highlight text-white`, input transparent
+- [x] **P4 — Panel facettes premium** : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow`
+- [x] **P5 — Cartes résultats** : `bg-card border-border rounded-xl hover:border-primary/50`
+- [x] **P6 — Empty state** : 🔍 + `border-dashed border-border rounded-xl p-12 text-center`
+- [x] **Fix double facettes** : OOB conditionnel (`oob=True` fragment, `oob=False` SSR) — plus de double rendu `id="facets"`
+- [x] **Autocomplete dans facettes** : input de filtre JS inline (`filterFacet`) affiché si > 8 buckets, `max-h-60 overflow-y-auto` sur la liste, `data-facet-value` sur chaque `<li>`
+- [x] **Build CSS** : `@utility glass/premium-shadow/animate-fade-in` + `@custom-variant dark` — 15.3 Ko
 - [ ] Vérifier que `make test` reste vert après migration
 
 ## Vérification qualité
