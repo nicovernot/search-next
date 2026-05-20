@@ -81,7 +81,7 @@ class TestV1SuggestContract:
         with patch(
             "app.services.search_service.SuggestService.fetch_autocomplete_suggestions",
             new_callable=AsyncMock,
-            return_value=["histoire", "historique"],
+            return_value={"suggestions": ["histoire", "historique"]},
         ):
             resp = client.get("/api/v1/suggest", params={"q": "hist"})
         assert resp.status_code == 200
@@ -97,7 +97,7 @@ class TestV1SuggestContract:
         with patch(
             "app.services.search_service.SuggestService.fetch_autocomplete_suggestions",
             new_callable=AsyncMock,
-            return_value=[],
+            return_value={"suggestions": []},
         ):
             v1 = client.get("/api/v1/suggest", params={"q": "test"})
             root = client.get("/suggest", params={"q": "test"})
@@ -129,20 +129,20 @@ class TestV1FacetsConfigContract:
 class TestV1PermissionsContract:
     def test_returns_permissions_object(self):
         with patch(
-            "app.services.search_service.PermissionsService.check_permissions",
+            "app.services.search_service.PermissionsService.get_document_permissions",
             new_callable=AsyncMock,
-            return_value={"isPermitted": False, "purchased": False},
+            return_value={"data": {"organization": None, "docs": None}, "info": {}},
         ):
-            resp = client.get("/api/v1/permissions", params={"ip": "127.0.0.1"})
+            resp = client.get("/api/v1/permissions", params={"urls": "https://example.org/doc", "ip": "127.0.0.1"})
         assert resp.status_code == 200
 
     def test_root_alias_reachable(self):
         with patch(
-            "app.services.search_service.PermissionsService.check_permissions",
+            "app.services.search_service.PermissionsService.get_document_permissions",
             new_callable=AsyncMock,
-            return_value={"isPermitted": False, "purchased": False},
+            return_value={"data": {"organization": None, "docs": None}, "info": {}},
         ):
-            resp = client.get("/permissions", params={"ip": "127.0.0.1"})
+            resp = client.get("/permissions", params={"urls": "https://example.org/doc", "ip": "127.0.0.1"})
         assert resp.status_code == 200
 
 
