@@ -1,0 +1,85 @@
+{% if error %}
+<div role="alert"
+     class="rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-700 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+  {{ error }}
+</div>
+
+{% elif not q %}
+{# État vide — pas encore de recherche lancée #}
+
+{% elif results %}
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4" aria-live="polite">
+  {{ total }} résultat{% if total > 1 %}s{% endif %} pour <strong>{{ q }}</strong>
+  {% if filters %}
+  — {{ filters | length }} filtre{% if filters | length > 1 %}s{% endif %} actif{% if filters | length > 1 %}s{% endif %}
+  {% endif %}
+</p>
+
+<ol class="space-y-4" aria-label="Résultats de recherche">
+  {% for doc in results %}
+  <li class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
+    <article aria-labelledby="result-title-{{ loop.index }}">
+      <h2 id="result-title-{{ loop.index }}" class="font-medium text-blue-700 dark:text-blue-400 mb-1">
+        {% if doc.url %}
+        <a href="{{ doc.url }}" class="hover:underline" target="_blank" rel="noopener noreferrer">
+          {{ doc.title or "(sans titre)" }}
+        </a>
+        {% else %}
+        {{ doc.title or "(sans titre)" }}
+        {% endif %}
+      </h2>
+      {% if doc.overview %}
+      <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ doc.overview }}</p>
+      {% endif %}
+      <footer class="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
+        {% if doc.authors %}
+        <span aria-label="Auteurs">{{ doc.authors | join(", ") }}</span>
+        {% endif %}
+        {% if doc.date %}
+        <span aria-label="Date">{{ doc.date }}</span>
+        {% endif %}
+        {% if doc.platformID %}
+        <span class="font-mono" aria-label="Plateforme">{{ doc.platformID }}</span>
+        {% endif %}
+      </footer>
+    </article>
+  </li>
+  {% endfor %}
+</ol>
+
+{# Pagination #}
+{% if total > results | length %}
+{% set filter_qs = filters | map(attribute='identifier') | zip(filters | map(attribute='value')) | map('join', ':') | list %}
+<nav class="flex justify-center gap-4 mt-8" aria-label="Pagination">
+  {% if page > 1 %}
+  <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filter_qs %}&amp;filter={{ f | urlencode }}{% endfor %}"
+     hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filter_qs %}&amp;filter={{ f | urlencode }}{% endfor %}"
+     hx-target="#search-results"
+     hx-push-url="true"
+     class="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+     aria-label="Page précédente">
+    ← Précédent
+  </a>
+  {% endif %}
+  <span class="px-4 py-2 text-sm text-gray-500" aria-current="page">Page {{ page }}</span>
+  <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filter_qs %}&amp;filter={{ f | urlencode }}{% endfor %}"
+     hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filter_qs %}&amp;filter={{ f | urlencode }}{% endfor %}"
+     hx-target="#search-results"
+     hx-push-url="true"
+     class="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+     aria-label="Page suivante">
+    Suivant →
+  </a>
+</nav>
+{% endif %}
+
+{% else %}
+<p class="text-sm text-gray-500" aria-live="polite">
+  Aucun résultat pour <strong>{{ q }}</strong>.
+</p>
+{% endif %}
+
+{# OOB : met à jour le panneau facettes en même temps que les résultats #}
+<div id="facets" hx-swap-oob="true">
+  {% include "fragments/facets.j2" %}
+</div>

@@ -56,6 +56,10 @@ specs/
 ├── 013-logging-strategy/      ⚪ Draft transverse — logging applicatif
 │   ├── spec.md
 │   └── plan.md
+├── 014-htmx-frontend/         ⚪ Expérimental — Frontend hypermedia HTMX / Alpine.js (module `hypermedia`, phase 2 livrée)
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 └── README.md
 ```
 

@@ -38,6 +38,16 @@
 - [x] `tests/saved-searches.spec.ts` — 12 tests : sauvegarder, charger, supprimer, persistance après reload.
 - [x] `tests/search.spec.ts` — 2 tests : chargement page et recherche simple.
 
+## Lacunes de tests (dette 2026-05-20)
+
+### Pytest manquant (P1)
+- [ ] `tests/test_query_builder.py` — tester le parser `query_logic_parser.py` : opérateurs, AND/OR imbriqués, cas limites (vide, opérateurs inconnus)
+- [ ] `tests/test_advanced_search.py` — endpoints avec requête logique complète via `SearchRequest.logical_query`
+
+### Playwright manquant (P1)
+- [ ] `front/tests/advanced-search.spec.ts` — mode avancé UI : toggle simple/avancé, ajout de règles, opérateurs, combinateurs AND/OR, lancement de recherche et affichage résultats
+- [ ] `front/tests/search.spec.ts` — enrichir : facettes (clic filtre, badge actif), pagination (page 2), suggest (frappe + sélection)
+
 ## Correctifs post-livraison (2026-04-13)
 
 ### CORS

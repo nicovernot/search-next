@@ -1,0 +1,63 @@
+{% if facets %}
+<aside id="facets" aria-label="Filtres de recherche">
+  {% set active_ids = filters | map(attribute='identifier') | list %}
+  {% set active_values = filters | map(attribute='value') | list %}
+
+  {% for facet_id, facet_values in facets.items() %}
+  {% if facet_values %}
+  <section class="mb-6" aria-labelledby="facet-label-{{ facet_id }}">
+    <h3 id="facet-label-{{ facet_id }}"
+        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+      {{ facet_id | replace('_', ' ') | title }}
+    </h3>
+    <ul class="space-y-1">
+      {% for item in facet_values %}
+      {% set is_active = (facet_id in active_ids) and (item.value in active_values) %}
+
+      {% if is_active %}
+      {# Filtre actif — lien pour le retirer #}
+      {% set new_filters = filters | rejectattr('identifier', 'equalto', facet_id) | list %}
+      {% set filter_params = new_filters | map(attribute='identifier') | zip(new_filters | map(attribute='value')) | map('join', ':') | list %}
+      <li>
+        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+           hx-target="#search-results"
+           hx-push-url="true"
+           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium"
+           aria-label="Retirer le filtre {{ facet_id }}: {{ item.value }}"
+           aria-pressed="true">
+          <span>{{ item.value }}</span>
+          <span class="flex items-center gap-1 ml-2">
+            <span class="text-xs text-blue-600 dark:text-blue-300">({{ item.count }})</span>
+            <span aria-hidden="true" class="text-xs">✕</span>
+          </span>
+        </a>
+      </li>
+
+      {% else %}
+      {# Filtre inactif — lien pour l'ajouter #}
+      {% set filter_params = filters | map(attribute='identifier') | zip(filters | map(attribute='value')) | map('join', ':') | list %}
+      <li>
+        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+           hx-target="#search-results"
+           hx-push-url="true"
+           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+           aria-label="Filtrer par {{ facet_id }}: {{ item.value }} ({{ item.count }} résultats)">
+          <span>{{ item.value }}</span>
+          <span class="text-xs text-gray-400 ml-2">({{ item.count }})</span>
+        </a>
+      </li>
+      {% endif %}
+
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  {% endfor %}
+</aside>
+
+{% else %}
+{# OOB : réinitialise la sidebar si pas de facettes #}
+<aside id="facets" aria-label="Filtres de recherche"></aside>
+{% endif %}

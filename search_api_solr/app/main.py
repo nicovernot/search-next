@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -20,6 +21,9 @@ logger = get_logger(__name__)
 
 from app.api.auth import router as auth_router
 from app.api.v1.facets import router as facets_router
+from app.api.v1.hypermedia.auth import auth_router as hypermedia_auth_router
+from app.api.v1.hypermedia.router import STATIC_DIR, router as hypermedia_router
+from app.core.htmx_middleware import HtmxLoggingMiddleware
 from app.api.v1.openapi import router as openapi_router
 from app.api.v1.permissions import router as permissions_router
 from app.api.v1.saved_searches import router as saved_searches_router
@@ -37,6 +41,9 @@ except Exception as e:
     raise
 
 app = FastAPI()
+
+# FastAPI Radar (une ligne) pour la vue d'ensemble
+# from fastapi_radar import Radar; Radar(app)
 
 # Rate limiting
 app.state.limiter = limiter
@@ -99,6 +106,11 @@ if settings.trusted_hosts:
     )
     logger.info(f"Trusted hosts configured: {settings.trusted_hosts}")
 
+# Log des headers HX-* en développement
+if settings.environment != "production":
+    app.add_middleware(HtmxLoggingMiddleware)
+    logger.info("HTMX logging middleware enabled")
+
 # Includes des routers
 app.include_router(auth_router)
 for public_router in (search_router, suggest_router, facets_router, permissions_router):
@@ -108,6 +120,10 @@ for public_router in (search_router, suggest_router, facets_router, permissions_
 app.include_router(saved_searches_router, prefix="/api/v1")
 app.include_router(saved_searches_router, include_in_schema=False)
 app.include_router(openapi_router, prefix="/api/v1")
+
+app.include_router(hypermedia_router, prefix="/api/v1/hypermedia")
+app.include_router(hypermedia_auth_router, prefix="/api/v1/hypermedia")
+app.mount("/static/hypermedia", StaticFiles(directory=str(STATIC_DIR)), name="hypermedia-static")
 
 @app.get("/cache/stats")
 async def get_cache_stats():
@@ -161,7 +177,6 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    from app.settings import settings
     # Lancez l'application avec uvicorn: uvicorn app.main:app --reload
     uvicorn.run(
         "app.main:app",

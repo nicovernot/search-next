@@ -20,7 +20,7 @@ export REDIS_PORT
 export API_PORT
 export FRONTEND_PORT
 
-.PHONY: help sync-env check-env configure-env dev dev-build dev-down staging staging-build staging-down prod prod-build prod-down test test-cov test-local test-ci test-front test-front-ui test-front-ci test-all test-prod run-dev run-prod set-dev set-staging set-prod set-test build up down restart logs logs-api logs-frontend env-check env-sync env-list shell-api shell-frontend clean clean-all ps stats health install install-prod
+.PHONY: help sync-env check-env configure-env dev dev-build dev-down staging staging-build staging-down prod prod-build prod-down test test-cov test-local test-ci test-front test-front-ui test-front-ci test-all test-prod run-dev run-prod set-dev set-staging set-prod set-test build up down restart logs logs-api logs-frontend env-check env-sync env-list shell-api shell-frontend clean clean-all ps stats health install install-prod build-hypermedia-css watch-hypermedia-css
 
 help: ## Afficher l'aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -234,6 +234,12 @@ install: ## Installation initiale (build + up)
 	@echo "✓ Installation terminée"
 	@echo "API: http://localhost:$(API_PORT)"
 	@echo "Frontend: http://localhost:$(FRONTEND_PORT)"
+
+build-hypermedia-css: ## Build CSS Tailwind pour le frontend hypermedia (production)
+	cd search_api_solr/tailwind-hypermedia && npm run build
+
+watch-hypermedia-css: ## Watch CSS Tailwind pour le frontend hypermedia (développement)
+	cd search_api_solr/tailwind-hypermedia && npm run watch
 
 install-prod: ## Installation en production
 	@echo "Installation de l'environnement OpenEdition Search en production..."

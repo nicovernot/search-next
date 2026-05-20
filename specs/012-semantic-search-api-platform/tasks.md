@@ -49,6 +49,7 @@
 
 - [x] Adapter les tests backend existants aux nouvelles routes `/api/v1/*`
 - [x] Ajouter un test vérifiant que les routes racine (alias) retournent les mêmes réponses
+- [x] Ajouter les tests de contrat `/api/v1` : `test_api_v1_contracts.py` (search, suggest, facets/config, permissions, OpenAPI schema) — livré 2026-05-20
 - [ ] Ajouter un test Playwright dédié `/api/v1` (couverture spécifique — dette acceptée, les 68 tests E2E existants couvrent indirectement le backend)
 - [x] Lancer `make test` et `pnpm run test:e2e` — `make test` vert ; E2E lancés mais bloqués localement par navigateur Playwright absent
 

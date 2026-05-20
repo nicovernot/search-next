@@ -149,6 +149,32 @@ Un commit de code ne doit être créé que si les vérifications requises pour s
 - **Tests/vérifications** : `make test-front-ci` vert ; si auth backend est en cause, `make test` doit rester vert.
 - **Points d'attention récurrents** : `NEXT_PUBLIC_API_URL` est figé au build Next.js ; en Docker E2E, le navigateur doit pouvoir appeler une URL publique atteignable, tandis que les route handlers Next.js utilisent `INTERNAL_API_URL`.
 
+## SKILL 14 — AuditerCouvertureTestsRésultat
+
+- **Intention** : s'assurer que chaque spec a une couverture pytest ET Playwright proportionnelle à son risque.
+- **Résultat** : table de couverture à jour, tests manquants créés ou planifiés, `make test` vert.
+- **Dépendances** : tous les skills de feature (SKILL 1–13).
+- **Entrées** : `search_api_solr/tests/`, `front/tests/`, specs `001–014`.
+- **Sorties** : nouveaux fichiers de test, table dans `PLANNING.md` § Couverture tests.
+- **Tests/vérifications** : `make test` vert, grep `test_` et `test(` pour valider le compte.
+
+### Table de couverture par spec (état 2026-05-20)
+
+| Spec | Pytest | Playwright | Dette |
+|---|---|---|---|
+| 001 search-core | ✅ Complet (search, builder, suggest, sort, qf) | ⚠ Minimal (2 tests) | Playwright : facettes UI, pagination |
+| 002 advanced-search | ⚠ Partiel (config facettes seulement) | ❌ Aucun | Pytest : QueryBuilder logique ; Playwright : mode avancé, AND/OR |
+| 004 url-sync | ❌ Aucun | ✅ Complet (18 tests, back/forward, QB restore) | Pytest : helpers `url-search-state.ts` (purs, testables) |
+| 005 permissions | ⚠ Basique (4 tests API) | ✅ Complet (4 tests badges) | Pytest : IP proxy, cache permissions |
+| 011 auth-ldap-sso | ❌ Aucun | ✅ Complet (41 tests) | Pytest : endpoints auth backend |
+| 012 api-platform Ph.1 | ✅ Contrats v1 (test_api_v1.py + test_api_v1_contracts.py) | ⚠ Basique (via hypermedia) | Playwright dédié /api/v1 (dette acceptée) |
+| 013 logging | ⚠ Partiel (config env) | ❌ Aucun | Pytest : handlers, format JSON, redaction |
+| 014 hypermedia | ✅ Core (9 tests pytest) | ✅ Core (6 tests Playwright) | Playwright : facettes, auth cookie |
+
+### Prompt — AuditerCouvertureTestsRésultat
+
+> Audite la couverture de tests du projet : liste les fichiers `test_*.py` et `*.spec.ts`, déduis les specs couvertes et les lacunes. Mets à jour la table de couverture dans `PLANNING.md` § "Couverture tests". Pour chaque lacune P0 (comportement sans aucun test), crée le fichier de test minimal. Pour les lacunes P1/P2, ajoute une tâche dans le `tasks.md` de la spec concernée.
+
 ## Skills complémentaires à créer si le projet grandit
 
 Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à court terme :
@@ -209,3 +235,30 @@ Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à 
 ### Prompt — StabiliserE2EAuthRechercheRésultat
 
 > Remets `make test-front-ci` au vert. Commence par identifier pourquoi les tests auth/session/saved-searches/search/url-sync échouent en Docker : URL API publique embarquée dans Next.js, CORS, appels auth, persistance localStorage, mocks Playwright, ou timing UI. Corrige le plus petit périmètre possible, puis relance `make test-front-ci` et `make test`.
+
+## SKILL 13 — DevelopperFrontendHypermediaHTMX
+
+- **Intention** : construire des interfaces performantes avec HTMX, Alpine.js et Tailwind CSS.
+- **Résultat** : rendu côté serveur de fragments HTML, interactivité locale légère, bundle minimal.
+- **Dépendances** : spec 014.
+- **Entrées** : `search_api_solr/app/templates/hypermedia/`, `search_api_solr/app/api/v1/hypermedia/`.
+- **Sorties** : templates Jinja2, fragments HTML, router `hypermedia`.
+- **Tests/vérifications** : `make test` (pytest `test_hypermedia.py`), réponses HTML pas JSON, zéro duplication logique Solr.
+
+### Conventions de nommage — module hypermedia
+
+| Élément | Nom |
+|---|---|
+| Module Python | `app/api/v1/hypermedia/` |
+| Templates Jinja2 | `app/templates/hypermedia/` |
+| Assets statiques | `app/static/hypermedia/` |
+| Route prefix | `/api/v1/hypermedia/` |
+| StaticFiles mount | `/static/hypermedia` |
+| Tag OpenAPI | `hypermedia` |
+| Tests pytest | `tests/test_hypermedia.py` |
+| Tests Playwright | `front/tests/hypermedia.spec.ts` |
+| IDs HTML | Convention intention→résultat : `#search-results`, `#search-form`, `#loading` |
+
+### Prompt — DevelopperFrontendHypermediaHTMX
+
+> Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments et Alpine.js pour l'état local. Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`.

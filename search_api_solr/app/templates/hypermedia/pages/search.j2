@@ -1,0 +1,68 @@
+{% extends "layouts/base.j2" %}
+
+{% block title %}{% if q %}{{ q }} — {% endif %}OpenEdition Search{% endblock %}
+
+{% block content %}
+<section aria-label="Formulaire de recherche">
+  <form id="search-form"
+        hx-get="/api/v1/hypermedia/search"
+        hx-target="#search-results"
+        hx-push-url="true"
+        hx-indicator="#loading"
+        class="flex gap-2 mb-6">
+    <label for="search-input" class="sr-only">Rechercher</label>
+    <input id="search-input"
+           type="search"
+           name="q"
+           value="{{ q }}"
+           placeholder="Rechercher dans OpenEdition…"
+           autocomplete="off"
+           class="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+           aria-label="Terme de recherche" />
+    <button type="submit"
+            class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm font-medium transition-colors"
+            aria-label="Lancer la recherche">
+      Rechercher
+    </button>
+  </form>
+
+  {# Filtres actifs #}
+  {% if filters %}
+  <div class="flex flex-wrap gap-2 mb-4" aria-label="Filtres actifs">
+    {% for f in filters %}
+    {% set remaining = filters | rejectattr('identifier', 'equalto', f.identifier) | list %}
+    {% set remaining = remaining | rejectattr('value', 'equalto', f.value) | list %}
+    {% set filter_qs = remaining | map(attribute='identifier') | zip(remaining | map(attribute='value')) | map('join', ':') | list %}
+    <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for r in filter_qs %}&amp;filter={{ r | urlencode }}{% endfor %}"
+       class="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 text-xs font-medium"
+       aria-label="Retirer le filtre {{ f.identifier }}: {{ f.value }}">
+      {{ f.identifier }}: {{ f.value }} <span aria-hidden="true">✕</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+
+<div id="loading"
+     class="htmx-indicator flex items-center gap-2 text-sm text-gray-500 mb-4"
+     aria-live="polite"
+     aria-label="Chargement en cours">
+  <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+  </svg>
+  Chargement…
+</div>
+
+<div class="flex gap-6">
+  {# Panneau facettes — mis à jour via OOB swap depuis results.j2 #}
+  <div id="facets" class="w-48 flex-shrink-0" aria-label="Filtres de recherche">
+    {% if facets %}{% include "fragments/facets.j2" %}{% endif %}
+  </div>
+
+  {# Résultats #}
+  <div id="search-results" class="flex-1 min-w-0" aria-live="polite" aria-busy="false" _="on htmx:beforeRequest set @aria-busy to 'true' on htmx:afterRequest set @aria-busy to 'false'">
+    {% include "fragments/results.j2" %}
+  </div>
+</div>
+{% endblock %}

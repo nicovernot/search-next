@@ -116,6 +116,8 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 ### En parallèle / opportuniste
 
+- **[Expérimental]** Spec 014 — Frontend hypermedia (HTMX + Alpine.js) : Phase 2 livrée (recherche SSR + fragments). Module `hypermedia` dans le code.
+
 - Migrer les composants de `useSearch()` vers les hooks selectors lors des prochaines touches.
 
 ---
@@ -212,6 +214,29 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 012 | Logging strategy → voir 013 | — renuméroté |
 | 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 ~80% (validation métier restante) — Phase 2-5 backlog |
 | 013 | Logging applicatif | ✅ Livré — root logger, redaction, f-strings structurés, ESLint no-console (2026-05-10) |
+| 014 | Frontend hypermedia (HTMX + Alpine.js) | ⚪ Expérimental — Phase 2 livrée (module `hypermedia`) |
+
+---
+
+## Couverture de tests (audit 2026-05-20)
+
+| Spec | Pytest | Playwright | Lacunes |
+|---|---|---|---|
+| 001 search-core | ✅ Complet | ⚠ 2 tests | Playwright : facettes UI, pagination |
+| 002 advanced-search | ⚠ Config seulement | ❌ Aucun | Pytest : QueryBuilder ; Playwright : mode avancé |
+| 004 url-sync | ❌ Aucun | ✅ 18 tests | Pytest : helpers `url-search-state.ts` |
+| 005 permissions | ⚠ 4 tests API | ✅ 4 tests badges | Pytest : IP proxy, cache |
+| 011 auth-ldap-sso | ❌ Aucun | ✅ 41 tests | Pytest : endpoints auth backend |
+| 012 api-platform Ph.1 | ✅ Contrats v1 complets | ⚠ Indirect | Playwright dédié (dette acceptée) |
+| 013 logging | ⚠ Config env | ❌ Aucun | Pytest : handlers JSON, redaction |
+| 014 hypermedia | ✅ 9 tests | ✅ 6 tests | Playwright : facettes, auth cookie |
+
+**Fichiers de tests** :
+- `tests/test_api_v1.py` — contrats v1 de base
+- `tests/test_api_v1_contracts.py` — contrats complets (search, suggest, facets, permissions, OpenAPI)
+- `tests/test_hypermedia.py` — endpoints HTML hypermedia
+- `front/tests/hypermedia.spec.ts` — E2E frontend hypermedia
+- `front/tests/search.spec.ts`, `url-sync.spec.ts`, `auth.spec.ts`, `auth-ldap-sso.spec.ts`, `permissions.spec.ts`, `saved-searches.spec.ts`
 
 ---
 
