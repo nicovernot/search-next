@@ -9,16 +9,17 @@
 
   {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen transition-colors">
+<body class="min-h-screen bg-background text-foreground transition-colors">
 
-  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:text-blue-700 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">Aller au contenu principal</a>
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-background focus:text-primary focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">Aller au contenu principal</a>
 
-  <header class="border-b px-6 py-3 flex items-center justify-between" style="border-color: hsl(var(--border)); background-color: hsl(var(--card));">
-    <a href="/api/v1/hypermedia/" class="font-semibold text-lg tracking-tight">OpenEdition Search</a>
+  <header class="glass premium-shadow rounded-2xl mx-2 mt-2 px-6 py-3 flex items-center justify-between sticky top-2 z-10">
+    <a href="/api/v1/hypermedia/" class="font-semibold text-lg tracking-tight text-foreground">
+      <span>Open</span><span class="text-primary">Edition</span> Search
+    </a>
     <button onclick="toggleDark()"
             id="dark-toggle"
-            class="text-sm transition-colors"
-            style="color: hsl(var(--muted-foreground));"
+            class="text-sm text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Basculer le thème sombre">
       🌙
     </button>

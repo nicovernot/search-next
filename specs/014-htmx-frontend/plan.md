@@ -41,6 +41,16 @@
 25. ✅ CDN Tailwind supprimé de `base.j2` → CSS buildé `styles.css` (15 Ko) servi par FastAPI `StaticFiles`.
 26. ✅ Dark mode : JS vanilla (localStorage, toggle icône, pas de flash FOUC), Alpine.js retiré du layout.
 
+## Phase 6 — Alignement visuel React ⚪
+
+27. Migrer les classes Tailwind hardcodées vers les tokens sémantiques du design system (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`, `bg-highlight`) dans les 4 templates.
+28. Header glassmorphique : `glass premium-shadow rounded-2xl mx-2 mt-2 sticky top-2 z-10`, logo bicolore `Open` + `Edition`.
+29. Formulaire premium : wrapper `glass rounded-3xl premium-shadow p-2`, input transparent, bouton `bg-highlight text-white`.
+30. Panel facettes : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow` sur `<aside>`.
+31. Cartes résultats : `bg-card border-border rounded-xl` + hover `hover:border-primary/50 transition-colors`.
+32. Empty state amélioré : emoji 🔍 + `border-dashed border-border rounded-xl p-12 text-center`.
+33. Rebuild CSS : `cd tailwind-hypermedia && npm run build` pour que Tailwind v4 scanne les nouvelles classes et les génère.
+
 ## Décisions techniques
 
 - **Nommage module** : `hypermedia` (décrit le type de réponse HTTP, indépendant de la lib HTMX).

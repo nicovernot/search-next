@@ -116,7 +116,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 ### En parallèle / opportuniste
 
-- **[Expérimental]** Spec 014 — Frontend hypermedia (HTMX + Tailwind v4) : Phases 1–5 livrées sur `feat/htmx-alpine-frontend`. Recherche SSR, facettes OOB, auth cookie, URL sync (hx-push-url + hx-history-elt), CSS buildé 15 Ko aligné avec le design system React.
+- **[Expérimental]** Spec 014 — Frontend hypermedia (HTMX + Tailwind v4) : Phases 1–5 livrées sur `feat/htmx-alpine-frontend`. Recherche SSR, facettes OOB, auth cookie, URL sync (hx-push-url + hx-history-elt), CSS buildé 15 Ko. Phase 6 en cours : alignement visuel avec le design system React (header glassmorphique, formulaire premium, classes sémantiques, empty state).
 
 - Migrer les composants de `useSearch()` vers les hooks selectors lors des prochaines touches.
 
@@ -214,7 +214,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 012 | Logging strategy → voir 013 | — renuméroté |
 | 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 ~80% (validation métier restante) — Phase 2-5 backlog |
 | 013 | Logging applicatif | ✅ Livré — root logger, redaction, f-strings structurés, ESLint no-console (2026-05-10) |
-| 014 | Frontend hypermedia (HTMX + Alpine.js) | ⚪ Expérimental — Phase 2 livrée (module `hypermedia`) |
+| 014 | Frontend hypermedia (HTMX + Alpine.js) | ⚪ Expérimental — Phases 1–5 livrées — Phase 6 (alignement visuel React) en cours |
 
 ---
 

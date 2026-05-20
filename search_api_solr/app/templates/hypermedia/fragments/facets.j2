@@ -1,11 +1,11 @@
 {% if facets %}
-<aside id="facets" aria-label="Filtres de recherche">
+<aside id="facets" aria-label="Filtres de recherche" class="bg-card border border-border rounded-3xl p-6 sticky top-24 premium-shadow">
   {% for facet_id, facet_data in facets.items() %}
   {% set buckets = facet_data.buckets if facet_data.buckets else [] %}
   {% if buckets %}
-  <section class="mb-6" aria-labelledby="facet-label-{{ facet_id }}">
+  <section class="mb-6 last:mb-0" aria-labelledby="facet-label-{{ facet_id }}">
     <h3 id="facet-label-{{ facet_id }}"
-        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+        class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
       {{ facet_id | replace('_', ' ') | title }}
     </h3>
     <ul class="space-y-1">
@@ -22,12 +22,12 @@
            hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
-           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium"
+           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm bg-primary/10 text-primary font-medium"
            aria-label="Retirer le filtre {{ facet_id }}: {{ item_key }}"
            aria-pressed="true">
           <span>{{ item_key }}</span>
           <span class="flex items-center gap-1 ml-2">
-            <span class="text-xs text-blue-600 dark:text-blue-300">({{ item_count }})</span>
+            <span class="text-xs text-primary/70">({{ item_count }})</span>
             <span aria-hidden="true" class="text-xs">✕</span>
           </span>
         </a>
@@ -40,10 +40,10 @@
            hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
-           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+           class="flex items-center justify-between w-full rounded px-2 py-1 text-sm text-foreground hover:bg-muted transition-colors"
            aria-label="Filtrer par {{ facet_id }}: {{ item_key }} ({{ item_count }} résultats)">
           <span>{{ item_key }}</span>
-          <span class="text-xs text-gray-400 ml-2">({{ item_count }})</span>
+          <span class="text-xs text-muted-foreground ml-2">({{ item_count }})</span>
         </a>
       </li>
       {% endif %}

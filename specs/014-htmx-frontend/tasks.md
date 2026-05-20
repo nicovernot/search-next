@@ -49,6 +49,17 @@
 - [x] `make build-hypermedia-css` / `make watch-hypermedia-css` opérationnels
 - [ ] Tests Playwright : back/forward ≥ 5 étapes, URL partageable restaure l'état
 
+## Phase 6 — Alignement visuel React ⚪
+
+- [ ] **P1 — Design system (classes sémantiques)** : migrer toutes les classes hardcodées vers les tokens sémantiques dans les 4 templates (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`)
+- [ ] **P2 — Header glassmorphique** : remplacer le header plat par `glass premium-shadow rounded-2xl mx-2 mt-2`, logo `Open`+`Edition` bicolore, `sticky top-2 z-10`
+- [ ] **P3 — Formulaire premium** : `glass rounded-3xl premium-shadow p-2`, bouton `bg-highlight text-white hover:bg-highlight/90`, input transparent
+- [ ] **P4 — Panel facettes premium** : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow` sur l'`<aside>`
+- [ ] **P5 — Cartes résultats** : `bg-card border-border rounded-xl` remplace `border-gray-200 rounded-lg`
+- [ ] **P6 — Empty state** : visuel avec emoji 🔍 + `border-dashed border-border` quand aucun résultat
+- [ ] **Build CSS** : relancer `cd tailwind-hypermedia && npm run build` pour générer les classes sémantiques
+- [ ] Vérifier que `make test` reste vert après migration
+
 ## Vérification qualité
 
 - [ ] `grep -r "solr\|SolrClient\|SearchBuilder" app/api/v1/hypermedia/` → zéro résultat (logique dans les Services)

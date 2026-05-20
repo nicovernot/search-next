@@ -8,8 +8,8 @@
 {# État vide — pas encore de recherche lancée #}
 
 {% elif results %}
-<p class="text-sm text-gray-500 dark:text-gray-400 mb-4" aria-live="polite">
-  {{ total }} résultat{% if total > 1 %}s{% endif %} pour <strong>{{ q }}</strong>
+<p class="text-sm text-muted-foreground mb-4" aria-live="polite">
+  {{ total }} résultat{% if total > 1 %}s{% endif %} pour <strong class="text-foreground">{{ q }}</strong>
   {% if filters %}
   — {{ filters | length }} filtre{% if filters | length > 1 %}s{% endif %} actif{% if filters | length > 1 %}s{% endif %}
   {% endif %}
@@ -17,9 +17,9 @@
 
 <ol class="space-y-4" aria-label="Résultats de recherche">
   {% for doc in results %}
-  <li class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
+  <li class="bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-colors">
     <article aria-labelledby="result-title-{{ loop.index }}">
-      <h2 id="result-title-{{ loop.index }}" class="font-medium text-blue-700 dark:text-blue-400 mb-1">
+      <h2 id="result-title-{{ loop.index }}" class="font-medium text-primary mb-1">
         {% if doc.url %}
         <a href="{{ doc.url }}" class="hover:underline" target="_blank" rel="noopener noreferrer">
           {{ doc.title or "(sans titre)" }}
@@ -29,9 +29,9 @@
         {% endif %}
       </h2>
       {% if doc.overview %}
-      <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ doc.overview }}</p>
+      <p class="text-sm text-muted-foreground line-clamp-2">{{ doc.overview }}</p>
       {% endif %}
-      <footer class="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
+      <footer class="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
         {% if doc.authors %}
         <span aria-label="Auteurs">{{ doc.authors | join(", ") }}</span>
         {% endif %}
@@ -55,17 +55,17 @@
      hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
      hx-target="#search-results"
      hx-push-url="true"
-     class="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+     class="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
      aria-label="Page précédente">
     ← Précédent
   </a>
   {% endif %}
-  <span class="px-4 py-2 text-sm text-gray-500" aria-current="page">Page {{ page }}</span>
+  <span class="px-4 py-2 text-sm text-muted-foreground" aria-current="page">Page {{ page }}</span>
   <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
      hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
      hx-target="#search-results"
      hx-push-url="true"
-     class="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+     class="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
      aria-label="Page suivante">
     Suivant →
   </a>
@@ -73,9 +73,13 @@
 {% endif %}
 
 {% else %}
-<p class="text-sm text-gray-500" aria-live="polite">
-  Aucun résultat pour <strong>{{ q }}</strong>.
-</p>
+<div class="border border-dashed border-border rounded-xl p-12 text-center" aria-live="polite">
+  <div class="text-4xl mb-4" aria-hidden="true">🔍</div>
+  <p class="text-sm text-muted-foreground">
+    Aucun résultat pour <strong class="text-foreground">{{ q }}</strong>.
+  </p>
+  <p class="text-xs text-muted-foreground mt-2">Essayez avec d'autres mots-clés ou retirez des filtres.</p>
+</div>
 {% endif %}
 
 {# OOB : met à jour le panneau facettes en même temps que les résultats #}

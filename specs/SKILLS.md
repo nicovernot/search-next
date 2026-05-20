@@ -273,6 +273,37 @@ Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à 
 | Tests Playwright | `front/tests/hypermedia.spec.ts` |
 | IDs HTML | Convention intention→résultat : `#search-results`, `#search-form`, `#loading` |
 
+### Classes sémantiques — mapping hardcoded → sémantique
+
+Tailwind v4 avec design tokens HSL définis dans `tailwind-hypermedia/input.css`. Les classes ci-dessous remplacent les classes hardcodées pour aligner le hypermedia avec le design system React.
+
+| Hardcoded (à retirer) | Sémantique (à utiliser) | Notes |
+|---|---|---|
+| `bg-white` | `bg-background` | Gère aussi le dark automatiquement |
+| `dark:bg-gray-950` | *(retirer)* | `bg-background` gère déjà le dark |
+| `text-gray-900 dark:text-gray-100` | `text-foreground` | |
+| `text-gray-500 dark:text-gray-400` | `text-muted-foreground` | |
+| `text-gray-600 dark:text-gray-400` | `text-muted-foreground` | |
+| `border-gray-200 dark:border-gray-800` | `border-border` | |
+| `border-gray-300 dark:border-gray-700` | `border-border` | |
+| `bg-gray-100 dark:bg-gray-800` | `bg-muted` | |
+| `hover:bg-gray-100 dark:hover:bg-gray-800` | `hover:bg-muted` | |
+| `bg-blue-600 hover:bg-blue-700` | `bg-primary hover:bg-primary/90` | Bouton primaire |
+| `text-blue-700 dark:text-blue-400` | `text-primary` | Liens, titres |
+| `bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200` | `bg-primary/10 text-primary` | Tags, filtres actifs |
+| `text-blue-600 dark:text-blue-300` | `text-primary/70` | Compteurs facettes actifs |
+| `border-gray-300 dark:border-gray-700` (input) | `border-border` | |
+| Bouton orange (CTA fort) | `bg-highlight text-white hover:bg-highlight/90` | `--highlight` = HSL 20 100% 55% |
+| `bg-white rounded-lg border` (cartes) | `bg-card border-border rounded-xl` | |
+| Header plat | `glass premium-shadow rounded-2xl` | Glassmorphisme — défini dans `input.css` |
+
+**Règles** :
+- Ne jamais utiliser `dark:` manuellement — les tokens HSL gèrent le dark via `:root / .dark`.
+- `glass` = `backdrop-blur-sm` + `bg-background/80` + `border border-border/50` (défini dans `input.css`).
+- `premium-shadow` = shadow multicouche douce (définie dans `input.css`).
+- `bg-highlight` = `hsl(var(--highlight))` = orange `20 100% 55%`.
+- Pour que Tailwind v4 génère ces classes, elles doivent être présentes dans les templates (`@source` scanne `*.j2`).
+
 ### Prompt — DevelopperFrontendHypermediaHTMX
 
 > Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments, Tailwind v4 pour le CSS (build via `make build-hypermedia-css`). Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`. Pas de filtre `zip` Jinja2 — itérer directement sur les objets `FilterModel` (`f.identifier`, `f.value`).
