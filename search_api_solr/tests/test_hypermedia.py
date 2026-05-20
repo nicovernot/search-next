@@ -6,13 +6,11 @@ from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_search_service
 from app.main import app
-from app.models.search_models import SearchResponse
-
 
 def _mock_service(results=None, total=0):
     service = MagicMock()
     service.execute_cached_search = AsyncMock(
-        return_value=SearchResponse(results=results or [], total=total, facets=None)
+        return_value={"results": results or [], "total": total, "facets": None}
     )
     return service
 
@@ -62,12 +60,19 @@ class TestHypermediaSearch:
 class TestHypermediaSearchResults:
     def test_results_fragment_returns_html(self, client):
         mock_doc = MagicMock()
-        mock_doc.title = "Article test"
+        mock_doc.titre = "Article test"
+        mock_doc.title = None
+        mock_doc.naked_titre = None
         mock_doc.url = "https://example.org"
+        mock_doc.naked_resume = None
         mock_doc.overview = "Un résumé."
         mock_doc.authors = ["Auteur A"]
         mock_doc.date = "2024"
         mock_doc.platformID = "OJ"
+        mock_doc.site_title = None
+        mock_doc.type = None
+        mock_doc.anneedatepubli = None
+        mock_doc.accessRights_openAireV3 = "info:eu-repo/semantics/openAccess"
         app.dependency_overrides[get_search_service] = lambda: _mock_service(
             results=[mock_doc], total=1
         )
