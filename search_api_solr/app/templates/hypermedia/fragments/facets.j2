@@ -1,5 +1,5 @@
 {% if facets %}
-<aside id="facets" aria-label="Filtres de recherche" class="bg-card border border-border rounded-3xl p-6 sticky top-24 premium-shadow">
+<aside aria-label="Filtres de recherche" class="bg-card border border-border rounded-3xl p-6 sticky top-24 premium-shadow w-full">
   {% for facet_id, facet_data in facets.items() %}
   {% set buckets = facet_data.buckets if facet_data.buckets else [] %}
   {% if buckets %}
@@ -68,5 +68,4 @@
 
 {% else %}
 {# OOB : réinitialise la sidebar si pas de facettes #}
-<aside id="facets" aria-label="Filtres de recherche"></aside>
 {% endif %}

@@ -55,9 +55,9 @@
   Chargement…
 </div>
 
-<div class="flex gap-6">
-  {# Panneau facettes — mis à jour via OOB swap depuis results.j2 #}
-  <div id="facets" class="w-48 flex-shrink-0" aria-label="Filtres de recherche">
+<div class="flex gap-6 items-start">
+  {# Panneau facettes — id="facets" est la cible HTMX OOB, le style est dans facets.j2 #}
+  <div id="facets" class="w-64 flex-shrink-0">
     {% if facets %}{% include "fragments/facets.j2" %}{% endif %}
   </div>
 
