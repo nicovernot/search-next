@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @source "../app/templates/hypermedia/**/*.j2";
 
+/* Dark mode basé sur la classe .dark sur <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ── Design tokens — alignés avec front/app/globals.css ── */
 @theme inline {
   --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
