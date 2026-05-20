@@ -30,7 +30,7 @@
       {% set new_filters = filters | rejectattr('identifier', 'equalto', facet_id) | list %}
       <li data-facet-value="{{ item_key | lower }}">
         <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
-           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
            class="flex items-center justify-between w-full rounded px-2 py-1 text-sm bg-primary/10 text-primary font-medium"
@@ -48,7 +48,7 @@
       {# Filtre inactif — lien pour l'ajouter #}
       <li data-facet-value="{{ item_key | lower }}">
         <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
-           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item_key | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
            class="flex items-center justify-between w-full rounded px-2 py-1 text-sm text-foreground hover:bg-muted transition-colors"

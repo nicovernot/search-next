@@ -52,7 +52,7 @@
 <nav class="flex justify-center gap-4 mt-8" aria-label="Pagination">
   {% if page > 1 %}
   <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
-     hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+     hx-get="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page - 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
      hx-target="#search-results"
      hx-push-url="true"
      class="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
@@ -62,7 +62,7 @@
   {% endif %}
   <span class="px-4 py-2 text-sm text-muted-foreground" aria-current="page">Page {{ page }}</span>
   <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
-     hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+     hx-get="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;page={{ page + 1 }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
      hx-target="#search-results"
      hx-push-url="true"
      class="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
