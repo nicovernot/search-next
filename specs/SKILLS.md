@@ -238,12 +238,26 @@ Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à 
 
 ## SKILL 13 — DevelopperFrontendHypermediaHTMX
 
-- **Intention** : construire des interfaces performantes avec HTMX, Alpine.js et Tailwind CSS.
-- **Résultat** : rendu côté serveur de fragments HTML, interactivité locale légère, bundle minimal.
+- **Intention** : construire des interfaces performantes avec HTMX et Tailwind CSS (v4).
+- **Résultat** : rendu SSR de fragments HTML, URL sync navigateur, CSS buildé 15 Ko, dark mode sans flash.
 - **Dépendances** : spec 014.
-- **Entrées** : `search_api_solr/app/templates/hypermedia/`, `search_api_solr/app/api/v1/hypermedia/`.
-- **Sorties** : templates Jinja2, fragments HTML, router `hypermedia`.
+- **Entrées** : `search_api_solr/app/templates/hypermedia/`, `search_api_solr/app/api/v1/hypermedia/`, `search_api_solr/tailwind-hypermedia/`.
+- **Sorties** : templates Jinja2, fragments HTML, router `hypermedia`, CSS buildé.
 - **Tests/vérifications** : `make test` (pytest `test_hypermedia.py`), réponses HTML pas JSON, zéro duplication logique Solr.
+
+### CSS — Tailwind v4
+
+- Config CSS-first : `@import "tailwindcss"`, `@source "../app/templates/hypermedia/**/*.j2"`, `@theme inline { ... }`.
+- Design tokens alignés avec `front/app/globals.css` (variables HSL `--background`, `--primary`, etc.).
+- Pas de `tailwind.config.js` — v4 n'en utilise plus.
+- Build : `make build-hypermedia-css` → `app/static/hypermedia/styles.css` (servi par FastAPI `StaticFiles`).
+
+### URL sync — HTMX
+
+- `hx-push-url="true"` sur le formulaire de recherche → URLs partageables et bookmarkables.
+- `hx-history-elt` sur `<main>` → HTMX snapshots uniquement le contenu, pas le layout.
+- `htmx.config.historyCacheSize = 20` + `refreshOnHistoryMiss = true` configurés dans `base.j2`.
+- Back/forward navigateur : HTMX restaure depuis son cache ou refetch si cache miss.
 
 ### Conventions de nommage — module hypermedia
 
@@ -261,4 +275,4 @@ Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à 
 
 ### Prompt — DevelopperFrontendHypermediaHTMX
 
-> Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments et Alpine.js pour l'état local. Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`.
+> Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments, Tailwind v4 pour le CSS (build via `make build-hypermedia-css`). Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`. Pas de filtre `zip` Jinja2 — itérer directement sur les objets `FilterModel` (`f.identifier`, `f.value`).

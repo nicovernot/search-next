@@ -33,6 +33,14 @@
 20. ✅ Build Tailwind autonome — `search_api_solr/tailwind-hypermedia/` + `make build-hypermedia-css`.
 21. ✅ Tests auth session (POST sans token, token invalide, DELETE).
 
+## Phase 5 — URL sync et CSS production ✅
+
+22. ✅ URL sync : `hx-push-url="true"` (SSR lit les params → URLs partageables), `hx-history-elt` sur `<main>`, `htmx.config.historyCacheSize = 20`.
+23. ✅ Migration CSS Tailwind v3 → v4 : `@import "tailwindcss"`, `@source`, `@theme inline` dans `input.css`. Plus de `tailwind.config.js`.
+24. ✅ Design tokens portés depuis `front/app/globals.css` : variables HSL, dark/light, fonts, glassmorphism, animations.
+25. ✅ CDN Tailwind supprimé de `base.j2` → CSS buildé `styles.css` (15 Ko) servi par FastAPI `StaticFiles`.
+26. ✅ Dark mode : JS vanilla (localStorage, toggle icône, pas de flash FOUC), Alpine.js retiré du layout.
+
 ## Décisions techniques
 
 - **Nommage module** : `hypermedia` (décrit le type de réponse HTTP, indépendant de la lib HTMX).

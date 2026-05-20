@@ -116,7 +116,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 
 ### En parallèle / opportuniste
 
-- **[Expérimental]** Spec 014 — Frontend hypermedia (HTMX + Alpine.js) : Phase 2 livrée (recherche SSR + fragments). Module `hypermedia` dans le code.
+- **[Expérimental]** Spec 014 — Frontend hypermedia (HTMX + Tailwind v4) : Phases 1–5 livrées sur `feat/htmx-alpine-frontend`. Recherche SSR, facettes OOB, auth cookie, URL sync (hx-push-url + hx-history-elt), CSS buildé 15 Ko aligné avec le design system React.
 
 - Migrer les composants de `useSearch()` vers les hooks selectors lors des prochaines touches.
 

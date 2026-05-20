@@ -5,38 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}OpenEdition Search{% endblock %}</title>
 
-  {# Tailwind CSS — CDN dev uniquement, remplacer par le build local en production #}
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' }</script>
+  <link rel="stylesheet" href="/static/hypermedia/styles.css" />
 
   {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
+<body class="min-h-screen transition-colors">
 
   <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:text-blue-700 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">Aller au contenu principal</a>
 
-  <header class="border-b border-gray-200 dark:border-gray-800 px-6 py-3 flex items-center justify-between">
+  <header class="border-b px-6 py-3 flex items-center justify-between" style="border-color: hsl(var(--border)); background-color: hsl(var(--card));">
     <a href="/api/v1/hypermedia/" class="font-semibold text-lg tracking-tight">OpenEdition Search</a>
     <button onclick="toggleDark()"
             id="dark-toggle"
-            class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            class="text-sm transition-colors"
+            style="color: hsl(var(--muted-foreground));"
             aria-label="Basculer le thème sombre">
       🌙
     </button>
   </header>
 
-  <main id="main-content" class="max-w-5xl mx-auto px-6 py-8">
+  <main id="main-content" hx-history-elt class="max-w-5xl mx-auto px-6 py-8">
     {% block content %}{% endblock %}
   </main>
 
-  {# HTMX — chargé en fin de body pour être disponible avant les scripts inline #}
+  {# HTMX #}
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
 
-  {# Alpine.js — doit être chargé après HTMX #}
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
   <script>
-    // Dark mode sans Alpine pour éviter le flash au chargement
+    // Config HTMX — historique navigateur
+    htmx.config.historyCacheSize = 20;
+    htmx.config.refreshOnHistoryMiss = true;
+
+    // Dark mode — appliqué avant le rendu pour éviter le flash
     (function () {
       var dark = localStorage.getItem('dark') === 'true';
       if (dark) document.documentElement.classList.add('dark');
@@ -46,7 +46,6 @@
       localStorage.setItem('dark', dark);
       document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
     }
-    // Synchroniser l'icône après chargement
     document.addEventListener('DOMContentLoaded', function () {
       var dark = document.documentElement.classList.contains('dark');
       document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';

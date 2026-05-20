@@ -38,9 +38,20 @@
 - [x] Build Tailwind autonome — `tailwind-hypermedia/` + `make build-hypermedia-css`
 - [x] Tests pytest session auth (POST sans token, token invalide, DELETE)
 
+## Phase 5 — URL sync + CSS production ✅
+
+- [x] URL sync HTMX : `hx-push-url="true"` + SSR lit les params → URLs partageables et bookmarkables
+- [x] Historique navigateur : `hx-history-elt` sur `<main>`, `htmx.config.historyCacheSize = 20`, `refreshOnHistoryMiss = true`
+- [x] Dark mode sans Alpine.js — JS vanilla, persist `localStorage`, pas de flash FOUC
+- [x] Migration CSS Tailwind v3 → v4 (`@import "tailwindcss"`, `@source`, `@theme inline`)
+- [x] Design tokens alignés avec `front/app/globals.css` (variables HSL, dark mode, fonts)
+- [x] CDN Tailwind remplacé par CSS buildé servi depuis `/static/hypermedia/styles.css` (15 Ko minifié)
+- [x] `make build-hypermedia-css` / `make watch-hypermedia-css` opérationnels
+- [ ] Tests Playwright : back/forward ≥ 5 étapes, URL partageable restaure l'état
+
 ## Vérification qualité
 
 - [ ] `grep -r "solr\|SolrClient\|SearchBuilder" app/api/v1/hypermedia/` → zéro résultat (logique dans les Services)
 - [ ] `make test` vert après ajout des tests hypermedia
 - [ ] `front/tests/hypermedia.spec.ts` vert en CI (navigateur Playwright requis)
-- [ ] Bundle HTMX + Alpine < 50 kb en production
+- [x] CSS buildé < 20 Ko minifié (actuellement 15 Ko)
