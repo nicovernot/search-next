@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang | default('fr') }}" x-data="{ dark: localStorage.getItem('dark') === 'true' }" x-init="$watch('dark', v => localStorage.setItem('dark', v))" :class="{ 'dark': dark }">
+<html lang="{{ lang | default('fr') }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,12 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
 
-  {# HTMX #}
-  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
-
-  {# Alpine.js #}
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
   {% block head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
@@ -23,17 +17,41 @@
 
   <header class="border-b border-gray-200 dark:border-gray-800 px-6 py-3 flex items-center justify-between">
     <a href="/api/v1/hypermedia/" class="font-semibold text-lg tracking-tight">OpenEdition Search</a>
-    <button @click="dark = !dark"
+    <button onclick="toggleDark()"
+            id="dark-toggle"
             class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
             aria-label="Basculer le thème sombre">
-      <span x-show="!dark">🌙</span>
-      <span x-show="dark">☀️</span>
+      🌙
     </button>
   </header>
 
   <main id="main-content" class="max-w-5xl mx-auto px-6 py-8">
     {% block content %}{% endblock %}
   </main>
+
+  {# HTMX — chargé en fin de body pour être disponible avant les scripts inline #}
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+
+  {# Alpine.js — doit être chargé après HTMX #}
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+  <script>
+    // Dark mode sans Alpine pour éviter le flash au chargement
+    (function () {
+      var dark = localStorage.getItem('dark') === 'true';
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+    function toggleDark() {
+      var dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('dark', dark);
+      document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
+    }
+    // Synchroniser l'icône après chargement
+    document.addEventListener('DOMContentLoaded', function () {
+      var dark = document.documentElement.classList.contains('dark');
+      document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
+    });
+  </script>
 
   {% if debug %}
   <script>htmx.logAll();</script>

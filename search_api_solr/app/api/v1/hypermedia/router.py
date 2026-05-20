@@ -60,7 +60,7 @@ async def _execute_search(
 ) -> dict:
     try:
         result = await service.execute_cached_search(_build_search_request(q, page, filters))
-        return {"results": result.results, "total": result.total, "facets": result.facets}
+        return {"results": result.get("results", []), "total": result.get("total", 0), "facets": result.get("facets")}
     except SolrTimeoutError:
         return {"error": "Le moteur de recherche ne répond pas (timeout).", "results": [], "total": 0, "facets": None}
     except SolrInvalidQueryError:

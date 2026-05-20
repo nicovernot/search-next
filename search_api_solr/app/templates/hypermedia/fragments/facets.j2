@@ -1,8 +1,5 @@
 {% if facets %}
 <aside id="facets" aria-label="Filtres de recherche">
-  {% set active_ids = filters | map(attribute='identifier') | list %}
-  {% set active_values = filters | map(attribute='value') | list %}
-
   {% for facet_id, facet_values in facets.items() %}
   {% if facet_values %}
   <section class="mb-6" aria-labelledby="facet-label-{{ facet_id }}">
@@ -12,15 +9,14 @@
     </h3>
     <ul class="space-y-1">
       {% for item in facet_values %}
-      {% set is_active = (facet_id in active_ids) and (item.value in active_values) %}
+      {% set is_active = filters | selectattr('identifier', 'equalto', facet_id) | selectattr('value', 'equalto', item.value) | list | length > 0 %}
 
       {% if is_active %}
       {# Filtre actif — lien pour le retirer #}
       {% set new_filters = filters | rejectattr('identifier', 'equalto', facet_id) | list %}
-      {% set filter_params = new_filters | map(attribute='identifier') | zip(new_filters | map(attribute='value')) | map('join', ':') | list %}
       <li>
-        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
-           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}{% for f in new_filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
            class="flex items-center justify-between w-full rounded px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium"
@@ -36,10 +32,9 @@
 
       {% else %}
       {# Filtre inactif — lien pour l'ajouter #}
-      {% set filter_params = filters | map(attribute='identifier') | zip(filters | map(attribute='value')) | map('join', ':') | list %}
       <li>
-        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
-           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filter_params %}&amp;filter={{ f | urlencode }}{% endfor %}"
+        <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
+           hx-get="/api/v1/hypermedia/search/results?q={{ q | urlencode }}&amp;filter={{ facet_id }}:{{ item.value | urlencode }}{% for f in filters %}&amp;filter={{ f.identifier }}:{{ f.value | urlencode }}{% endfor %}"
            hx-target="#search-results"
            hx-push-url="true"
            class="flex items-center justify-between w-full rounded px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

@@ -32,8 +32,7 @@
     {% for f in filters %}
     {% set remaining = filters | rejectattr('identifier', 'equalto', f.identifier) | list %}
     {% set remaining = remaining | rejectattr('value', 'equalto', f.value) | list %}
-    {% set filter_qs = remaining | map(attribute='identifier') | zip(remaining | map(attribute='value')) | map('join', ':') | list %}
-    <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for r in filter_qs %}&amp;filter={{ r | urlencode }}{% endfor %}"
+    <a href="/api/v1/hypermedia/search?q={{ q | urlencode }}{% for r in remaining %}&amp;filter={{ r.identifier }}:{{ r.value | urlencode }}{% endfor %}"
        class="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 text-xs font-medium"
        aria-label="Retirer le filtre {{ f.identifier }}: {{ f.value }}">
       {{ f.identifier }}: {{ f.value }} <span aria-hidden="true">✕</span>
