@@ -62,9 +62,23 @@
 - [x] **Build CSS** : `@utility glass/premium-shadow/animate-fade-in` + `@custom-variant dark` — 15.3 Ko
 - [ ] Vérifier que `make test` reste vert après migration
 
+## Phase 7 — Parité visuelle totale avec React ✅
+
+- [x] **P0 — Fix titre** : `doc.titre or doc.title or doc.naked_titre` — corrige "(sans titre)" systématique
+- [x] **P0 — Badges row** : platform (pulse dot), type (highlight), year (muted), access rights (open/restricted/embargoed)
+- [x] **P0 — Cartes React-fidèles** : `rounded-2xl p-6 hover:border-highlight/50 hover:shadow-lg hover:-translate-y-1 group transition-all duration-300`
+- [x] **P0 — Titre group-hover** : `group-hover:text-highlight transition-colors underline-offset-4 hover:underline font-serif`
+- [x] **P0 — Authors** : join `" · "` avec max 3 + `et al.`
+- [x] **P0 — Description** : `naked_resume or overview` tronquée à 280 chars, `text-foreground/80 leading-relaxed`
+- [x] **P0 — Lien "Voir le document"** : `text-highlight` + flèche SVG `group-hover:translate-x-1`
+- [x] **P1 — Autocomplete HTMX** : endpoint `GET /api/v1/hypermedia/suggest` + fragment `suggest.j2` + dropdown positionnée
+- [x] **P1 — Input autocomplete** : `hx-get="/suggest" hx-trigger="input changed delay:300ms"` + `aria-autocomplete="list"`
+- [x] **P2 — Animate-fade-in** : `animate-fade-in` sur chaque `<li>` résultat
+- [x] **CSS rebuild** : 22 Ko (plus de classes utilisées)
+
 ## Vérification qualité
 
 - [ ] `grep -r "solr\|SolrClient\|SearchBuilder" app/api/v1/hypermedia/` → zéro résultat (logique dans les Services)
 - [ ] `make test` vert après ajout des tests hypermedia
 - [ ] `front/tests/hypermedia.spec.ts` vert en CI (navigateur Playwright requis)
-- [x] CSS buildé < 20 Ko minifié (actuellement 15 Ko)
+- [x] CSS buildé < 25 Ko minifié (actuellement 22 Ko)

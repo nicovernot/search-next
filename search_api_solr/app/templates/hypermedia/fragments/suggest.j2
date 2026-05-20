@@ -1,0 +1,17 @@
+{% if suggestions %}
+<ul role="listbox" aria-label="Suggestions de recherche" class="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl border border-border bg-card shadow-lg overflow-hidden">
+  {% for term in suggestions %}
+  <li role="option">
+    <button type="button"
+            class="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+            onclick="document.getElementById('search-input').value = this.dataset.term; document.getElementById('suggest-results').innerHTML = ''; document.getElementById('search-form').dispatchEvent(new Event('submit', {bubbles: true}));"
+            data-term="{{ term }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground flex-shrink-0" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      {{ term }}
+    </button>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.api.dependencies import get_search_service
+from app.api.dependencies import get_search_service, get_suggest_service
 from app.core.exceptions import (
     SolrInvalidQueryError,
     SolrTimeoutError,
@@ -19,6 +19,7 @@ from app.models.search_models import (
     SearchRequest,
 )
 from app.services.interfaces import ISearchService
+from app.services.search_service import SuggestService
 from app.settings import settings
 
 TEMPLATES_DIR = Path(__file__).parent.parent.parent.parent / "templates" / "hypermedia"
@@ -130,6 +131,26 @@ async def hypermedia_search_results(
     return templates.TemplateResponse(
         "fragments/results.j2",
         {"request": request, "q": q, "page": page, "filters": active_filters, "oob": True, **data},
+    )
+
+
+@router.get("/suggest", response_class=HTMLResponse)
+async def hypermedia_suggest(
+    request: Request,
+    q: str = Query("", description="Terme de recherche pour l'autocomplétion"),
+    service: SuggestService = Depends(get_suggest_service),
+):
+    """Fragment suggestions d'autocomplétion — HTMX uniquement."""
+    if len(q) < 2:
+        return HTMLResponse("")
+    try:
+        data = await service.fetch_autocomplete_suggestions(q)
+        suggestions = data.get("suggestions", [])
+    except Exception:
+        suggestions = []
+    return templates.TemplateResponse(
+        "fragments/suggest.j2",
+        {"request": request, "suggestions": suggestions, "q": q},
     )
 
 

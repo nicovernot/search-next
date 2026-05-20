@@ -238,8 +238,8 @@ Ces skills ne sont pas encore formalisés en détail, mais deviennent utiles à 
 
 ## SKILL 13 — DevelopperFrontendHypermediaHTMX
 
-- **Intention** : construire des interfaces performantes avec HTMX et Tailwind CSS (v4).
-- **Résultat** : rendu SSR de fragments HTML, URL sync navigateur, CSS buildé 15 Ko, dark mode sans flash.
+- **Intention** : construire des interfaces performantes avec HTMX et Tailwind CSS (v4), à parité visuelle avec le frontend React.
+- **Résultat** : rendu SSR de fragments HTML, URL sync navigateur, CSS buildé 22 Ko, dark mode sans flash, cartes identiques React (badges, hover, group-hover, autocomplete).
 - **Dépendances** : spec 014.
 - **Entrées** : `search_api_solr/app/templates/hypermedia/`, `search_api_solr/app/api/v1/hypermedia/`, `search_api_solr/tailwind-hypermedia/`.
 - **Sorties** : templates Jinja2, fragments HTML, router `hypermedia`, CSS buildé.
@@ -304,6 +304,33 @@ Tailwind v4 avec design tokens HSL définis dans `tailwind-hypermedia/input.css`
 - `bg-highlight` = `hsl(var(--highlight))` = orange `20 100% 55%`.
 - Pour que Tailwind v4 génère ces classes, elles doivent être présentes dans les templates (`@source` scanne `*.j2`).
 
+### Rendu des cartes résultat — champs Solr
+
+| Champ Jinja2 | Source Solr | Notes |
+|---|---|---|
+| `doc.titre or doc.title or doc.naked_titre` | `titre` (Solr) / `title` (model) | `title` model field = null — toujours utiliser `titre` en priorité |
+| `doc.naked_resume or doc.overview` | `naked_resume` (Solr) / `overview` (model) | Description truncate(280) |
+| `doc.site_title or doc.platformID` | `site_title`, `platformID` | Platform badge label |
+| `doc.anneedatepubli` | `anneedatepubli` | Année (convertir en str) |
+| `doc.accessRights_openAireV3` | `accessRights_openAireV3` | `openAccess` → vert, `restrictedAccess`/`closedAccess` → orange, `embargoedAccess` → bleu |
+| `doc.type` | `type` | Type badge highlight |
+| `doc.authors[:3]` | `authors` | `" · "` separator, `et al.` si > 3 |
+
+### Badges access rights — mapping
+
+| Valeur `accessRights_openAireV3` (contient) | Badge | Classes |
+|---|---|---|
+| `openAccess` | Ouvert | `bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20` |
+| `restrictedAccess` ou `closedAccess` | Restreint | `bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20` |
+| `embargoedAccess` | Embargo | `bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20` |
+
+### Autocomplete HTMX
+
+- Endpoint : `GET /api/v1/hypermedia/suggest?q=...` → fragment `fragments/suggest.j2`
+- Input : `hx-trigger="input changed delay:300ms"`, `hx-target="#suggest-results"`, `hx-indicator="#loading"`
+- Dropdown : `position: absolute` dans `<div id="suggest-results" class="relative">`, `z-50`
+- Si `q` < 2 chars → retourne `HTMLResponse("")`
+
 ### Prompt — DevelopperFrontendHypermediaHTMX
 
-> Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments, Tailwind v4 pour le CSS (build via `make build-hypermedia-css`). Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`. Pas de filtre `zip` Jinja2 — itérer directement sur les objets `FilterModel` (`f.identifier`, `f.value`).
+> Implémente la vue HTMX pour [fonctionnalité] dans `search_api_solr/app/api/v1/hypermedia/` et `search_api_solr/app/templates/hypermedia/`. Utilise Jinja2 pour les fragments, Tailwind v4 pour le CSS (build via `make build-hypermedia-css`). Vérifie que les endpoints retournent du HTML (pas du JSON) et que `make test` reste vert (pytest `test_hypermedia.py`). Zéro logique Solr hors des `Services` Python existants. Ajoute les tests Playwright dans `front/tests/hypermedia.spec.ts`. Pas de filtre `zip` Jinja2 — itérer directement sur les objets `FilterModel` (`f.identifier`, `f.value`). Titres via `doc.titre or doc.title` (jamais `doc.title` seul — null en prod Solr).

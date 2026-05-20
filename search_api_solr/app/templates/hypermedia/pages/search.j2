@@ -10,18 +10,28 @@
           hx-target="#search-results"
           hx-push-url="true"
           hx-indicator="#loading"
-          class="flex gap-2">
+          class="flex gap-2"
+          onsubmit="document.getElementById('suggest-results').innerHTML = '';">
       <label for="search-input" class="sr-only">Rechercher</label>
-      <input id="search-input"
-             type="search"
-             name="q"
-             value="{{ q }}"
-             placeholder="Rechercher dans OpenEdition…"
-             autocomplete="off"
-             class="flex-1 bg-transparent px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-             aria-label="Terme de recherche" />
+      <div class="relative flex-1">
+        <input id="search-input"
+               type="search"
+               name="q"
+               value="{{ q }}"
+               placeholder="Rechercher dans OpenEdition…"
+               autocomplete="off"
+               hx-get="/api/v1/hypermedia/suggest"
+               hx-target="#suggest-results"
+               hx-trigger="input changed delay:300ms, keyup[key!='Enter'] changed delay:300ms"
+               hx-indicator="#loading"
+               class="w-full bg-transparent px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+               aria-label="Terme de recherche"
+               aria-autocomplete="list"
+               aria-controls="suggest-results" />
+        <div id="suggest-results" class="relative"></div>
+      </div>
       <button type="submit"
-              class="rounded-2xl px-5 py-2 text-sm font-medium transition-colors bg-highlight text-white hover:bg-highlight/90"
+              class="rounded-2xl px-5 py-2 text-sm font-medium transition-colors bg-highlight text-white hover:bg-highlight/90 hover:scale-105"
               aria-label="Lancer la recherche">
         Rechercher
       </button>

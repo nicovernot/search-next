@@ -41,15 +41,28 @@
 25. ✅ CDN Tailwind supprimé de `base.j2` → CSS buildé `styles.css` (15 Ko) servi par FastAPI `StaticFiles`.
 26. ✅ Dark mode : JS vanilla (localStorage, toggle icône, pas de flash FOUC), Alpine.js retiré du layout.
 
-## Phase 6 — Alignement visuel React ⚪
+## Phase 6 — Alignement visuel React ✅
 
-27. Migrer les classes Tailwind hardcodées vers les tokens sémantiques du design system (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`, `bg-highlight`) dans les 4 templates.
-28. Header glassmorphique : `glass premium-shadow rounded-2xl mx-2 mt-2 sticky top-2 z-10`, logo bicolore `Open` + `Edition`.
-29. Formulaire premium : wrapper `glass rounded-3xl premium-shadow p-2`, input transparent, bouton `bg-highlight text-white`.
-30. Panel facettes : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow` sur `<aside>`.
-31. Cartes résultats : `bg-card border-border rounded-xl` + hover `hover:border-primary/50 transition-colors`.
-32. Empty state amélioré : emoji 🔍 + `border-dashed border-border rounded-xl p-12 text-center`.
-33. Rebuild CSS : `cd tailwind-hypermedia && npm run build` pour que Tailwind v4 scanne les nouvelles classes et les génère.
+27. ✅ Migrer les classes Tailwind hardcodées vers les tokens sémantiques du design system (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`, `bg-muted`, `bg-primary`, `text-primary`, `bg-primary/10`, `bg-highlight`) dans les 4 templates.
+28. ✅ Header glassmorphique : `glass premium-shadow rounded-2xl mx-2 mt-2 sticky top-2 z-10`, logo bicolore `Open` + `Edition`.
+29. ✅ Formulaire premium : wrapper `glass rounded-3xl premium-shadow p-2`, input transparent, bouton `bg-highlight text-white`.
+30. ✅ Panel facettes : `bg-card border-border rounded-3xl p-6 sticky top-24 premium-shadow` sur `<aside>`.
+31. ✅ Cartes résultats : `bg-card border-border rounded-xl` + hover `hover:border-primary/50 transition-colors`.
+32. ✅ Empty state amélioré : emoji 🔍 + `border-dashed border-border rounded-xl p-12 text-center`.
+33. ✅ Rebuild CSS : `cd tailwind-hypermedia && npm run build` pour que Tailwind v4 scanne les nouvelles classes et les génère.
+
+## Phase 7 — Parité visuelle totale React ✅
+
+34. ✅ Fix titre : `doc.titre or doc.title or doc.naked_titre` — résout le bug "(sans titre)" systématique (Solr retourne `titre`, pas `title`).
+35. ✅ Badges row sur chaque carte : platform (pulse dot animé), type (highlight), year (muted), access rights (openAccess/restrictedAccess/embargoedAccess → couleurs green/orange/blue).
+36. ✅ Cartes redesignées : `rounded-2xl p-6 hover:border-highlight/50 hover:shadow-lg hover:shadow-highlight/5 hover:-translate-y-1 group transition-all duration-300`.
+37. ✅ Titre avec font-serif, `group-hover:text-highlight`, `decoration-highlight/30 underline-offset-4`.
+38. ✅ Auteurs avec séparateur ` · `, max 3 + "et al.".
+39. ✅ Description : `naked_resume or overview` tronquée à 280 chars, `text-foreground/80 leading-relaxed`.
+40. ✅ Lien "Voir le document" : `text-highlight font-bold` + flèche SVG avec `group-hover:translate-x-1`.
+41. ✅ Autocomplete HTMX : endpoint `GET /api/v1/hypermedia/suggest` → `fragments/suggest.j2` (dropdown positionnée) ; input avec `hx-trigger="input changed delay:300ms"` + `aria-autocomplete="list"`.
+42. ✅ Animate-fade-in sur chaque `<li>` résultat.
+43. ✅ CSS rebuild : 22 Ko (toutes nouvelles classes incluses).
 
 ## Décisions techniques
 

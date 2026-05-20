@@ -17,31 +17,94 @@
 
 <ol class="space-y-4" aria-label="Résultats de recherche">
   {% for doc in results %}
-  <li class="bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-colors">
-    <article aria-labelledby="result-title-{{ loop.index }}">
-      <h2 id="result-title-{{ loop.index }}" class="font-medium text-primary mb-1">
-        {% if doc.url %}
-        <a href="{{ doc.url }}" class="hover:underline" target="_blank" rel="noopener noreferrer">
-          {{ doc.title or "(sans titre)" }}
+  {% set title = doc.titre or doc.title or doc.naked_titre or "(sans titre)" %}
+  {% set description = doc.naked_resume or doc.overview or "" %}
+  {% set url = doc.url or "#" %}
+  {% set platform = doc.site_title or doc.platformID or "OpenEdition" %}
+  {% set year = doc.anneedatepubli | string if doc.anneedatepubli else "" %}
+  {% set access = doc.accessRights_openAireV3 or "" %}
+
+  <li class="animate-fade-in">
+    <article aria-labelledby="result-title-{{ loop.index }}"
+             class="bg-card border border-border rounded-2xl p-6 transition-all duration-300 hover:border-highlight/50 hover:shadow-lg hover:shadow-highlight/5 hover:-translate-y-1 group">
+
+      {# Badges row #}
+      <div class="flex items-center gap-2 mb-4 flex-wrap">
+        {# Platform badge #}
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-bold text-secondary-foreground shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-highlight animate-pulse" aria-hidden="true"></span>
+          {{ platform }}
+        </span>
+
+        {# Type badge #}
+        {% if doc.type %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-highlight/10 text-highlight border border-highlight/20 shadow-sm">
+          {{ doc.type }}
+        </span>
+        {% endif %}
+
+        {# Year badge #}
+        {% if year %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-muted border border-border">
+          {{ year }}
+        </span>
+        {% endif %}
+
+        {# Access badge #}
+        {% if "openAccess" in access %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20"
+              aria-label="Accès ouvert">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          Ouvert
+        </span>
+        {% elif "restrictedAccess" in access or "closedAccess" in access %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20"
+              aria-label="Accès restreint">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Restreint
+        </span>
+        {% elif "embargoedAccess" in access %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
+              aria-label="Accès sous embargo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Embargo
+        </span>
+        {% endif %}
+      </div>
+
+      {# Title #}
+      <h2 id="result-title-{{ loop.index }}"
+          class="text-xl font-bold text-foreground mb-2 leading-tight font-serif tracking-tight">
+        <a href="{{ url }}" target="_blank" rel="noopener noreferrer"
+           class="group-hover:text-highlight transition-colors decoration-highlight/30 underline-offset-4 hover:underline">
+          {{ title }}
         </a>
-        {% else %}
-        {{ doc.title or "(sans titre)" }}
-        {% endif %}
       </h2>
-      {% if doc.overview %}
-      <p class="text-sm text-muted-foreground line-clamp-2">{{ doc.overview }}</p>
+
+      {# Authors #}
+      {% if doc.authors %}
+      <p class="text-sm text-muted-foreground mb-3 font-semibold">
+        {{ doc.authors[:3] | join(" · ") }}{% if doc.authors | length > 3 %} · et al.{% endif %}
+      </p>
       {% endif %}
-      <footer class="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-        {% if doc.authors %}
-        <span aria-label="Auteurs">{{ doc.authors | join(", ") }}</span>
-        {% endif %}
-        {% if doc.date %}
-        <span aria-label="Date">{{ doc.date }}</span>
-        {% endif %}
-        {% if doc.platformID %}
-        <span class="font-mono" aria-label="Plateforme">{{ doc.platformID }}</span>
-        {% endif %}
-      </footer>
+
+      {# Description #}
+      {% if description %}
+      <p class="text-sm text-foreground/80 leading-relaxed mb-5">
+        {{ description | truncate(280, True, "…") }}
+      </p>
+      {% endif %}
+
+      {# View link #}
+      <a href="{{ url }}" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-1.5 text-sm font-bold text-highlight hover:text-primary transition-colors">
+        Voir le document
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </a>
     </article>
   </li>
   {% endfor %}
