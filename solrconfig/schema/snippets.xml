@@ -1,0 +1,19 @@
+<!--
+  Snippets schema.xml pour le core documents.
+  Copier uniquement les blocs necessaires.
+-->
+
+<!-- Suggestions recommandees : champ dedie alimente par copyField. -->
+<field name="suggest_text" type="text_fr" indexed="true" stored="false" multiValued="true"/>
+
+<copyField source="naked_titre" dest="suggest_text"/>
+<copyField source="titre" dest="suggest_text"/>
+<copyField source="titretraduit" dest="suggest_text"/>
+<copyField source="contributeurFacetR_*" dest="suggest_text"/>
+<copyField source="site" dest="suggest_text"/>
+
+<!-- Disciplines si elles doivent etre portees par Solr. -->
+<field name="disciplines" type="string" indexed="true" stored="true" multiValued="true"/>
+<field name="discipline_source" type="string" indexed="true" stored="true"/>
+<field name="discipline_confidence" type="float" indexed="true" stored="true"/>
+

@@ -1,0 +1,60 @@
+<!--
+  Snippets solrconfig.xml pour le core documents.
+  Adapter/remplacer les handlers existants si necessaire.
+-->
+
+<!-- Suggestions : version rapide sur naked_titre. -->
+<searchComponent name="suggest" class="solr.SuggestComponent">
+  <lst name="suggester">
+    <str name="name">default</str>
+    <str name="lookupImpl">FuzzyLookupFactory</str>
+    <str name="dictionaryImpl">DocumentDictionaryFactory</str>
+    <str name="field">naked_titre</str>
+    <str name="suggestAnalyzerFieldType">text_fr</str>
+    <str name="buildOnStartup">true</str>
+    <str name="buildOnCommit">true</str>
+  </lst>
+</searchComponent>
+
+<requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="suggest">true</str>
+    <str name="suggest.dictionary">default</str>
+    <str name="suggest.count">10</str>
+  </lst>
+  <arr name="components">
+    <str>suggest</str>
+  </arr>
+</requestHandler>
+
+<!-- Suggestions : si schema.xml contient suggest_text, remplacer field par suggest_text. -->
+<!--
+<str name="field">suggest_text</str>
+-->
+
+<!-- More Like This. -->
+<requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
+  <lst name="defaults">
+    <str name="mlt.fl">naked_titre,naked_soustitre,naked_resume,naked_texte,parts_titre,parts_resume,parts_texte</str>
+    <str name="mlt.mintf">1</str>
+    <str name="mlt.mindf">2</str>
+    <str name="mlt.maxdfpct">25</str>
+    <str name="mlt.minwl">3</str>
+    <str name="mlt.maxwl">40</str>
+    <str name="mlt.count">5</str>
+    <str name="fl">id,url,titre,naked_titre,naked_resume,type,platformID,site_title,anneedatepubli,score</str>
+    <str name="wt">json</str>
+  </lst>
+</requestHandler>
+
+<!-- Defaults highlight a integrer au handler de recherche si souhaite. -->
+<!--
+<str name="hl">true</str>
+<str name="hl.fl">naked_titre,naked_soustitre,naked_resume,naked_texte,parts_titre,parts_resume,parts_texte</str>
+<str name="hl.simple.pre"><![CDATA[<mark>]]></str>
+<str name="hl.simple.post"><![CDATA[</mark>]]></str>
+<str name="hl.snippets">3</str>
+<str name="hl.fragsize">180</str>
+<str name="hl.method">unified</str>
+-->
+
