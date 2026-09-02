@@ -56,6 +56,22 @@ export function useUrlSync({ searchState, loadSearch }: UrlSyncParams) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Native history navigation can update the address bar before App Router
+  // publishes a new useSearchParams value.
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!isHydrated.current) return;
+      const currentQs = window.location.search.slice(1);
+      if (currentQs === lastWrittenQsRef.current) return;
+
+      skipNextPushRef.current = true;
+      loadSearch(parseSavedSearchData(new URLSearchParams(currentQs)));
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [loadSearch]);
+
   // Keep URL in sync with state after any state change
   // New search (query changed) → pushState; refinements (filter, page, mode) → replaceState
   const { query, searchMode, logicalQuery, filters, pagination } = searchState;
