@@ -1,5 +1,7 @@
 # Gestion des Environnements — OpenEdition Search
 
+**Dernière vérification** : 2026-09-03 — structure `.env.*`, scripts et ports confirmés contre `docker-compose.yml` et le dossier racine du dépôt.
+
 ## Structure des fichiers d'environnement
 
 Le projet utilise une approche centralisée avec héritage :
@@ -54,7 +56,7 @@ docker compose up
 
 ```bash
 cd front
-echo "NEXT_PUBLIC_API_URL=http://localhost:8007" > .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:<API_PORT_INTERNE>" > .env.local  # voir « Architecture des ports » ci-dessus
 corepack enable && pnpm install --frozen-lockfile
 pnpm dev
 ```
@@ -125,7 +127,7 @@ Les variables exposées côté navigateur **doivent** être préfixées `NEXT_PU
 | `FRONTEND_URL` | URL publique du frontend |
 
 > **Nom officiel** : `CORS_ORIGINS` (anciennement `CORS_ALLOWED_ORIGINS`, renommé en avril 2026).  
-> Le backend (`settings.py`) lit `CORS_ORIGINS` via `os.getenv("CORS_ORIGINS")`.
+> Le backend (`settings.py`) lit `CORS_ORIGINS` via `os.getenv("CORS_ORIGINS")`. Détail complet des origines par défaut et du middleware dans [`CORS_CONFIGURATION.md`](./CORS_CONFIGURATION.md).
 
 ## Validation des environnements
 

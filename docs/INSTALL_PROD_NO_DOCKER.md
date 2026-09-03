@@ -1,5 +1,7 @@
 # Installation Production Sans Docker
 
+**Dernière vérification** : 2026-09-03 — procédure confirmée contre `scripts/install_no_docker.sh`.
+
 Ce mode installe l'application directement sur l'hôte. PostgreSQL, Redis et le reverse proxy doivent être fournis par le système ou par des services managés.
 
 ## Prérequis
@@ -23,11 +25,11 @@ En production, définir au moins:
 
 ```bash
 export ENVIRONMENT=production
-export SECRET_KEY="une-valeur-longue-et-secrete"
-export DATABASE_URL="postgresql://search_user:search_password@127.0.0.1:5432/search_db"
-export REDIS_URL="redis://127.0.0.1:6379/0"
+export SECRET_KEY="<SECRET_KEY>"
+export DATABASE_URL="postgresql://<DB_USER>:<DB_PASSWORD>@127.0.0.1:<POSTGRES_PORT>/<DB_NAME>"
+export REDIS_URL="redis://127.0.0.1:<REDIS_PORT>/0"
 export NEXT_PUBLIC_API_URL="/api"
-export INTERNAL_API_URL="http://127.0.0.1:8007"
+export INTERNAL_API_URL="http://127.0.0.1:<API_PORT_INTERNE>"
 ```
 
 `NEXT_PUBLIC_API_URL=/api` suppose que le frontend et l'API sont servis par le même domaine via reverse proxy.
@@ -55,20 +57,20 @@ Backend:
 
 ```bash
 cd search_api_solr
-.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8007 --workers 4
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port <API_PORT_INTERNE> --workers 4
 ```
 
 Frontend:
 
 ```bash
 cd front
-HOSTNAME=127.0.0.1 PORT=3000 node .next/standalone/server.js
+HOSTNAME=127.0.0.1 PORT=<FRONTEND_PORT_INTERNE> node .next/standalone/server.js
 ```
 
-Reverse proxy:
+Reverse proxy (voir [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) § Architecture des ports pour les valeurs actuelles) :
 
-- `/api/` vers `http://127.0.0.1:8007/`
-- `/` vers `http://127.0.0.1:3000/`
+- `/api/` vers `http://127.0.0.1:<API_PORT_INTERNE>/`
+- `/` vers `http://127.0.0.1:<FRONTEND_PORT_INTERNE>/`
 
 ## Notes
 

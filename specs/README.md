@@ -27,37 +27,57 @@ specs/
 │   └── checklists/
 │       └── requirements.md
 ├── 003-ux-ui-premium-overhaul/ ✅ Livré — Refonte visuelle, dark mode, glassmorphism, animations
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 004-url-sync/              ✅ Livré — Sync état ↔ URL, liens partageables, back/forward
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 005-permissions/           ✅ Livré — Badges, proxy IP, fallback unknown, tests Playwright (4 tests dédiés)
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 006-tech-debt/             ✅ Livré — tous les correctifs intégrés (token JWT, HTTP 409, i18n, client API, QB fields depuis config)
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 007-refactor-search-context/ ✅ Livré — hooks SOLID, helpers extraits, dette de taille acceptée/documentée
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 008-code-quality-solid/    ✅ Livré — règles qualité appliquées, dette résiduelle optionnelle documentée
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 009-dry-kiss-yagni/        ✅ Livré — duplications majeures, lockfiles et dépendances nettoyés
-│   └── spec.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 ├── 010-naming-intention-result/ ✅ Livré — renommages frontend + backend appliqués
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
 ├── 011-auth-ldap-sso/         ✅ Livré — LDAP/SSO + échange SSO sécurisé par code court
-│   └── spec.md
-├── 012-logging-strategy/      ⚪ Partiellement livré — logging backend/frontend, durcissement restant
-│   ├── spec.md
-│   └── plan.md
-├── 012-semantic-search-api-platform/ ⚪ Backlog prioritaire — recherche sémantique, catégorisation disciplinaire, API mutualisable + SDK PHP/Python/Node.js
 │   ├── spec.md
 │   ├── plan.md
 │   └── tasks.md
-├── 013-logging-strategy/      ⚪ Draft transverse — logging applicatif
+├── 012-semantic-search-api-platform/ ⚪ Phase 1 ✅ livrée — Phase 0 ~80 % — Phases 2-5 backlog
 │   ├── spec.md
-│   └── plan.md
+│   ├── plan.md
+│   └── tasks.md
+├── 013-logging-strategy/      ✅ Livré (2026-05-10) — logging backend/frontend, durcissement inclus
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
+├── 014-repository-spec-coherence/ ⚪ En cours — cohérence documentaire du dépôt
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
 └── README.md
 ```
+
+> Note historique : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` le 2026-05-05 pour éviter deux dossiers `012` (voir `CHANGELOG.md`).
 
 ## Workflow pour une nouvelle feature
 
@@ -98,6 +118,5 @@ specs/
 |----------|------|--------|-----------|------|
 | Vérification | Relancer `pnpm run lint`, `pnpm run test:e2e`, `make test` dans l'environnement cible | court | services disponibles | 🔁 À faire avant release |
 | P1 | 012 — Recherche sémantique, catégorisation disciplinaire, API mutualisable + SDKs | long | validation métier taxonomie + infra embeddings | ⚪ À cadrer |
-| P2 | 012 — Logging strategy | moyen | aucun | ⚪ Durcissement restant |
 | P2 optionnel | Migrer progressivement les composants de `useSearch()` vers les hooks selectors | moyen | aucun | ⚪ Opportuniste |
 | P2 optionnel | Réduire `AuthModal.tsx` si de nouveaux modes d'auth sont ajoutés | moyen | aucun | ⚪ Opportuniste |

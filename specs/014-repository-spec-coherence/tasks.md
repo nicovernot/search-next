@@ -15,18 +15,18 @@ description: "Task list for repository and specification coherence"
 
 **Purpose**: Préparer l'inventaire et les références de la feature.
 
-- [ ] T001 [P] Documenter la liste des fichiers de référence et leur rôle dans `specs/014-repository-spec-coherence/plan.md`
-- [ ] T002 [P] Définir les valeurs de statut canoniques et les règles d'exception dans `specs/014-repository-spec-coherence/research.md`
-- [ ] T003 [P] Vérifier que les fichiers centraux `specs/README.md`, `specs/PLANNING.md`, `specs/CHANGELOG.md` et `docs/ARCHITECTURE.md` sont inclus dans le périmètre d'audit dans `specs/014-repository-spec-coherence/quickstart.md`
+- [x] T001 [P] Documenter la liste des fichiers de référence et leur rôle dans `specs/014-repository-spec-coherence/plan.md`
+- [x] T002 [P] Définir les valeurs de statut canoniques et les règles d'exception dans `specs/014-repository-spec-coherence/research.md`
+- [x] T003 [P] Vérifier que les fichiers centraux `specs/README.md`, `specs/PLANNING.md`, `specs/CHANGELOG.md` et `docs/ARCHITECTURE.md` sont inclus dans le périmètre d'audit dans `specs/014-repository-spec-coherence/quickstart.md`
 
 ## Phase 2: Foundational
 
 **Purpose**: Mettre en place le modèle de contrôle commun avant toute réconciliation documentaire.
 
-- [ ] T004 Définir la structure des enregistrements `SpecRecord`, `TaskRecord` et `ValidationEvidence` dans `specs/014-repository-spec-coherence/data-model.md`
-- [ ] T005 [P] Créer le contrôle non destructif d'inventaire des artefacts dans `scripts/check_spec_coherence.sh`
-- [ ] T006 [P] Ajouter les cas de sortie et codes d'erreur attendus du contrôle dans `scripts/test_check_spec_coherence.sh`
-- [ ] T007 Vérifier que le contrôle ne modifie aucun fichier et documenter cette garantie dans `specs/014-repository-spec-coherence/quickstart.md`
+- [x] T004 Définir la structure des enregistrements `SpecRecord`, `TaskRecord` et `ValidationEvidence` dans `specs/014-repository-spec-coherence/data-model.md`
+- [x] T005 [P] Créer le contrôle non destructif d'inventaire des artefacts dans `scripts/check_spec_coherence.sh`
+- [x] T006 [P] Ajouter les cas de sortie et codes d'erreur attendus du contrôle dans `scripts/test_check_spec_coherence.sh`
+- [x] T007 Vérifier que le contrôle ne modifie aucun fichier et documenter cette garantie dans `specs/014-repository-spec-coherence/quickstart.md`
 
 **Checkpoint**: L'inventaire des specs, artefacts et tâches peut être exécuté sans modifier le dépôt.
 
@@ -38,16 +38,16 @@ description: "Task list for repository and specification coherence"
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Ajouter un test de détection des statuts divergents dans `scripts/test_check_spec_coherence.sh`
-- [ ] T009 [P] [US1] Ajouter un test de détection des titres différents pour un même identifiant dans `scripts/test_check_spec_coherence.sh`
+- [x] T008 [P] [US1] Ajouter un test de détection des statuts divergents dans `scripts/test_check_spec_coherence.sh`
+- [x] T009 [P] [US1] Ajouter un test de détection des titres différents pour un même identifiant dans `scripts/test_check_spec_coherence.sh`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Réconcilier les statuts et titres du catalogue avec les specs courantes dans `specs/README.md`
-- [ ] T011 [US1] Réconcilier l'ordre, les dépendances et les statuts de livraison dans `specs/PLANNING.md`
-- [ ] T012 [US1] Corriger les références de numérotation logging obsolètes dans `docs/ARCHITECTURE.md`
-- [ ] T013 [US1] Corriger les métadonnées de branche et d'état dans `specs/011-auth-ldap-sso/spec.md`
-- [ ] T014 [US1] Supprimer les prérequis déjà livrés et clarifier les phases restantes dans `specs/012-semantic-search-api-platform/plan.md`
+- [x] T010 [US1] Réconcilier les statuts et titres du catalogue avec les specs courantes dans `specs/README.md`
+- [x] T011 [US1] Réconcilier l'ordre, les dépendances et les statuts de livraison dans `specs/PLANNING.md`
+- [x] T012 [US1] Corriger les références de numérotation logging obsolètes dans `docs/ARCHITECTURE.md`
+- [x] T013 [US1] Corriger les métadonnées de branche et d'état dans `specs/011-auth-ldap-sso/spec.md`
+- [x] T014 [US1] Supprimer les prérequis déjà livrés et clarifier les phases restantes dans `specs/012-semantic-search-api-platform/plan.md`
 
 **Checkpoint**: Les statuts courants sont lisibles depuis une source centrale et les écarts historiques sont explicitement contextualisés.
 
@@ -59,17 +59,17 @@ description: "Task list for repository and specification coherence"
 
 ### Tests for User Story 2
 
-- [ ] T015 [P] [US2] Ajouter un test de détection des artefacts `spec.md`, `plan.md` ou `tasks.md` manquants dans `scripts/test_check_spec_coherence.sh`
-- [ ] T016 [P] [US2] Ajouter un test de détection des tâches cochées sans preuve dans `scripts/test_check_spec_coherence.sh`
+- [x] T015 [P] [US2] Ajouter un test de détection des artefacts `spec.md`, `plan.md` ou `tasks.md` manquants dans `scripts/test_check_spec_coherence.sh`
+- [x] T016 [P] [US2] Ajouter un test de détection des tâches cochées sans preuve dans `scripts/test_check_spec_coherence.sh`
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Générer la liste de tâches manquante pour la spec logging dans `specs/013-logging-strategy/tasks.md`
-- [ ] T018 [US2] Réconcilier les cases et les blocages des tâches URL sync dans `specs/004-url-sync/tasks.md`
-- [ ] T019 [US2] Réconcilier les cases et les blocages des tâches permissions dans `specs/005-permissions/tasks.md`
-- [ ] T020 [US2] Réconcilier les cases et les blocages des tâches qualité dans `specs/008-code-quality-solid/tasks.md`
-- [ ] T021 [US2] Réconcilier les cases et les blocages des tâches DRY/KISS/YAGNI dans `specs/009-dry-kiss-yagni/tasks.md`
-- [ ] T022 [US2] Réconcilier les tâches ouvertes restantes de naming dans `specs/010-naming-intention-result/tasks.md`
+- [x] T017 [US2] Générer la liste de tâches manquante pour la spec logging dans `specs/013-logging-strategy/tasks.md`
+- [x] T018 [US2] Réconcilier les cases et les blocages des tâches URL sync dans `specs/004-url-sync/tasks.md`
+- [x] T019 [US2] Réconcilier les cases et les blocages des tâches permissions dans `specs/005-permissions/tasks.md`
+- [x] T020 [US2] Réconcilier les cases et les blocages des tâches qualité dans `specs/008-code-quality-solid/tasks.md`
+- [x] T021 [US2] Réconcilier les cases et les blocages des tâches DRY/KISS/YAGNI dans `specs/009-dry-kiss-yagni/tasks.md`
+- [x] T022 [US2] Réconcilier les tâches ouvertes restantes de naming dans `specs/010-naming-intention-result/tasks.md`
 
 **Checkpoint**: Les specs actives sont planifiables et le workflow Spec Kit ne rencontre plus d'artefact manquant non documenté.
 
@@ -81,14 +81,14 @@ description: "Task list for repository and specification coherence"
 
 ### Tests for User Story 3
 
-- [ ] T023 [P] [US3] Ajouter un test de présence des références de validation dans `scripts/test_check_spec_coherence.sh`
-- [ ] T024 [P] [US3] Ajouter un test de distinction entre validation échouée, non exécutée et bloquée dans `scripts/test_check_spec_coherence.sh`
+- [x] T023 [P] [US3] Ajouter un test de présence des références de validation dans `scripts/test_check_spec_coherence.sh`
+- [x] T024 [P] [US3] Ajouter un test de distinction entre validation échouée, non exécutée et bloquée dans `scripts/test_check_spec_coherence.sh`
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Enregistrer la réconciliation des statuts et artefacts dans `specs/CHANGELOG.md`
-- [ ] T026 [US3] Ajouter les commandes et résultats de contrôle reproductibles dans `specs/014-repository-spec-coherence/quickstart.md`
-- [ ] T027 [US3] Documenter les exceptions historiques de numérotation et de branche dans `specs/014-repository-spec-coherence/research.md`
+- [x] T025 [US3] Enregistrer la réconciliation des statuts et artefacts dans `specs/CHANGELOG.md`
+- [x] T026 [US3] Ajouter les commandes et résultats de contrôle reproductibles dans `specs/014-repository-spec-coherence/quickstart.md`
+- [x] T027 [US3] Documenter les exceptions historiques de numérotation et de branche dans `specs/014-repository-spec-coherence/research.md`
 
 **Checkpoint**: Les changements documentaires importants sont auditables sans dépendre de la mémoire de l'équipe.
 
@@ -96,11 +96,11 @@ description: "Task list for repository and specification coherence"
 
 **Purpose**: Vérifier la conformité finale et préserver le périmètre documentaire.
 
-- [ ] T028 [P] Vérifier les références croisées et les liens Markdown dans `specs/014-repository-spec-coherence/`
-- [ ] T029 [P] Vérifier l'absence de modification du code applicatif dans `scripts/test_check_spec_coherence.sh`
-- [ ] T030 Exécuter le contrôle complet et consigner son résultat dans `specs/014-repository-spec-coherence/quickstart.md`
-- [ ] T031 Vérifier les prérequis Spec Kit sur chaque spec active depuis `scripts/check_spec_coherence.sh`
-- [ ] T032 Finaliser la checklist de cohérence dans `specs/014-repository-spec-coherence/checklists/requirements.md`
+- [x] T028 [P] Vérifier les références croisées et les liens Markdown dans `specs/014-repository-spec-coherence/`
+- [x] T029 [P] Vérifier l'absence de modification du code applicatif dans `scripts/test_check_spec_coherence.sh`
+- [x] T030 Exécuter le contrôle complet et consigner son résultat dans `specs/014-repository-spec-coherence/quickstart.md`
+- [x] T031 Vérifier les prérequis Spec Kit sur chaque spec active depuis `scripts/check_spec_coherence.sh`
+- [x] T032 Finaliser la checklist de cohérence dans `specs/014-repository-spec-coherence/checklists/requirements.md`
 
 ## Dependencies & Execution Order
 

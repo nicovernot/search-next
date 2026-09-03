@@ -1,5 +1,7 @@
 # Changelog
 
+**Dernière vérification** : 2026-09-03 — historique technique/opérationnel (correctifs, configuration infra) par commit. Pour l'historique des livraisons de specs par feature, voir [`specs/CHANGELOG.md`](../specs/CHANGELOG.md).
+
 ## [2026-04-17] - Correctifs recherche avancée + cohérence multi-environnements
 
 ### Recherche avancée (commit `87ccb7c`)

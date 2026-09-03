@@ -1,7 +1,8 @@
 # Stratégie de logs — OpenEdition Search
 
-**Implémentée dans** : `feature/012-logging-strategy`  
-**Dernière mise à jour** : 2026-04-22
+**Dernière vérification** : 2026-09-03 — stratégie de logs backend/frontend, confirmée contre `search_api_solr/app/core/logging.py` (formatter JSON), `front/app/lib/logger.ts` et `front/eslint.config.mjs` (règle `no-console`).
+
+**Implémentée dans** : `specs/013-logging-strategy` (renuméroté depuis l'ancien draft `012-logging-strategy` — voir `specs/CHANGELOG.md` 2026-05-05) ; durcissement livré sur `feat/013-logging-durcissement`
 
 ---
 

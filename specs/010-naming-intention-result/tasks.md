@@ -32,7 +32,9 @@
 
 ## Phase 5 — Vérification
 
-- [ ] T019 Lancer `npm run lint` depuis `front/`
-- [ ] T020 Lancer `npm run test:e2e` depuis `front/`
-- [ ] T021 Lancer `pytest` depuis `search_api_solr/`
-- [ ] T022 Lancer les contrôles `rg` listés dans `plan.md`
+> **Preuve de livraison** (reconciliation feature 014, T022) : T019-T021 réconciliés avec `specs/PLANNING.md` § « Bloc 0 — Vérification release ✅ (complété 2026-05-05) » : `pnpm run lint` sans warning, `pnpm run test:e2e` 68 déclarés/66 exécutables, `make test` (pytest via Docker) vert.
+
+- [x] T019 Lancer `npm run lint` depuis `front/` — *Preuve : `specs/PLANNING.md` Bloc 0, ligne « ✅ `pnpm run lint` — ESLint sans warning » (2026-05-05).*
+- [x] T020 Lancer `npm run test:e2e` depuis `front/` — *Preuve : `specs/PLANNING.md` Bloc 0, 68 tests déclarés / 66 exécutables (2026-05-05).*
+- [x] T021 Lancer `pytest` depuis `search_api_solr/` — *Preuve : `specs/PLANNING.md` Bloc 0, `make test` (Docker) vert (2026-05-05) ; `pytest` nu hors Docker documenté comme non pertinent (dépendances absentes).*
+- [ ] T022 Lancer les contrôles `rg` listés dans `plan.md` — **Bloqué** : ré-exécuté le 2026-09-03, les motifs `rg '\bconst (r|q|f|m|lq|pg|sm|l|fc|res|data)\b' front/app` et `rg '\.(map|filter|some)\(\((d|v|s|f)\)' front/app` retournent encore des correspondances (ex. `const data`, `const res` dans `front/app/hooks/`). Dette de nommage résiduelle non bloquante — à traiter en tâche opportuniste distincte, hors périmètre de la feature 014.

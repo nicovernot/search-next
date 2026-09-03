@@ -9,11 +9,12 @@
 
 Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). L'initiative prioritaire reste `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
 
-Audit 2026-05-10 : la Phase 1 de la spec 012 est livrée (`feature/012-api-platform-phase1`, merged PR #5). `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles. Phase 0 (taxonomie disciplinaire, audit Solr, choix modèle embedding) reste en cours — prérequis de la Phase 2.
+Audit 2026-05-10 : la Phase 1 de la spec 012 est livrée (`feature/012-api-platform-phase1`, merged PR #5). `/search`, `/suggest`, `/facets/config`, `trier ces tâches par priorité,
+générer le backlog de livraison,/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles. Phase 0 (taxonomie disciplinaire, audit Solr, choix modèle embedding) reste en cours — prérequis de la Phase 2.
 
 Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` pour éviter deux dossiers `012`.
 
-La spec transverse `012-logging-strategy` est partiellement livrée : le backend a une configuration JSON centralisée et le frontend utilise `front/app/lib/logger.ts`. Le reste concerne le durcissement des logs sensibles, l'uniformisation de quelques messages backend et une éventuelle règle lint contre `console.*` direct.
+La spec transverse `013-logging-strategy` est livrée (2026-05-10) : le backend a une configuration JSON centralisée, le frontend utilise `front/app/lib/logger.ts`, et le durcissement (redaction, `extra={"context"}`, règle ESLint `no-console`) est appliqué — voir `specs/CHANGELOG.md`.
 
 ---
 
@@ -191,6 +192,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 - `/api/v1` Phase 1 : namespace consolidé côté backend avec aliases racine. Reste à ajouter une couverture Playwright spécifique et à valider les E2E dans un environnement avec navigateur Playwright installé.
 - Compteur E2E : 68 tests déclarés dans `front/tests` (66 exécutables + 2 skip LDAP/OIDC).
 - Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json` ; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
+- Spec 010 (nommage) : les contrôles `rg` du plan (`const (r|q|f|m|lq|pg|sm|l|fc|res|data)`, callbacks `(d|v|s|f)`) trouvent encore des correspondances résiduelles dans `front/app/hooks/` (constat 2026-09-03, feature 014) — dette de nommage mineure non bloquante, à traiter opportunément.
 
 ---
 

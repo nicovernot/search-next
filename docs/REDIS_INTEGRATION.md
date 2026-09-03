@@ -1,5 +1,7 @@
 # 🚀 Intégration Redis - OpenEdition Search v2
 
+**Dernière vérification** : 2026-09-03 — endpoints et TTL confirmés contre `search_api_solr/app/main.py` et `search_api_solr/app/settings.py`.
+
 Ce document décrit l'implémentation du cache Redis dans l'application OpenEdition Search v2 pour améliorer les performances et réduire la charge sur Solr.
 
 ## 📋 Vue d'ensemble
@@ -28,11 +30,13 @@ L'intégration Redis apporte :
 
 ## 🔧 Configuration
 
+Voir [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) pour la structure `.env.*` et l'ordre de priorité des variables.
+
 ### Variables d'environnement
 
 ```bash
 # Configuration Redis
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://redis:<REDIS_PORT_INTERNE>/0
 REDIS_ENABLED=true
 
 # TTL par type de cache (en secondes)
@@ -58,10 +62,10 @@ Les TTL sont automatiquement ajustés selon l'environnement :
 
 ```bash
 # Démarrer tous les services (API + Redis + Frontend)
-docker-compose up
+docker compose up
 
 # Ou seulement Redis et API
-docker-compose up redis api
+docker compose up redis api
 ```
 
 ### 2. Vérifier l'intégration
@@ -71,8 +75,8 @@ docker-compose up redis api
 ./scripts/test_redis_integration.sh
 
 # Vérifier manuellement
-curl http://localhost:8007/health
-curl http://localhost:8007/cache/stats
+curl <API_BASE_URL>/health
+curl <API_BASE_URL>/cache/stats
 ```
 
 ## 📊 Endpoints de monitoring
@@ -121,6 +125,8 @@ DELETE /cache/clear?pattern=search:*
 DELETE /cache/clear?pattern=suggest:*
 ```
 
+> `DELETE /cache/clear` retourne `403 Forbidden` lorsque `ENVIRONMENT=production` (garde ajoutée dans `main.py`, voir `specs/PLANNING.md` § P0) — disponible uniquement en dev/staging/test.
+
 ## 🔍 Types de cache implémentés
 
 ### 1. Cache des recherches
@@ -156,10 +162,10 @@ DELETE /cache/clear?pattern=suggest:*
 
 ```bash
 # Métriques Prometheus disponibles
-curl http://localhost:8007/metrics | grep cache
+curl <API_BASE_URL>/metrics | grep cache
 
 # Statistiques Redis en temps réel
-docker exec openedition_redis redis-cli monitor
+docker exec search-next_redis redis-cli monitor
 ```
 
 ## 🧪 Tests
@@ -176,7 +182,7 @@ pytest tests/test_cache_service.py -v
 ./scripts/test_redis_integration.sh
 
 # Test manuel des endpoints
-curl -X POST http://localhost:8007/search \
+curl -X POST <API_BASE_URL>/search \
   -H "Content-Type: application/json" \
   -d '{"query": {"query": "test"}, "filters": [], "pagination": {"from": 0, "size": 10}, "facets": []}'
 ```
@@ -233,10 +239,10 @@ return result
 ### Redis ne démarre pas
 ```bash
 # Vérifier les logs
-docker-compose logs redis
+docker compose logs redis
 
 # Redémarrer Redis
-docker-compose restart redis
+docker compose restart redis
 
 # Vérifier l'espace disque
 df -h
@@ -245,33 +251,32 @@ df -h
 ### Cache non fonctionnel
 ```bash
 # Vérifier la connexion
-docker exec openedition_redis redis-cli ping
+docker exec search-next_redis redis-cli ping
 
 # Vérifier les logs de l'API
-docker-compose logs api | grep -i redis
+docker compose logs api | grep -i redis
 
 # Désactiver temporairement le cache
 export REDIS_ENABLED=false
-docker-compose restart api
+docker compose restart api
 ```
 
 ### Performances dégradées
 ```bash
 # Vérifier l'utilisation mémoire Redis
-docker exec openedition_redis redis-cli info memory
+docker exec search-next_redis redis-cli info memory
 
 # Analyser les clés les plus utilisées
-docker exec openedition_redis redis-cli --hotkeys
+docker exec search-next_redis redis-cli --hotkeys
 
 # Ajuster les TTL si nécessaire
-curl -X DELETE "http://localhost:8007/cache/clear"
+curl -X DELETE "<API_BASE_URL>/cache/clear"
 ```
 
 ## 📚 Ressources
 
 - [Documentation Redis](https://redis.io/documentation)
-- [FastAPI Cache](https://github.com/long2ice/fastapi-cache)
-- [Aioredis](https://aioredis.readthedocs.io/)
+- [redis-py — client `redis.asyncio` utilisé par `cache_service.py`](https://redis-py.readthedocs.io/en/stable/examples/asyncio_examples.html)
 - [Prometheus Metrics](https://prometheus.io/docs/concepts/metric_types/)
 
 ## 🔄 Prochaines améliorations

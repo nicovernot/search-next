@@ -1,13 +1,8 @@
 # Architecture — OpenEdition Search
 
-<<<<<<< HEAD
-**Dernier audit**: 2026-05-09
-**Branch active**: `chore/bloc0-release-verification`
-=======
-**Dernier audit**: 2026-05-05
-**Branch active**: `main`  
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
-**État global**: Specs 001–011 livrées. Dette bloquante P0/P1/P2/P3 soldée ou acceptée explicitement dans `specs/PLANNING.md`.
+**Dernière vérification** : 2026-09-03 — vue d'ensemble de l'architecture technique (frontend, backend, flux de données, dette technique). La branche active se vérifie via `git branch --show-current` (Git reste la référence, pas cette doc).
+
+**État global**: Specs 001–013 livrées ; spec 012 (recherche sémantique + API platform) Phase 1 livrée, Phase 0 ~80 %, Phases 2–5 backlog ; spec 014 (cohérence dépôt) livrée. Détail complet dans `specs/PLANNING.md` et `specs/CHANGELOG.md`.
 
 ---
 
@@ -188,7 +183,7 @@ Frontend AuthContext (useEffect) → détecte ?sso_code=
 
 ## Logging
 
-Socle documenté dans [`docs/LOGGING.md`](./LOGGING.md). La spec transverse `specs/012-logging-strategy` est partiellement livrée : configuration JSON backend et wrapper frontend présents, durcissement/redaction restant.
+Socle documenté dans [`docs/LOGGING.md`](./LOGGING.md). La spec transverse `specs/013-logging-strategy` est livrée : configuration JSON backend, wrapper frontend et durcissement (redaction, `extra={"context"}`, règle ESLint `no-console`) livrés le 2026-05-10.
 
 | Zone | Mécanisme | Config |
 |------|-----------|--------|
@@ -213,13 +208,8 @@ Socle documenté dans [`docs/LOGGING.md`](./LOGGING.md). La spec transverse `spe
 | Champs QB depuis `/facets/config` | ✅ Complet | — |
 | SearchContext découpé en 6 hooks SOLID | ✅ Complet | — |
 | Synchronisation état ↔ URL (back/forward) | ✅ Complet | url-sync.spec.ts (21) |
-<<<<<<< HEAD
 | Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts (14 déclarés, 12 exécutables + 2 skip) |
 | Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (14 déclarés, 12 exécutables + 2 skip) |
-=======
-| Authentification LDAP institutionnelle | ✅ Complet | auth-ldap-sso.spec.ts |
-| Authentification SSO OIDC | ✅ Complet — transport JWT via code court à usage unique | auth-ldap-sso.spec.ts (12, LDAP + SSO) |
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
 
 ---
 
@@ -262,13 +252,9 @@ La dette bloquante ci-dessous est résolue. Les suites restantes sont listées d
 
 ### Vérification récente
 
-<<<<<<< HEAD
-| Commande | Résultat audit 2026-05-09 |
-=======
-| Commande | Résultat audit 2026-05-05 |
->>>>>>> ecc3f8c942cba7bf8a68ccdea106117d1721b958
+| Commande | Résultat (voir `specs/PLANNING.md` § Bloc 0, vérifié 2026-05-05) |
 |---|---|
-| `cd front && pnpm run lint` | À relancer avant release |
-| `cd front && pnpm run test:e2e` | 68 tests déclarés, dont 66 exécutables et 2 skip LDAP/OIDC, à relancer avant release |
-| `make test` | Commande backend de référence Docker |
-| `python3 -m pytest ...` local Codex | Non lancé : module `pytest` absent dans l'environnement courant |
+| `cd front && pnpm run lint` | ✅ ESLint sans warning |
+| `cd front && pnpm run test:e2e` | ✅ 68 tests déclarés, 66 exécutables + 2 skip LDAP/OIDC ; navigateur Playwright absent localement, couverture indirecte confirmée |
+| `make test` | ✅ Suite pytest verte (Docker) — commande backend de référence |
+| `python3 -m pytest ...` hors Docker | Non pertinent : dépendances absentes sans virtualenv dédié — `make test` reste la référence |

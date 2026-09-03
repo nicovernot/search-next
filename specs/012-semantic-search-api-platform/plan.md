@@ -284,22 +284,22 @@ Un document absent du résultat pgvector (pas encore indexé) obtient un score R
 5. Confirmer ou ajuster la stratégie de fusion hybride (RRF k=60 recommandé).
 6. Décider officiellement du mode de versionnement API et du périmètre public des endpoints (dont exposition de `/auth/*` dans les SDKs).
 
-### Phase 1 - Stabilisation de l'API comme produit
+### Phase 1 - Stabilisation de l'API comme produit ✅ Livrée (2026-05-05)
 
-> **Point de départ** : seul le fichier `app/api/v1/saved_searches.py` existe déjà dans le dossier `api/v1`, mais son router est inclus sans préfixe et expose encore `/saved-searches` à la racine. `/search`, `/suggest`, `/facets/config` et `/permissions` sont également définis à la racine dans `main.py`. La Phase 1 doit consolider ce namespace partiel avant tout usage externe.
+> **Statut** : Phase 1 livrée — voir `specs/CHANGELOG.md` (2026-05-05) et `specs/PLANNING.md`. Les tâches 1-5 ci-dessous sont terminées ; les tâches 6-8 (décisions d'exposition `/auth/*`, description erreurs/quotas, exemples d'intégration hors frontend) restent des compléments optionnels non bloquants pour la Phase 2.
 
-> **Prérequis technique identifié** : `SearchResponse.results` est actuellement `list[Any]`. Tant que ce champ n'est pas typé `list[DocumentResponse]`, le contrat OpenAPI n'expose pas la structure réelle des documents — les disciplines ajoutées en Phase 2 seraient invisibles du schéma. Ce typage doit être résolu en Phase 1 avant de publier l'OpenAPI de référence.
+> **Point de départ historique** (avant Phase 1) : seul le fichier `app/api/v1/saved_searches.py` existait dans le dossier `api/v1`, avec un router inclus sans préfixe exposant encore `/saved-searches` à la racine ; `/search`, `/suggest`, `/facets/config` et `/permissions` étaient définis à la racine dans `main.py`. Ce namespace partiel a été consolidé par la Phase 1.
 
-> **Règle d'exécution** : cette phase constitue le **Lot 1**. Elle inclut aussi la préparation du contrat documentaire cible, même si les champs ne sont pas encore alimentés par PostgreSQL.
+> **Prérequis technique résolu** : `SearchResponse.results` était `list[Any]` ; il est désormais typé `list[DocumentResponse]`, rendant le contrat OpenAPI exploitable pour les disciplines ajoutées en Phase 2.
 
-1. Déplacer `/search`, `/suggest`, `/facets/config` sous `app/api/v1/` avec compatibilité ascendante (alias ou redirection depuis les routes racine le temps de la transition frontend).
-2. Typer `SearchResponse.results` en `list[DocumentResponse]` pour rendre le contrat document exploitable par OpenAPI et les SDKs.
-3. Ajouter au modèle documentaire les champs optionnels `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score` pour figer le contrat avant alimentation réelle.
-4. Compléter les `response_model` publics pour les endpoints encore implicites.
-5. Publier un `openapi.json` versionné et documenté.
-6. Décider si `/auth/*` est exposé aux applications tierces (SDK) ou réservé au frontend — documenter dans "Decisions Already Recommended".
-7. Décrire les erreurs, quotas et modes d'auth (JWT uniquement — pas d'API key dans la stack actuelle) des endpoints destinés aux applications tierces.
-8. Préparer des exemples d'intégration hors frontend Next.js.
+1. ✅ Déplacé `/search`, `/suggest`, `/facets/config` sous `app/api/v1/` avec compatibilité ascendante (alias racine conservés).
+2. ✅ Typé `SearchResponse.results` en `list[DocumentResponse]`.
+3. ✅ Ajouté au modèle documentaire les champs optionnels `disciplines`, `discipline_source`, `discipline_confidence`, `semantic_score`.
+4. ✅ Complété les `response_model` publics pour les endpoints exposés.
+5. ✅ Publié `openapi.json` versionné et documenté.
+6. Décider si `/auth/*` est exposé aux applications tierces (SDK) ou réservé au frontend — documenter dans "Decisions Already Recommended". *(reste ouvert, non bloquant)*
+7. Décrire les erreurs, quotas et modes d'auth (JWT uniquement — pas d'API key dans la stack actuelle) des endpoints destinés aux applications tierces. *(reste ouvert, non bloquant)*
+8. Préparer des exemples d'intégration hors frontend Next.js. *(reste ouvert, non bloquant)*
 
 ### Phase 2 - Socle disciplinaire
 
