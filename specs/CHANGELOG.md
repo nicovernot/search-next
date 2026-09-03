@@ -36,6 +36,8 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 2026-05-10 | 013 | Logging durcissement livré : URL Solr complète → DEBUG structuré, f-strings → `extra={"context"}` dans SuggestService/PermissionsService/docs_permissions_client, règle ESLint `no-console` ajoutée | feat/013-logging-durcissement |
 | 2026-09-03 | 014 | Cohérence dépôt : suppression du dossier catalogue `012-logging-strategy` obsolète dans `README.md`, statut logging réaligné sur `013` (livré) dans `PLANNING.md`/`docs/ARCHITECTURE.md`/`docs/LOGGING.md`, `tasks.md` manquant créé pour 013, cases de `tasks.md` réconciliées avec preuves (commits) pour 004/005/008/009/010, prérequis Phase 1 déjà livrés clarifiés dans `012/plan.md`, contrôle non destructif `scripts/check_spec_coherence.sh` + suite de tests créés (13 tests verts) | — |
 | 2026-09-03 | 015 | Documentation `docs/` mise à jour, datée et lisible dans Obsidian : 3 conflits Git non résolus résolus dans `ARCHITECTURE.md`, entête « Dernière vérification » ajouté aux 10 fichiers restants, `CORS_IMPLEMENTATION_SUMMARY.md`/`ENVIRONMENT_MANAGEMENT_SUMMARY.md` fusionnés puis supprimés (doublons), point d'entrée `docs/README.md` créé, exemples anonymisés (FR-012), contrôle non destructif `scripts/check_docs_coherence.sh` + suite de tests créés (13 tests verts) | — |
+| 2026-09-03 | 016 | Configuration Solr multi-core : `SolrCoreRegistry` (fichiers JSON dans `app/services/solr_cores/`), paramètre `core` sur `/search`, `/suggest`, `/permissions`, `SolrCoreNotFoundError` → 404, migration du core `documents` sans changement de comportement par défaut | `b40f871` |
+| 2026-09-03 | 017 | Catalogue des cores Solr : endpoint `GET /api/v1/cores` (noms + core par défaut, sans exposer `base_url`), procédure pas-à-pas d'ajout d'un core documentée dans `ARCHITECTURE.md`, enregistrement du core `calenda` aux côtés de `documents` | `ab55fe9` |
 
 ---
 
@@ -56,5 +58,7 @@ Format : `| Date | Spec | Résumé | Commit |`
 | 011 | Auth LDAP/SSO — institutionnel | ✅ Livré, transport JWT SSO sécurisé |
 | 012 | Recherche sémantique + API platform | ⚪ Phase 1 ✅ — Phase 0 ~80% (validation métier restante) — Phases 2–5 backlog |
 | 013 | Logging applicatif — stratégie et durcissement | ✅ Livré (2026-05-10) |
-| 014 | Cohérence du dépôt et des artefacts de spécification | ⚪ En cours (2026-09-03) |
+| 014 | Cohérence du dépôt et des artefacts de spécification | ✅ Livré (2026-09-03) |
 | 015 | Documentation `docs/` fiable, Obsidian, IA | ✅ Livré (2026-09-03) |
+| 016 | Configuration Solr multi-core | ✅ Livré (2026-09-03) |
+| 017 | Catalogue des cores Solr + core `calenda` | ✅ Livré (2026-09-03) |

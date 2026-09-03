@@ -1,20 +1,21 @@
 # Planning global des specs
 
-**Audit**: 2026-05-10
+**Audit**: 2026-09-03
 **But**: centraliser l'ordre de traitement, les dépendances, les skills opérationnels et les points de cohérence entre specs.
 
 ---
 
 ## État global
 
-Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). L'initiative prioritaire reste `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable.
+Toutes les specs fonctionnelles historiques (001–011) sont livrées. Les items P0, P1, P2 et P3 identifiés dans l'audit précédent sont résolus ou acceptés explicitement (2026-04-20). L'initiative prioritaire reste `012-semantic-search-api-platform`, qui prépare l'évolution du moteur vers une plateforme mutualisable — c'est la seule spec avec des tâches non cochées à ce jour.
 
-Audit 2026-05-10 : la Phase 1 de la spec 012 est livrée (`feature/012-api-platform-phase1`, merged PR #5). `/search`, `/suggest`, `/facets/config`, `trier ces tâches par priorité,
-générer le backlog de livraison,/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles. Phase 0 (taxonomie disciplinaire, audit Solr, choix modèle embedding) reste en cours — prérequis de la Phase 2.
+Audit 2026-05-10 : la Phase 1 de la spec 012 est livrée (`feature/012-api-platform-phase1`, merged PR #5). `/search`, `/suggest`, `/facets/config`, `/permissions` sont exposés sous `/api/v1` avec aliases racine de compatibilité ; `saved_searches` est monté sous `/api/v1/saved-searches`. `SearchResponse.results` est typé en `list[DocumentResponse]` avec champs documentaires optionnels rétrocompatibles. Phase 0 (taxonomie disciplinaire, audit Solr, choix modèle embedding) reste en cours — prérequis de la Phase 2.
 
 Point de cohérence documentaire résolu : l'ancien draft `012-logging-strategy` a été renuméroté en `013-logging-strategy` pour éviter deux dossiers `012`.
 
 La spec transverse `013-logging-strategy` est livrée (2026-05-10) : le backend a une configuration JSON centralisée, le frontend utilise `front/app/lib/logger.ts`, et le durcissement (redaction, `extra={"context"}`, règle ESLint `no-console`) est appliqué — voir `specs/CHANGELOG.md`.
+
+Audit 2026-09-03 : quatre specs supplémentaires livrées et vérifiées tâche par tâche (`tasks.md` intégralement coché) depuis le dernier audit — `014-repository-spec-coherence` (32/32), `015-docs-ai-obsidian-sync` (34/34), `016-solr-multi-core-support` (27/27) et `017-solr-core-catalog` (16/16). Aucune n'était encore listée dans ce planning. `012-semantic-search-api-platform` reste inchangée depuis le 2026-05-10 (46/88) : Phase 1 livrée, Phase 0 bloquée sur une validation métier (taxonomie disciplinaire), Phases 2–5 en backlog dépendant de cette validation.
 
 ---
 
@@ -181,6 +182,10 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | Spec 012 Phase 0 (cadrage) | ⚪ ~80% — audit Solr ✅, embedding ✅, taxonomie proposée ✅ ; validation métier + corpus éval restants |
 | Spec 012 Phases 2-5 | ⚪ Backlog — dépendent de Phase 0 complète |
 | Spec logging (013) | ✅ Livré (2026-05-10) |
+| Cohérence dépôt/specs (014) | ✅ Livré (2026-09-03) — 32/32, `scripts/check_spec_coherence.sh` |
+| Docs `docs/` fiables, Obsidian (015) | ✅ Livré (2026-09-03) — 34/34, `scripts/check_docs_coherence.sh` |
+| Solr multi-core configurable (016) | ✅ Livré (2026-09-03) — 27/27 |
+| Catalogue des cores Solr + core `calenda` (017) | ✅ Livré (2026-09-03) — 16/16 |
 
 ### Écarts connus (dette acceptée)
 
@@ -193,6 +198,7 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 - Compteur E2E : 68 tests déclarés dans `front/tests` (66 exécutables + 2 skip LDAP/OIDC).
 - Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json` ; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
 - Spec 010 (nommage) : les contrôles `rg` du plan (`const (r|q|f|m|lq|pg|sm|l|fc|res|data)`, callbacks `(d|v|s|f)`) trouvent encore des correspondances résiduelles dans `front/app/hooks/` (constat 2026-09-03, feature 014) — dette de nommage mineure non bloquante, à traiter opportunément.
+- Spec 013 (logging) : la tâche de re-vérification des commandes `rg` du plan (`basicConfig\(|console\.(log|error|warn|info|debug)`, `getLogger\(|get_logger\(`) n'a pas été rejouée depuis la livraison du 2026-05-10 — à relancer manuellement à l'occasion, non bloquant.
 
 ---
 
@@ -214,6 +220,10 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 | 012 | Logging strategy → voir 013 | — renuméroté |
 | 012 | Recherche sémantique + API platform | ✅ Phase 1 livrée — Phase 0 ~80% (validation métier restante) — Phase 2-5 backlog |
 | 013 | Logging applicatif | ✅ Livré — root logger, redaction, f-strings structurés, ESLint no-console (2026-05-10) |
+| 014 | Cohérence du dépôt et des artefacts de spécification | ✅ Livré (2026-09-03) |
+| 015 | Documentation `docs/` fiable, Obsidian, IA | ✅ Livré (2026-09-03) |
+| 016 | Configuration Solr multi-core | ✅ Livré (2026-09-03) |
+| 017 | Catalogue des cores Solr + core `calenda` | ✅ Livré (2026-09-03) |
 
 ---
 
