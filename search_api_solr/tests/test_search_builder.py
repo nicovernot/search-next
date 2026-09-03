@@ -5,6 +5,7 @@ import pytest
 
 from app.models.search_models import FilterModel, QueryModel, SearchRequest
 from app.services.search_builder import SearchBuilder
+from app.services.solr_core_registry import SolrCoreRegistry
 from app.settings import settings
 
 
@@ -12,9 +13,17 @@ class TestSearchBuilder:
     """Tests pour la classe SearchBuilder"""
 
     @pytest.fixture
-    def builder(self):
+    def core_registry(self, tmp_path):
+        """Registre de cores synthétique reproduisant le core par défaut de settings.py"""
+        (tmp_path / "documents.json").write_text(
+            f'{{"base_url": "{settings.solr_base_url}", "default": true}}'
+        )
+        return SolrCoreRegistry(config_dir=tmp_path)
+
+    @pytest.fixture
+    def builder(self, core_registry):
         """Fixture pour créer une instance de SearchBuilder"""
-        return SearchBuilder(solr_base_url=settings.solr_base_url)
+        return SearchBuilder(core_registry=core_registry)
 
     def test_build_filter_queries_simple(self, builder):
         """Test de construction de filtres simples"""
@@ -62,6 +71,44 @@ class TestSearchBuilder:
         assert 'df=naked_titre' in url
         assert 'start=0' in url
         assert 'rows=10' in url
+
+    def test_build_search_url_defaults_to_default_core(self, builder):
+        """Sans `core` précisé, l'URL cible le core par défaut (US3 — non-régression)."""
+        request = SearchRequest(query=QueryModel(query="test"), filters=[], facets=[])
+
+        url = builder.build_search_url(request)
+
+        assert settings.solr_base_url in url
+
+    def test_build_search_url_targets_added_core(self, tmp_path):
+        """US1 — un core ajouté par configuration devient réellement interrogeable."""
+        (tmp_path / "documents.json").write_text(
+            f'{{"base_url": "{settings.solr_base_url}", "default": true}}'
+        )
+        (tmp_path / "second_core.json").write_text(
+            '{"base_url": "https://solr.example.org/solr/second_core"}'
+        )
+        registry = SolrCoreRegistry(config_dir=tmp_path)
+        builder = SearchBuilder(core_registry=registry)
+
+        request = SearchRequest(
+            query=QueryModel(query="test"), filters=[], facets=[], core="second_core"
+        )
+        url = builder.build_search_url(request)
+
+        assert "https://solr.example.org/solr/second_core" in url
+        assert settings.solr_base_url not in url
+
+    def test_build_search_url_unknown_core_raises(self, builder):
+        """FR-004 — un core inconnu ne doit jamais retomber silencieusement sur un autre."""
+        from app.core.exceptions import SolrCoreNotFoundError
+
+        request = SearchRequest(
+            query=QueryModel(query="test"), filters=[], facets=[], core="does-not-exist"
+        )
+
+        with pytest.raises(SolrCoreNotFoundError):
+            builder.build_search_url(request)
 
     def test_build_search_url_with_filters(self, builder):
         """Test de construction d'URL avec filtres"""

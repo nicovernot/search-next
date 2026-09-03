@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.api.dependencies import get_permissions_service
+from app.core.exceptions import SolrCoreNotFoundError
 from app.core.logging import get_logger
 from app.core.rate_limit import limiter
 from app.models import DocsPermissionsResponse
@@ -32,7 +33,10 @@ def _resolve_user_ip(request: Request, explicit_ip: str | None) -> str | None:
 @router.get(
     "/permissions",
     response_model=DocsPermissionsResponse,
-    responses={422: {"description": "Invalid permissions query"}},
+    responses={
+        404: {"description": "Unknown Solr core"},
+        422: {"description": "Invalid permissions query"},
+    },
 )
 @limiter.limit("15/minute")
 async def get_document_permissions(
@@ -41,12 +45,15 @@ async def get_document_permissions(
         ..., description="Liste des URLs de documents séparées par des virgules"
     ),
     ip: str | None = Query(None, description="Adresse IP à vérifier (optionnel)"),
+    core: str | None = Query(None, description="Nom du core Solr ciblé (défaut si omis)"),
     service: PermissionsService = Depends(get_permissions_service),
 ) -> DocsPermissionsResponse:
     """Endpoint de permissions découplé."""
     remote_ip = _resolve_user_ip(request, ip)
     try:
-        return await service.get_document_permissions(urls, remote_ip)
+        return await service.get_document_permissions(urls, remote_ip, core=core)
+    except SolrCoreNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
     except Exception as error:
         logger.error(
             "Error in permissions endpoint",

@@ -1,0 +1,4 @@
+{
+  "base_url": "https://solrslave-sec.labocleo.org/solr/documents",
+  "default": true
+}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.api.dependencies import get_search_service
 from app.core.exceptions import (
+    SolrCoreNotFoundError,
     SolrInvalidQueryError,
     SolrTimeoutError,
     SolrUnavailableError,
@@ -34,6 +35,8 @@ def _raise_public_search_error(error: Exception) -> None:
         raise HTTPException(
             status_code=503, detail="Search service unavailable"
         ) from error
+    if isinstance(error, SolrCoreNotFoundError):
+        raise HTTPException(status_code=404, detail=str(error)) from error
 
     logger.error(
         "Unexpected search error",
@@ -48,6 +51,7 @@ def _raise_public_search_error(error: Exception) -> None:
     response_model=SearchResponse,
     responses={
         400: {"description": "Invalid search query"},
+        404: {"description": "Unknown Solr core"},
         422: {"description": "Invalid request payload"},
         503: {"description": "Search service unavailable"},
     },
@@ -86,6 +90,7 @@ async def search_via_get(
     facets: list[str] = Query([], description="Facettes à récupérer (ex: platform)"),
     page: int = Query(1, ge=1, description="Numéro de page"),
     size: int = Query(10, ge=1, le=100, description="Nombre de résultats par page"),
+    core: str | None = Query(None, description="Nom du core Solr ciblé (défaut si omis)"),
     service: ISearchService = Depends(get_search_service),
 ):
     """Recherche via paramètres URL — construit un SearchRequest."""
@@ -101,6 +106,7 @@ async def search_via_get(
         filters=filter_models,
         pagination=PaginationModel(from_=(page - 1) * size, size=size),
         facets=facet_models,
+        core=core,
     )
 
     try:

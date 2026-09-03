@@ -94,10 +94,6 @@ def validate_environment():
         logger.info(f"Solr: {solr_host}/{config.solr_collection}")
         logger.info(f"Log level: {config.log_level}")
 
-        # Exporter les variables validées pour utilisation dans l'app
-        os.environ['VALIDATED_SOLR_URL'] = str(config.solr_url)
-        os.environ['VALIDATED_SOLR_COLLECTION'] = config.solr_collection
-
         return config
 
     except Exception as e:

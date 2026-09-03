@@ -105,6 +105,11 @@ class SearchRequest(BaseModel):
     sort: str | None = Field(
         None, description="Critères de tri (ex: date desc)", example="date desc"
     )
+    core: str | None = Field(
+        None,
+        description="Nom du core Solr ciblé ; core par défaut si non précisé",
+        example="documents",
+    )
 
     model_config = {
         "json_schema_extra": {

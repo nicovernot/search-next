@@ -10,17 +10,27 @@ from app.services.search_service import (
     SuggestService,
 )
 from app.services.solr_client import SolrClient
-from app.settings import SOLR_CONFIG
+from app.services.solr_core_registry import SolrCoreRegistry
+
+# Chargé et validé une fois au démarrage (import de ce module) — voir FR-007.
+_solr_core_registry = SolrCoreRegistry()
+
+
+def get_solr_core_registry() -> SolrCoreRegistry:
+    """Fournit le registre des cores Solr configurés (singleton partagé)."""
+    return _solr_core_registry
 
 
 def get_solr_client() -> ISolrClient:
     """Fournit une instance du client Solr."""
-    return SolrClient(base_url=SOLR_CONFIG["base_url"])
+    return SolrClient(base_url=_solr_core_registry.resolve(None).base_url)
 
 
-def get_search_builder() -> ISearchBuilder:
+def get_search_builder(
+    registry: SolrCoreRegistry = Depends(get_solr_core_registry),
+) -> ISearchBuilder:
     """Fournit une instance du SearchBuilder."""
-    return SearchBuilder(solr_base_url=SOLR_CONFIG["base_url"])
+    return SearchBuilder(core_registry=registry)
 
 
 def get_search_service(
@@ -41,7 +51,7 @@ def get_suggest_service(
 
 
 def get_permissions_service(
-    solr_client: ISolrClient = Depends(get_solr_client),
+    registry: SolrCoreRegistry = Depends(get_solr_core_registry),
 ) -> PermissionsService:
     """Fournit une instance du service de permissions."""
-    return PermissionsService(solr_client)
+    return PermissionsService(registry)

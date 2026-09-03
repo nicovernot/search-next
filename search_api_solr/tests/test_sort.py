@@ -2,11 +2,15 @@ import pytest
 
 from app.models.search_models import PaginationModel, QueryModel, SearchRequest
 from app.services.search_builder import SearchBuilder
+from app.services.solr_core_registry import SolrCoreRegistry
 
 
 @pytest.fixture
-def builder():
-    return SearchBuilder("http://localhost:8983/solr")
+def builder(tmp_path):
+    (tmp_path / "documents.json").write_text(
+        '{"base_url": "http://localhost:8983/solr", "default": true}'
+    )
+    return SearchBuilder(core_registry=SolrCoreRegistry(config_dir=tmp_path))
 
 def test_build_search_url_with_sort(builder):
     """Vérifie que l'URL générée contient le paramètre sort"""

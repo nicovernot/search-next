@@ -2,7 +2,7 @@
 
 **Dernière vérification** : 2026-09-03 — vue d'ensemble de l'architecture technique (frontend, backend, flux de données, dette technique). La branche active se vérifie via `git branch --show-current` (Git reste la référence, pas cette doc).
 
-**État global**: Specs 001–013 livrées ; spec 012 (recherche sémantique + API platform) Phase 1 livrée, Phase 0 ~80 %, Phases 2–5 backlog ; spec 014 (cohérence dépôt) livrée. Détail complet dans `specs/PLANNING.md` et `specs/CHANGELOG.md`.
+**État global**: Specs 001–013 livrées ; spec 012 (recherche sémantique + API platform) Phase 1 livrée, Phase 0 ~80 %, Phases 2–5 backlog ; specs 014 (cohérence dépôt), 015 (docs Obsidian/IA) et 016 (Solr multi-core) livrées. Détail complet dans `specs/PLANNING.md` et `specs/CHANGELOG.md`.
 
 ---
 
@@ -189,6 +189,18 @@ Socle documenté dans [`docs/LOGGING.md`](./LOGGING.md). La spec transverse `spe
 |------|-----------|--------|
 | Backend | `python-json-logger`, root logger, JSON stdout | `LOG_LEVEL` via Docker Compose |
 | Frontend | `lib/logger.ts` (wrapper niveaux debug/info/warn/error) | `NODE_ENV` |
+
+---
+
+## Configuration Solr multi-core
+
+Spec `specs/016-solr-multi-core-support` livrée : le core Solr n'est plus codé en dur, il est piloté par un registre de configuration.
+
+- Un core = un fichier JSON dans `search_api_solr/app/services/solr_cores/<nom>.json` (`{"base_url": "...", "default": true|false}`), sur le modèle déjà utilisé par `facets_json/`. Exactement un core est marqué `default: true`.
+- `SolrCoreRegistry` (`app/services/solr_core_registry.py`) charge et valide cette configuration une fois au démarrage — échec explicite si la liste est vide ou si le nombre de cores par défaut est différent de 1.
+- `SearchBuilder`, `SuggestService` et `PermissionsService` résolvent tous le core à interroger via ce même registre injecté (plus de résolution divergente entre services).
+- Un appelant cible un core via le paramètre `core` sur `/api/v1/search`, `/api/v1/suggest`, `/api/v1/permissions` — voir [`API_V1.md`](./API_V1.md#ciblage-dun-core-solr-core). Non précisé, le core par défaut (`documents`) est utilisé, identique au comportement historique.
+- Un nom de core absent de la configuration renvoie `404` (`SolrCoreNotFoundError`), distinct de `503` pour un core injoignable (`SolrUnavailableError`).
 
 ---
 

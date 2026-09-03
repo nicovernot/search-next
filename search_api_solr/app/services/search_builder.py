@@ -15,6 +15,7 @@ from app.services.field_config import (
 )
 from app.services.interfaces import ISearchBuilder
 from app.services.query_logic_parser import QueryLogicParser
+from app.services.solr_core_registry import SolrCoreRegistry
 
 logger = get_logger(__name__)
 
@@ -24,8 +25,10 @@ SOLR_SUGGEST_HANDLER = "/suggest"
 
 
 class SearchBuilder(ISearchBuilder):
-    def __init__(self, solr_base_url: str):
-        self.solr_base_url = solr_base_url
+    core_registry: SolrCoreRegistry
+
+    def __init__(self, core_registry: SolrCoreRegistry):
+        self.core_registry = core_registry
 
     # --- A. Construction de la Recherche et des Filtres (q et fq) ---
 
@@ -126,19 +129,20 @@ class SearchBuilder(ISearchBuilder):
 
     # --- C. Autocomplétion (Suggester) ---
 
-    def build_suggest_url(self, query_term: str) -> str:
+    def build_suggest_url(self, query_term: str, core: str | None = None) -> str:
         """Construit l'URL pour l'autocomplétion (Suggester)"""
         params = {
             "q": query_term,
             "wt": "json",
             "suggest.q": query_term,  # Si vous utilisez le composant Suggester standard
         }
+        base_url = self.core_registry.resolve(core).base_url
         # Utilise le Request Handler dédié (ex: /suggest)
-        return f"{self.solr_base_url}{SOLR_SUGGEST_HANDLER}?{urlencode(params)}"
+        return f"{base_url}{SOLR_SUGGEST_HANDLER}?{urlencode(params)}"
 
     # --- D. More Like This (MLT) ---
 
-    def build_mlt_url(self, doc_id: str, limit: int = 5) -> str:
+    def build_mlt_url(self, doc_id: str, limit: int = 5, core: str | None = None) -> str:
         """Construit l'URL pour la recherche MLT sur un document donné"""
         params = {
             "q": f"id:{doc_id}",  # MLT utilise un document source
@@ -148,8 +152,9 @@ class SearchBuilder(ISearchBuilder):
             "mlt.count": limit,
             "wt": "json",
         }
+        base_url = self.core_registry.resolve(core).base_url
         # Souvent le même handler que la recherche standard ou /mlt
-        return f"{self.solr_base_url}{SOLR_QUERY_HANDLER}?{urlencode(params)}"
+        return f"{base_url}{SOLR_QUERY_HANDLER}?{urlencode(params)}"
 
     # --- E. La Requête de Recherche Principale ---
 
@@ -198,4 +203,5 @@ class SearchBuilder(ISearchBuilder):
         all_params = {**query_params, **facet_params}
 
         # Solr accepte des listes pour 'fq' et 'facet.field', urlencode gère ça
-        return f"{self.solr_base_url}{SOLR_BASE_HANDLER}?{urlencode(all_params, doseq=True)}"
+        base_url = self.core_registry.resolve(request.core).base_url
+        return f"{base_url}{SOLR_BASE_HANDLER}?{urlencode(all_params, doseq=True)}"

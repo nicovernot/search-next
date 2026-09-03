@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.services.search_builder import SearchBuilder
+from app.services.solr_core_registry import SolrCoreRegistry
 from app.settings import settings
 
 client = TestClient(app)
@@ -14,8 +15,11 @@ class TestSearchBuilderFeatures:
     """Tests unitaires pour les fonctionnalités avancées de SearchBuilder"""
 
     @pytest.fixture
-    def builder(self):
-        return SearchBuilder(solr_base_url=settings.solr_base_url)
+    def builder(self, tmp_path):
+        (tmp_path / "documents.json").write_text(
+            f'{{"base_url": "{settings.solr_base_url}", "default": true}}'
+        )
+        return SearchBuilder(core_registry=SolrCoreRegistry(config_dir=tmp_path))
 
     def test_build_suggest_url(self, builder):
         """Test de construction de l'URL de suggestion"""

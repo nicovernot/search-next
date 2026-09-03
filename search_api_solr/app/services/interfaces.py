@@ -38,6 +38,6 @@ class ISearchBuilder(ABC):
         pass
 
     @abstractmethod
-    def build_suggest_url(self, query: str) -> str:
+    def build_suggest_url(self, query_term: str, core: str | None = None) -> str:
         """Construire une URL de suggestion Solr"""
         pass

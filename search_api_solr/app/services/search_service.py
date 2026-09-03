@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from app.core.logging import get_logger
 from app.models.search_models import SearchRequest
 from app.services.interfaces import ISearchBuilder, ISearchService, ISolrClient
+from app.services.solr_core_registry import SolrCoreRegistry
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -190,16 +191,24 @@ class SuggestService:
             )
             return []
 
-    async def fetch_autocomplete_suggestions(self, query: str) -> dict[str, Any]:
+    async def fetch_autocomplete_suggestions(
+        self, query: str, core: str | None = None
+    ) -> dict[str, Any]:
         """Retourne les suggestions d'autocomplétion avec cache Redis."""
         from app.services.cache_service import cache_service
 
-        cached = await cache_service.get_suggest_cache(query)
+        # Le core fait partie de la clé de cache : deux cores différents ne doivent
+        # jamais partager des suggestions mises en cache pour la même requête texte.
+        cache_key_query = f"{query}|core:{core or 'default'}"
+
+        cached = await cache_service.get_suggest_cache(cache_key_query)
         if cached:
             self.logger.debug("Returning cached suggestions", extra={"context": {"query": query}})
             return cached
 
-        suggest_url = self.builder.build_suggest_url(query)
+        # Résolu avant le try/except métier : un core inconnu ne doit jamais être
+        # absorbé par la dégradation gracieuse ci-dessous (FR-004/FR-006).
+        suggest_url = self.builder.build_suggest_url(query, core=core)
 
         try:
             solr_data = await self.solr_client.search(suggest_url)
@@ -210,7 +219,7 @@ class SuggestService:
         suggestions = self._parse_solr_suggestions(solr_data, query)
         result: dict[str, Any] = {"suggestions": suggestions}
 
-        await cache_service.set_suggest_cache(query, result)
+        await cache_service.set_suggest_cache(cache_key_query, result)
         self.logger.info(
             "Suggest completed",
             extra={"context": {"query": query, "num_suggestions": len(suggestions)}},
@@ -220,20 +229,30 @@ class SuggestService:
 class PermissionsService:
     """Service de permissions avec cache"""
 
-    def __init__(self, solr_client: ISolrClient):
-        self.solr_client = solr_client
+    core_registry: SolrCoreRegistry
+
+    def __init__(self, core_registry: SolrCoreRegistry):
+        self.core_registry = core_registry
         self.logger = get_logger(__name__)
 
-    async def get_document_permissions(self, urls: str, ip: str) -> dict[str, Any]:
+    async def get_document_permissions(
+        self, urls: str, ip: str, core: str | None = None
+    ) -> dict[str, Any]:
         """Récupère les permissions pour des documents avec cache"""
+        # Résolu en dehors du try/except métier ci-dessous : un core inconnu ne doit
+        # jamais être absorbé par la dégradation gracieuse de cette méthode (FR-004/FR-006).
+        base_url = self.core_registry.resolve(core).base_url
+
         try:
             from app.services.cache_service import cache_service
             from app.services.docs_permissions_client import DocsPermissionsClient
             from app.services.docs_permissions_client import SolrClient as PermSolrClient
             from app.settings import SOLR_CONFIG
 
-            # 1. Vérifier le cache d'abord
-            cached_result = await cache_service.get_permissions_cache(urls, ip)
+            # 1. Vérifier le cache d'abord — le core fait partie de la clé pour éviter
+            # qu'une réponse mise en cache pour un core fuite vers un autre (FR-006).
+            cache_ip = f"{ip}|core:{core or 'default'}"
+            cached_result = await cache_service.get_permissions_cache(urls, cache_ip)
             if cached_result:
                 url_count = len(urls.split(",")) if urls else 0
                 self.logger.debug(
@@ -244,14 +263,14 @@ class PermissionsService:
 
             # 2. Appel réel via DocsPermissionsClient
             perm_client = DocsPermissionsClient(
-                solr_client=PermSolrClient(base_url=SOLR_CONFIG["base_url"]),
+                solr_client=PermSolrClient(base_url=base_url),
                 settings=SOLR_CONFIG,
             )
             response = await perm_client.handle_query(urls, ip)
             result = response.dict() if hasattr(response, "dict") else dict(response)
 
             # 3. Mettre en cache le résultat
-            await cache_service.set_permissions_cache(urls, result, ip)
+            await cache_service.set_permissions_cache(urls, result, cache_ip)
 
             return result
 
