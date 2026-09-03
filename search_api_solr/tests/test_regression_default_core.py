@@ -51,3 +51,14 @@ class TestDefaultCoreEquivalence:
 
         assert without_core.status_code == with_default_core.status_code
         assert without_core.json() == with_default_core.json()
+
+    def test_omitted_core_still_targets_documents_after_calenda_registered(self):
+        """Feature 017 — l'ajout du core `calenda` ne change pas le core par défaut."""
+        without_core = client.get("/api/v1/suggest?q=hist")
+        explicit_documents = client.get("/api/v1/suggest?q=hist&core=documents")
+
+        assert without_core.status_code == explicit_documents.status_code
+        assert without_core.json() == explicit_documents.json()
+
+        explicit_calenda = client.get("/api/v1/suggest?q=hist&core=calenda")
+        assert explicit_calenda.status_code != 404

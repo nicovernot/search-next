@@ -112,6 +112,16 @@ class TestSolrCoreRegistry:
         assert "documents" in registry.cores
         assert registry.default_core_name == "documents"
 
+    def test_real_config_includes_calenda_core_as_non_default(self):
+        """Feature 017 — le core `calenda` est enregistré aux côtés de `documents`, non défaut."""
+        registry = SolrCoreRegistry()
+
+        assert "calenda" in registry.cores
+        calenda = registry.resolve("calenda")
+        assert calenda.base_url == "https://solrslave-sec.labocleo.org/solr/calenda"
+        assert calenda.is_default is False
+        assert registry.default_core_name == "documents"
+
 
 class TestSharedRegistryAcrossServices:
     """US3/FR-006 — SearchBuilder, SuggestService et PermissionsService partagent

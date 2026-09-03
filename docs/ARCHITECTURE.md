@@ -201,6 +201,23 @@ Spec `specs/016-solr-multi-core-support` livrée : le core Solr n'est plus codé
 - `SearchBuilder`, `SuggestService` et `PermissionsService` résolvent tous le core à interroger via ce même registre injecté (plus de résolution divergente entre services).
 - Un appelant cible un core via le paramètre `core` sur `/api/v1/search`, `/api/v1/suggest`, `/api/v1/permissions` — voir [`API_V1.md`](./API_V1.md#ciblage-dun-core-solr-core). Non précisé, le core par défaut (`documents`) est utilisé, identique au comportement historique.
 - Un nom de core absent de la configuration renvoie `404` (`SolrCoreNotFoundError`), distinct de `503` pour un core injoignable (`SolrUnavailableError`).
+- Spec `specs/017-solr-core-catalog` livrée : `GET /api/v1/cores` (voir [`API_V1.md`](./API_V1.md#lister-les-cores-disponibles-get-apiv1cores)) expose la liste des cores configurés et lequel est le défaut, sans exposer leur `base_url` (information d'infrastructure interne). Un second core, `calenda`, est enregistré en plus de `documents` (non défaut).
+
+### Ajouter un nouveau core Solr — procédure
+
+1. Créer `search_api_solr/app/services/solr_cores/<nom>.json` :
+   ```json
+   { "base_url": "https://<hôte-solr>/solr/<collection>", "default": false }
+   ```
+   `<nom>` (nom du fichier, sans `.json`) devient l'identifiant du core, utilisé comme valeur du paramètre `core`. `default: true` ne doit être présent que sur un seul fichier à la fois — le registre refuse de démarrer sinon (exactement zéro ou plusieurs cores par défaut).
+2. Redémarrer le service backend `search_api_solr` (le registre se charge une fois au démarrage, `app/api/dependencies.py:16`).
+3. Vérifier que le core apparaît via `GET /api/v1/cores`.
+4. Cibler ce core avec le paramètre `core` sur `/api/v1/search`, `/api/v1/suggest` ou `/api/v1/permissions` (ex. `?core=<nom>`).
+
+Exemple concret déjà en place — `search_api_solr/app/services/solr_cores/calenda.json` :
+```json
+{ "base_url": "https://solrslave-sec.labocleo.org/solr/calenda", "default": false }
+```
 
 ---
 

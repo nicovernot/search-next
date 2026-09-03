@@ -19,6 +19,7 @@ setup_logging(settings.log_level)
 logger = get_logger(__name__)
 
 from app.api.auth import router as auth_router
+from app.api.v1.cores import router as cores_router
 from app.api.v1.facets import router as facets_router
 from app.api.v1.openapi import router as openapi_router
 from app.api.v1.permissions import router as permissions_router
@@ -101,7 +102,13 @@ if settings.trusted_hosts:
 
 # Includes des routers
 app.include_router(auth_router)
-for public_router in (search_router, suggest_router, facets_router, permissions_router):
+for public_router in (
+    search_router,
+    suggest_router,
+    facets_router,
+    permissions_router,
+    cores_router,
+):
     app.include_router(public_router, prefix="/api/v1")
     app.include_router(public_router, include_in_schema=False)
 
