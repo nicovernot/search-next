@@ -9,23 +9,15 @@ services:
     ports:
       - "${API_PORT:-8003}:8007"
     env_file:
-      - .env.shared
-      - search_api_solr/.env.local
-    environment:
-      - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://search_user:search_password@postgres:5432/search_db
-      - DEV=true
-      - TEST_IP=${TEST_IP:-139.124.244.81}
-      - AUTH_API_URL=https://auth.openedition.org/auth_by_url/
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3003,http://127.0.0.1:3000,http://127.0.0.1:3003,http://0.0.0.0:3000,http://0.0.0.0:3003,http://localhost:8003}
+      # .env est le fichier activé par scripts/use-env.sh (racine du dépôt) : source unique,
+      # autonome, pour l'environnement courant (development/test/production).
+      - .env
     volumes:
       # Volume pour le développement (hot reload)
       - ./search_api_solr:/app
       # Exclure les répertoires Python cache
       - /app/__pycache__
       - /app/.pytest_cache
-      # Note: ./search_api_solr/.env est un répertoire, le fichier de config vient des env vars ci-dessus
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
     depends_on:
       postgres:
@@ -85,10 +77,13 @@ services:
       context: .
       dockerfile: ./front/Dockerfile
       args:
+        # Docker Compose substitue ${...} à partir du .env racine (activé par scripts/use-env.sh) :
+        # aucune variable de shell à exporter séparément.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8003}
     container_name: search-next_frontend
+    env_file:
+      - .env
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8003}
       # URL interne Docker pour les route handlers Next.js (server-side) → service name + port interne
       - INTERNAL_API_URL=http://api:8007
       - HOSTNAME=0.0.0.0

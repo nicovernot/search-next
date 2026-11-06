@@ -17,13 +17,14 @@ La fonction lit d'abord la variable d'environnement `CORS_ORIGINS` (liste CSV ou
 | Environnement | Origines par défaut si `CORS_ORIGINS` non définie |
 |---|---|
 | `production` | `https://search.openedition.org`, `https://www.openedition.org` |
-| `staging` | `https://staging.search.openedition.org`, `https://search.openedition.org` |
 | `test` | `http://localhost:8007`, `http://localhost:3009`, `http://127.0.0.1:3009`, `http://127.0.0.1:8007` |
 | `development` (défaut) | `http://localhost:<PORT>` / `http://127.0.0.1:<PORT>` / `http://0.0.0.0:<PORT>` pour les ports frontend historiques et actuels (3000, 3003, 3007, 3009) |
 
+Le projet ne connaît que ces 3 environnements (`development`/`test`/`production`) — voir [ENVIRONMENTS.md](./ENVIRONMENTS.md). Dans la pratique, `CORS_ORIGINS` est toujours définie explicitement dans `.env.development`/`.env.test`/`.env.production`, donc ces valeurs par défaut ne servent que de filet de sécurité.
+
 ### 2. Champs `Settings` associés
 
-`cors_origins`, `cors_allow_credentials` (défaut `true`), `cors_allow_methods` (`GET,POST,PUT,DELETE,OPTIONS`), `cors_allow_headers`, `cors_expose_headers` (`X-Total-Count,X-Pagination`), `cors_max_age` — ajusté automatiquement par environnement (86400s en dev/staging, 3600s en production, 60s en test) via un `field_validator` Pydantic.
+`cors_origins`, `cors_allow_credentials` (défaut `true`), `cors_allow_methods` (`GET,POST,PUT,DELETE,OPTIONS`), `cors_allow_headers`, `cors_expose_headers` (`X-Total-Count,X-Pagination`), `cors_max_age` — ajusté automatiquement par environnement (86400s en dev, 3600s en production, 60s en test) via un `field_validator` Pydantic.
 
 ### 3. Montage du middleware (`app/main.py`)
 

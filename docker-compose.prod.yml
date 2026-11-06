@@ -3,26 +3,21 @@
 
 services:
   api:
+    # ENVIRONMENT, NODE_ENV, DEBUG, AUTO_RELOAD, LOG_LEVEL, SOLR_BASE_URL viennent de .env.production
+    # (via env_file: .env hérité du service de base) — WORKER_COUNT y est également défini.
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --workers 4
-    environment:
-      - ENVIRONMENT=production
-      - NODE_ENV=production
-      - DEV=false
-      - DEBUG=false
-      - AUTO_RELOAD=false
-      - LOG_LEVEL=INFO
-      - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
     ports: !reset []
     volumes: !reset []
 
   frontend:
     build:
       args:
-        NEXT_PUBLIC_API_URL: /api
+        # NEXT_PUBLIC_API_URL vient de .env.production (=/api, derrière nginx) via la substitution
+        # ${...} du service de base — inutile de le redéfinir ici.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
     environment:
-      - NEXT_PUBLIC_API_URL=/api
+      # INTERNAL_API_URL et HOSTNAME restent spécifiques à la topologie Docker ; NODE_ENV vient de .env.production.
       - INTERNAL_API_URL=http://api:8007
-      - NODE_ENV=production
       - HOSTNAME=0.0.0.0
     ports: !reset []
 

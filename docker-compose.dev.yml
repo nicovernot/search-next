@@ -13,10 +13,7 @@ services:
       - /app/__pycache__
     entrypoint: /app/entrypoint.sh
     command: uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload --log-level debug
-    environment:
-      - DEV=true
-      - LOG_LEVEL=DEBUG
-      - SOLR_BASE_URL=https://solrslave-sec.labocleo.org/solr/documents
+    # DEV, LOG_LEVEL, SOLR_BASE_URL viennent désormais de .env.development (via env_file: .env hérité du service de base)
 
   frontend:
     build: !reset null
@@ -30,9 +27,8 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8003}
+      # NEXT_PUBLIC_API_URL et NODE_ENV viennent de .env.development (via env_file: .env hérité du service de base)
       - CHOKIDAR_USEPOLLING=true
-      - NODE_ENV=development
       - HOSTNAME=0.0.0.0
     command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm dev"
     restart: unless-stopped

@@ -11,10 +11,14 @@ from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_ENVIRONMENTS = {"development", "test", "production"}
+PLACEHOLDER_SECRET = "change-me-in-production"
+
 
 class EnvironmentConfig(BaseSettings):
     """Configuration complète de l'environnement"""
     # Variables communes
+    environment: str = Field(default="development", description="Sélecteur d'environnement : development, test ou production (variable ENVIRONMENT)")
     node_env: str = Field(default="development", description="Environnement (development, production, test)")
 
     # Configuration Solr
@@ -38,6 +42,16 @@ class EnvironmentConfig(BaseSettings):
     frontend_url: str | None = Field(default=None, description="URL du frontend")
     test_timeout: int | None = Field(default=None, description="Timeout pour les tests")
     test_retries: int | None = Field(default=None, description="Nombre de tentatives pour les tests")
+
+    @field_validator('environment')
+    def validate_environment_value(cls, v):
+        normalized = v.strip().lower()
+        if normalized not in ALLOWED_ENVIRONMENTS:
+            raise ValueError(
+                f'ENVIRONMENT must be one of {sorted(ALLOWED_ENVIRONMENTS)}, got "{v}". '
+                'Utilisez scripts/use-env.sh <development|test|production> pour activer un environnement valide.'
+            )
+        return normalized
 
     @field_validator('solr_url')
     def validate_solr_url(cls, v):
@@ -72,8 +86,26 @@ class EnvironmentConfig(BaseSettings):
                 raise ValueError('SECRET_KEY or JWT_SECRET is required when auth is enabled')
         return self
 
+    @model_validator(mode='after')
+    def validate_no_placeholder_secret_in_production(self):
+        if self.environment != 'production':
+            return self
+        placeholder_fields = {
+            'SECRET_KEY': self.secret_key,
+            'JWT_SECRET': self.jwt_secret,
+            'SESSION_SECRET': self.session_secret,
+        }
+        leaked = [name for name, value in placeholder_fields.items() if value == PLACEHOLDER_SECRET]
+        if leaked:
+            raise ValueError(
+                f'{", ".join(leaked)} still equal the committed placeholder value ("{PLACEHOLDER_SECRET}") '
+                'while ENVIRONMENT=production. Overrode these with real secrets before deploying '
+                '(see .env.production and docs/ENVIRONMENTS.md).'
+            )
+        return self
+
     class Config:
-        env_file = ['.env.shared', '.env.local', '.env']
+        env_file = '.env'
         env_file_encoding = 'utf-8'
         case_sensitive = False
         extra = 'allow'

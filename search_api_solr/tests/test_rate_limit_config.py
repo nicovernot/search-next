@@ -157,7 +157,7 @@ class TestRateLimitConfigurationParsing:
                 assert not rate_limit_config.is_ip_whitelisted('192.168.1.999')
 
     @given(
-        environment=st.sampled_from(['development', 'production', 'test', 'staging'])
+        environment=st.sampled_from(['development', 'production', 'test'])
     )
     def test_environment_specific_defaults(self, environment):
         """
@@ -184,8 +184,6 @@ class TestRateLimitConfigurationParsing:
                 assert settings.rate_limit_default_requests == 100
             elif environment == 'development':
                 assert settings.rate_limit_default_requests == 1000
-            elif environment == 'staging':
-                assert settings.rate_limit_default_requests == 200
 
             # Verify endpoint-specific defaults are set
             assert settings.rate_limit_endpoints != ""

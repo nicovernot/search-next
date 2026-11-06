@@ -199,6 +199,8 @@ Ces deux axes peuvent avancer en parallèle avec une limite claire : le cadrage 
 - Spec 012 Phase 2 : les traductions actuelles sont dans `front/messages/{locale}.json` ; ne pas utiliser l'ancien chemin `front/public/locales/...` pour les nouvelles clés.
 - Spec 010 (nommage) : les contrôles `rg` du plan (`const (r|q|f|m|lq|pg|sm|l|fc|res|data)`, callbacks `(d|v|s|f)`) trouvent encore des correspondances résiduelles dans `front/app/hooks/` (constat 2026-09-03, feature 014) — dette de nommage mineure non bloquante, à traiter opportunément.
 - Spec 013 (logging) : la tâche de re-vérification des commandes `rg` du plan (`basicConfig\(|console\.(log|error|warn|info|debug)`, `getLogger\(|get_logger\(`) n'a pas été rejouée depuis la livraison du 2026-05-10 — à relancer manuellement à l'occasion, non bloquant.
+- Spec 018 (simplification config env) : `.specify/memory/constitution.md` § *Product Constraints* mentionne encore "Local, staging, and production deployments" — devenu obsolète depuis le retrait de l'environnement staging (2026-09-04). Un amendement de gouvernance (PATCH, retrait de la mention "staging") doit être proposé séparément — non bloquant, changement de gouvernance distinct de l'implémentation.
+- Spec 018 : la cible Make `test-front` démarre le service `frontend` de type production (`docker-compose.yml` de base), dont les `build.args` ne passent que `NEXT_PUBLIC_API_URL` — `NEXT_PUBLIC_LDAP_ENABLED`/`NEXT_PUBLIC_SSO_ENABLED` n'y sont jamais inlinés au build, quelle que soit la valeur de `.env.test`. Les tests E2E LDAP échouent en conséquence (constat 2026-09-04) — écart préexistant, indépendant de la simplification de configuration, à corriger séparément en étendant `build.args`.
 
 ---
 

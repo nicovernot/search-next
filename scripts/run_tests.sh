@@ -4,8 +4,8 @@ set -euo pipefail
 
 echo "=== Running Project Checks ==="
 
-echo "Synchronizing test environment..."
-./scripts/sync_env.sh test
+echo "Activating test environment..."
+./scripts/use-env.sh test
 
 echo "Backend checks..."
 (

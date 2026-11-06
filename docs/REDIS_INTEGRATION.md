@@ -125,7 +125,7 @@ DELETE /cache/clear?pattern=search:*
 DELETE /cache/clear?pattern=suggest:*
 ```
 
-> `DELETE /cache/clear` retourne `403 Forbidden` lorsque `ENVIRONMENT=production` (garde ajoutée dans `main.py`, voir `specs/PLANNING.md` § P0) — disponible uniquement en dev/staging/test.
+> `DELETE /cache/clear` retourne `403 Forbidden` lorsque `ENVIRONMENT=production` (garde ajoutée dans `main.py`, voir `specs/PLANNING.md` § P0) — disponible uniquement en dev/test.
 
 ## 🔍 Types de cache implémentés
 

@@ -1,33 +1,56 @@
 # Gestion des Environnements — OpenEdition Search
 
-**Dernière vérification** : 2026-09-03 — structure `.env.*`, scripts et ports confirmés contre `docker-compose.yml` et le dossier racine du dépôt.
+**Dernière vérification** : 2026-09-04 — structure `.env.*`, scripts et Docker Compose confirmés contre le dépôt après la simplification de la configuration d'environnement (spec `018-simplify-env-config`).
 
-## Structure des fichiers d'environnement
+Ce document est la **référence unique** pour tout ce qui concerne la configuration d'environnement du projet. S'il manque une information ici, c'est un bug de documentation à signaler — ne cherchez pas ailleurs.
 
-Le projet utilise une approche centralisée avec héritage :
+## Les 3 environnements
 
-```
+Le projet supporte **exactement 3 environnements**, pilotés par la variable `ENVIRONMENT` : `development`, `test`, `production`. Il n'y a pas de "staging" — cet environnement a été retiré (voir [CHANGELOG.md](./CHANGELOG.md)).
+
+## Structure des fichiers
+
+```text
 .
-├── .env.shared              # Variables communes à tous les environnements
-├── .env.development         # Surcharge développement
-├── .env.production          # Surcharge production
-├── .env.staging             # Surcharge staging
-├── .env.test                # Surcharge tests
-├── scripts/sync_env.sh      # Génère {service}/.env.local à partir de shared + env cible
-├── scripts/run_tests.sh     # Lint + tests E2E
-└── search_api_solr/app/core/env_validation.py  # Validation Pydantic au démarrage backend
+├── .env.development         # Modèle versionné, autonome et complet — environnement dev
+├── .env.test                # Modèle versionné, autonome et complet — environnement test
+├── .env.production           # Modèle versionné, autonome et complet — environnement prod (secrets en placeholders)
+├── .env                       # Fichier ACTIF (non versionné) — copie du modèle activé par scripts/use-env.sh
+├── front/.env                 # Symlink -> ../.env (créé par scripts/use-env.sh)
+├── search_api_solr/.env       # Symlink -> ../.env (créé par scripts/use-env.sh)
+├── scripts/use-env.sh          # Active un environnement (copie + symlinks)
+├── scripts/verify_env_docker.sh  # Vérifie que Docker applique bien la config attendue
+└── search_api_solr/app/
+    ├── settings.py                 # Configuration RÉELLEMENT utilisée par l'application (CORS, DB, Redis, secrets, LDAP, SSO, rate limiting...)
+    └── core/env_validation.py      # Validation secondaire au démarrage (ENVIRONMENT valide + détection de secret placeholder en prod)
 ```
 
-> `front/src/utils/envValidation.js` a été supprimé — Next.js n'a pas de validation
-> d'environnement côté client dans ce projet. La validation se fait uniquement backend.
+**Chaque fichier `.env.<environnement>` est autonome** : il ne dépend d'aucun autre fichier (l'ancien `.env.shared` a été supprimé, fusionné dans chacun des trois). Un développeur n'a donc jamais besoin d'ouvrir plus d'un fichier à la fois.
 
-## Hiérarchie de chargement
+## Activation d'un environnement
 
-1. **`.env.shared`** — valeurs communes (chargé en premier)
-2. **`.env.{environment}`** — surcharges spécifiques (development / production / staging / test)
-3. **`search_api_solr/.env.local`** — généré par `sync_env.sh`, git-ignoré, ne pas éditer
-4. **`front/.env`** — valeur committée (`NEXT_PUBLIC_API_URL=http://localhost:8003`, mode Docker)
-5. **`front/.env.local`** — généré par `sync_env.sh` ou créé manuellement, git-ignoré
+```bash
+scripts/use-env.sh development   # ou: test, production
+```
+
+Cette commande :
+1. Valide que l'argument est bien `development`, `test` ou `production` (sinon : erreur explicite, rien n'est modifié).
+2. Copie `.env.<environnement>` vers `.env` (racine du dépôt, non versionné).
+3. Crée/rafraîchit les symlinks `front/.env -> ../.env` et `search_api_solr/.env -> ../.env`.
+
+**Le `Makefile` appelle ce script automatiquement** — vous n'avez normalement jamais besoin de le lancer à la main :
+
+```bash
+make dev     # active development, puis docker compose up
+make test    # active test, puis lance pytest + Playwright
+make prod    # active production, puis docker compose up en mode prod
+```
+
+Raccourcis pour activer sans lancer : `make set-dev`, `make set-test`, `make set-prod`.
+
+### Personnalisation propre à votre machine
+
+Besoin d'une valeur différente du modèle versionné (ex: exposer l'API sur votre IP réseau plutôt que `localhost` pour un accès depuis un autre appareil) ? **Éditez `.env` (le fichier actif, non versionné) après activation — jamais `.env.development`/`.env.test`/`.env.production`.** Ces derniers sont les modèles partagés par toute l'équipe ; `.env` est votre copie de travail locale.
 
 ## Architecture des ports
 
@@ -38,146 +61,92 @@ Le projet utilise une approche centralisée avec héritage :
 | PostgreSQL | 5435 | 5432 | Docker mappe `5435:5432` |
 | Redis | 6376 | 6379 | Docker mappe `6376:6379` |
 
-**Mode Docker** (`make dev`) : `NEXT_PUBLIC_API_URL=http://localhost:8003`  
-**Mode direct** (uvicorn + pnpm sans Docker) : `NEXT_PUBLIC_API_URL=http://localhost:8007`
-
-`front/.env` contient la valeur mode Docker (committée). `front/.env.local` (git-ignoré) contient l'override pour le mode direct.
-
-## Utilisation
-
-### Développement Docker
-
-```bash
-./scripts/sync_env.sh development
-docker compose up
-```
-
-### Développement sans Docker
-
-```bash
-cd front
-echo "NEXT_PUBLIC_API_URL=http://localhost:<API_PORT_INTERNE>" > .env.local  # voir « Architecture des ports » ci-dessus
-corepack enable && pnpm install --frozen-lockfile
-pnpm dev
-```
-
-### Tests
-
-```bash
-./scripts/sync_env.sh test
-./scripts/run_tests.sh
-```
-
-### Staging
-
-```bash
-./scripts/sync_env.sh staging
-docker compose -f docker-compose.yml -f docker-compose.staging.yml up --build
-```
-
-### Production
-
-```bash
-./scripts/sync_env.sh production
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-```
-
-### Production sans Docker
-
-```bash
-ENVIRONMENT=production RUN_MIGRATIONS=true ./scripts/install_no_docker.sh
-```
-
-Voir [INSTALL_PROD_NO_DOCKER.md](./INSTALL_PROD_NO_DOCKER.md) pour le détail.
-
 ## Variables d'environnement
 
-### Frontend (Next.js)
+Tableau complet, détaillé, avec les valeurs par environnement : [`specs/018-simplify-env-config/contracts/env-schema.md`](../specs/018-simplify-env-config/contracts/env-schema.md). Ci-dessous, les groupes essentiels.
 
-Les variables exposées côté navigateur **doivent** être préfixées `NEXT_PUBLIC_` :
+### Sélecteur et CORS
 
-| Variable | Description | Exemple |
+| Variable | Rôle | Format |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | URL publique de l'API backend | `http://localhost:8003` (Docker) / `/api` (prod) |
+| `ENVIRONMENT` | Sélectionne le comportement de l'app (`development`/`test`/`production`) | Une des 3 valeurs, sinon le backend refuse de démarrer |
+| `CORS_ORIGINS` | Origines navigateur autorisées par le middleware CORS FastAPI (`app/settings.py`, lu par `app/main.py`) | Liste d'URLs séparées par des virgules, sans espace : `http://localhost:3003,http://127.0.0.1:3003` |
+| `NEXT_PUBLIC_API_URL` | URL de l'API appelée **depuis le navigateur** (`front/app/lib/api.ts`) | `http://localhost:8003` en dev Docker, `/api` en prod derrière nginx |
 
-> `REACT_APP_API_URL` est obsolète (Create React App) — non lue par Next.js.
+⚠️ **Piège Next.js** : `NEXT_PUBLIC_API_URL` (et toute variable `NEXT_PUBLIC_*`) est **inlinée dans le bundle JavaScript au moment du build** en production (`docker-compose.prod.yml` la passe en `build.args`). Changer sa valeur dans `.env` sans relancer `docker compose build` n'a **aucun effet** sur le site déjà construit.
 
-### Backend (FastAPI)
+⚠️ **Piège navigateur (Private Network Access)** : si le front est ouvert via une IP réseau (ex: `http://147.94.79.57:3003`) mais que `NEXT_PUBLIC_API_URL` pointe vers `localhost`, Chrome bloque l'appel ("secure context" / "more-private address space"). Faites correspondre l'adresse de l'API à celle utilisée pour ouvrir le front (les deux en `localhost`, ou les deux sur la même IP réseau).
 
-| Variable | Description |
+### Solr, Redis, base de données
+
+| Variable | Rôle |
 |---|---|
-| `SOLR_BASE_URL` | URL du cluster Solr distant |
-| `SOLR_URL` | URL Solr interne (Docker) |
-| `SOLR_COLLECTION` | Collection Solr |
-| `API_HOST` / `API_PORT` | Bind de l'API (interne : 8007) |
-| `DEBUG` / `AUTO_RELOAD` | Mode debug et rechargement |
-| `SECRET_KEY` / `JWT_SECRET` | Secret JWT (requis si `DISABLE_AUTH=false`) |
-| `DATABASE_URL` | Connexion PostgreSQL |
-| `REDIS_URL` | Connexion Redis |
+| `SOLR_BASE_URL` | URL Solr distante réellement interrogée par l'API (`app/services/solr_client.py`) |
+| `SOLR_URL` | URL Solr "interne" déclarée (usage résiduel à confirmer au besoin — voir `contracts/env-schema.md`) |
+| `SOLR_COLLECTION` | Collection Solr ciblée |
+| `REDIS_URL` / `REDIS_ENABLED` / `REDIS_TTL_*` | Connexion et TTL du cache |
+| `DATABASE_URL` | Connexion PostgreSQL (comptes utilisateurs, recherches sauvegardées) |
 
-### Variables communes
+### Sécurité — secrets
 
-| Variable | Description |
-|---|---|
-| `ENVIRONMENT` | `development` / `staging` / `production` / `test` |
-| `NODE_ENV` | Passé à Next.js (`development` / `production` / `test`) |
-| `CORS_ORIGINS` | Origines CORS autorisées, séparées par des virgules |
-| `LOG_LEVEL` | `debug` / `info` / `warning` / `error` |
-| `API_BASE_URL` | URL base de l'API (lue par `sync_env.sh` pour générer `front/.env.local`) |
-| `FRONTEND_URL` | URL publique du frontend |
+`SECRET_KEY` / `JWT_SECRET` / `SESSION_SECRET` : en développement et test, une valeur par défaut sûre est appliquée automatiquement si absente. **En production**, `.env.production` contient des placeholders explicites (`change-me-in-production`) — le backend **refuse de démarrer** tant qu'ils n'ont pas été surchargés par de vrais secrets (voir `app/settings.py::validate_production_secrets` et `app/core/env_validation.py::validate_no_placeholder_secret_in_production`).
 
-> **Nom officiel** : `CORS_ORIGINS` (anciennement `CORS_ALLOWED_ORIGINS`, renommé en avril 2026).  
-> Le backend (`settings.py`) lit `CORS_ORIGINS` via `os.getenv("CORS_ORIGINS")`. Détail complet des origines par défaut et du middleware dans [`CORS_CONFIGURATION.md`](./CORS_CONFIGURATION.md).
+### LDAP / SSO OIDC
 
-## Validation des environnements
+Désactivés par défaut (`LDAP_ENABLED=false`, `SSO_OIDC_ENABLED=false`). Toutes les variables associées existent comme placeholders dans les 3 fichiers modèles — voir `contracts/env-schema.md` pour le détail.
 
-### Backend
+## Deux couches de validation backend
 
-```python
-# app/core/env_validation.py — appelé automatiquement dans main.py
-from app.core.env_validation import validate_environment
-config = validate_environment()
+- **`app/settings.py`** : le module **réellement utilisé** par l'application (instancié une fois comme `settings`, consommé par le CORS middleware, le rate limiting, la connexion DB/Redis, etc.). Valide `ENVIRONMENT` (3 valeurs) et bloque le démarrage si un secret de production est resté au placeholder.
+- **`app/core/env_validation.py`** : validation **secondaire**, appelée aussi au démarrage (logs de diagnostic), avec les mêmes garde-fous (3 valeurs autorisées, détection de placeholder). Ne pilote pas le comportement de l'app — c'est un filet de sécurité redondant, pas une source de configuration à éditer.
+
+Si vous ajoutez une variable, mettez à jour **`app/settings.py`** (c'est lui qui compte pour le comportement réel), puis les 3 fichiers `.env.*`, puis ce document.
+
+## Vérifier que Docker applique bien la configuration attendue
+
+```bash
+make env-verify
+# ou directement :
+scripts/verify_env_docker.sh [development|test|production]
 ```
 
-Pydantic-settings valide au démarrage : URLs Solr, niveau de log, secrets JWT.  
-Si la validation échoue, l'application **ne démarre pas** (code de sortie non-zéro).
+Compare, pour chaque conteneur (`api`, `frontend`), la valeur de `ENVIRONMENT`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`, `SOLR_URL`, `SOLR_BASE_URL`, `SOLR_COLLECTION` réellement appliquée (`docker exec <service> printenv`) à celle du `.env` actif. Sort en erreur au premier écart, avec le détail. **Utilisez cette commande avant de conclure à un bug applicatif** si le front ou l'API se comportent de façon inattendue après un changement de configuration — c'est exactement le réflexe qui aurait raccourci le diagnostic de l'incident ayant motivé cette page.
 
-### Docker — entrypoint
+En production, un avertissement rappelle que la vérification runtime ne garantit pas qu'un `NEXT_PUBLIC_*` a bien été pris en compte au build (voir piège Next.js ci-dessus).
 
-Le `Dockerfile` utilise `entrypoint.sh` qui, avant de lancer uvicorn :
-1. Attend que PostgreSQL soit prêt (`pg_isready`)
-2. Applique les migrations Alembic (`alembic upgrade head`)
+## Tests
 
-## Ordre de priorité des variables
+```bash
+make test          # backend, dans le container
+make test-front    # frontend E2E Playwright
+make test-all       # les deux
+```
 
-1. Section `environment:` de `docker-compose.yml` / `docker-compose.*.yml`
-2. `.env.{environment}` (surcharges spécifiques)
-3. `.env.shared` (valeurs communes)
+Ces cibles activent automatiquement `.env.test` avant de lancer les tests.
 
-## Bonnes pratiques
+## Production sans Docker
 
-1. Ne jamais commiter les fichiers `*.env.local` ni les secrets
-2. Toujours définir `ENVIRONMENT` et `NODE_ENV` dans chaque `.env.{env}`
-3. Utiliser `NEXT_PUBLIC_API_URL` (pas `REACT_APP_*`) pour les variables frontend
-4. Toute nouvelle variable doit être ajoutée dans `.env.shared` avec une valeur par défaut safe, puis surchargée si nécessaire
-5. Exécuter `./scripts/check_env_setup.sh` après tout changement de configuration Docker/env
+Voir [INSTALL_PROD_NO_DOCKER.md](./INSTALL_PROD_NO_DOCKER.md) — le script `scripts/install_no_docker.sh` réutilise `scripts/use-env.sh production` puis ajoute les overrides propres à un hôte sans Docker (adresses `127.0.0.1` plutôt que noms de service Docker).
 
-## Résolution des problèmes
+## Résolution de problèmes
 
-### Variables non chargées
+### "Failed to fetch" / API injoignable depuis le navigateur
 
-- Vérifier que `docker-compose.yml` référence `.env.shared` dans `env_file:`
-- Redémarrer les containers après modification : `docker compose down && docker compose up`
+1. `make env-verify` — confirme que le conteneur a bien la configuration attendue.
+2. Vérifiez qu'aucune variable de shell (`CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`, etc.) n'est exportée dans votre terminal et ne prend le pas silencieusement sur `.env` : `env | grep -E "CORS_ORIGINS|NEXT_PUBLIC_API_URL"`. Si oui : `unset CORS_ORIGINS NEXT_PUBLIC_API_URL` puis relancez les conteneurs.
+3. Vérifiez la cohérence entre l'URL utilisée pour ouvrir le front et `NEXT_PUBLIC_API_URL` (piège Private Network Access ci-dessus).
+4. Après toute modification de `.env`, recréez les conteneurs concernés : `docker compose up -d --force-recreate --no-deps api frontend`.
 
-### CORS bloqué
+### Le backend refuse de démarrer avec une erreur sur `ENVIRONMENT`
 
-- Vérifier que l'origine du navigateur est dans `CORS_ORIGINS` de `search_api_solr/.env.local`
-- En développement : `http://localhost:3003`, `http://127.0.0.1:3003` et `http://0.0.0.0:3003` doivent être présents si ces URLs peuvent être utilisées dans le navigateur
-- Après modification d'une variable CORS Docker, recréer le conteneur API pour relire l'environnement : `docker compose up -d --force-recreate --no-deps api`
+La valeur active n'est pas `development`, `test` ou `production` (par exemple une variable de shell résiduelle valant `staging`). Relancez `scripts/use-env.sh <environment>` puis vérifiez `cat .env | grep ENVIRONMENT`.
 
-### Conflits de variables
+### Le backend refuse de démarrer en production avec une erreur sur un secret
 
-L'ordre de priorité (du plus fort au plus faible) :
-1. Variables dans `environment:` du docker-compose
-2. `.env.{environment}`
-3. `.env.shared`
+Un des secrets (`SECRET_KEY`/`JWT_SECRET`/`SESSION_SECRET`) est resté à sa valeur placeholder (`change-me-in-production`). Surchargez-le avec une vraie valeur (variable d'environnement système ou gestionnaire de secrets), jamais dans `.env.production` versionné.
+
+### Conflits de variables — ordre de priorité
+
+1. Variable déjà exportée dans le shell / injectée par la CI (prioritaire sur tout le reste — source d'erreurs silencieuses si oubliée, cf. point 2 ci-dessus).
+2. `.env` (racine, activé par `scripts/use-env.sh`) — lu directement par Docker Compose (`env_file:`) et par `front/`/`search_api_solr/` via leurs symlinks.
+3. Valeurs par défaut codées dans `app/settings.py` (si la variable est absente de `.env`).

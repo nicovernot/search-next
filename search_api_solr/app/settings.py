@@ -7,9 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def get_environment() -> str:
-    """Détermine l'environnement actuel"""
+    """Détermine l'environnement actuel (exactement 3 valeurs : development, test, production)"""
     env = os.getenv("ENVIRONMENT", "development").lower()
-    return env if env in ["development", "production", "test", "staging"] else "development"
+    return env if env in ["development", "production", "test"] else "development"
 
 
 def get_cors_origins(environment: str) -> list[str]:
@@ -22,8 +22,6 @@ def get_cors_origins(environment: str) -> list[str]:
     # Valeurs par défaut selon l'environnement
     if environment == "production":
         return ["https://search.openedition.org", "https://www.openedition.org"]
-    elif environment == "staging":
-        return ["https://staging.search.openedition.org", "https://search.openedition.org"]
     elif environment == "test":
         return ["http://localhost:8007", "http://localhost:3009", "http://127.0.0.1:3009", "http://127.0.0.1:8007"]
     else:  # development
@@ -188,10 +186,13 @@ class Settings(BaseSettings):
     @field_validator('environment')
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        """Valide que l'environnement est valide"""
-        valid_envs = ["development", "production", "test", "staging"]
+        """Valide que l'environnement est l'une des 3 valeurs autorisées (FR-001, FR-009)"""
+        valid_envs = ["development", "production", "test"]
         if v not in valid_envs:
-            raise ValueError(f"ENVIRONMENT must be one of: {', '.join(valid_envs)}")
+            raise ValueError(
+                f"ENVIRONMENT must be one of: {', '.join(valid_envs)}. "
+                "Utilisez scripts/use-env.sh <development|test|production> pour activer un environnement valide."
+            )
         return v
 
     @field_validator('enable_https_redirect')
@@ -212,7 +213,7 @@ class Settings(BaseSettings):
         elif environment == "test":
             return 60  # 1 minute en test
         else:
-            return 86400  # 24 heures en développement/staging
+            return 86400  # 24 heures en développement
 
     @field_validator('cors_allow_methods', 'cors_allow_headers')
     @classmethod
@@ -239,8 +240,6 @@ class Settings(BaseSettings):
         if not v:  # Si non configuré dans .env
             if environment == "production":
                 return ["search.openedition.org", "www.openedition.org"]
-            elif environment == "staging":
-                return ["staging.search.openedition.org"]
 
         return v
 
@@ -261,7 +260,7 @@ class Settings(BaseSettings):
             elif info.field_name == "redis_ttl_permissions":
                 return 3600  # 1 heure pour les permissions
 
-        return v  # Valeurs par défaut pour development/staging
+        return v  # Valeurs par défaut pour development
 
     @field_validator('rate_limit_default_requests')
     @classmethod
@@ -277,12 +276,8 @@ class Settings(BaseSettings):
             return 10  # Limite basse pour les tests
         elif environment == "production":
             return 100  # Limite de production
-        elif environment == "development":
+        else:  # development
             return 1000  # Limite élevée pour le développement
-        else:  # staging
-            return 200  # Limite intermédiaire pour staging
-
-        return v
 
     @field_validator('rate_limit_endpoints')
     @classmethod
@@ -304,15 +299,10 @@ class Settings(BaseSettings):
                 "search": {"requests": 5, "window": 60},
                 "suggest": {"requests": 20, "window": 60}
             })
-        elif environment == "development":
+        else:  # development
             return json.dumps({
                 "search": {"requests": 500, "window": 60},
                 "suggest": {"requests": 2000, "window": 60}
-            })
-        else:  # staging
-            return json.dumps({
-                "search": {"requests": 100, "window": 60},
-                "suggest": {"requests": 400, "window": 60}
             })
 
     @field_validator('rate_limit_backend')
@@ -378,7 +368,7 @@ class Settings(BaseSettings):
         )
 
     model_config = SettingsConfigDict(
-        env_file=[".env", ".env.local"],  # .env.local surcharge .env pour le développement local
+        env_file=".env",  # .env est le fichier activé par scripts/use-env.sh (symlink vers la racine)
         env_file_encoding="utf-8",
         case_sensitive=False,
         env_parse_enums=None,  # Désactive le parsing automatique pour permettre au validator de gérer

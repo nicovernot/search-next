@@ -25,3 +25,6 @@ search_api_solr/.env.local
 **/*.pyc
 **/node_modules/
 **/.env.local
+# front/.env et search_api_solr/.env sont des symlinks vers le .env racine (scripts/use-env.sh) :
+# à exclure du contexte de build, sinon Next.js plante sur un symlink cassé (ENOENT) au build.
+**/.env

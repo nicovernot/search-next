@@ -27,13 +27,9 @@ Le frontend écoute sur `http://localhost:3000` en local simple, et sur `http://
 NEXT_PUBLIC_API_URL=http://localhost:8003
 ```
 
-Via Docker (`make dev`, `make prod`), le fichier `front/.env` est généré automatiquement par `scripts/sync_env.sh`.
+Via Docker (`make dev`, `make prod`) ou en dehors, `front/.env` est un symlink vers le `.env` racine activé par `scripts/use-env.sh <development|test|production>` (voir [docs/ENVIRONMENTS.md](../docs/ENVIRONMENTS.md)) — un seul fichier à éditer, jamais `front/.env` directement.
 
-Pour un démarrage manuel sans Docker, créer `front/.env.local` manuellement :
-
-```bash
-echo "NEXT_PUBLIC_API_URL=http://localhost:8007" > .env.local
-```
+Pour un démarrage manuel sans Docker avec une URL d'API différente (ex: uvicorn direct sur le port 8007), éditez directement le `.env` actif à la racine du dépôt après activation, plutôt que `front/.env` (qui n'est qu'un symlink).
 
 ## Scripts
 

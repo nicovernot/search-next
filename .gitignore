@@ -23,12 +23,10 @@ __pycache__/
 htmlcov/
 
 # Environment variables
+# .env.development / .env.test / .env.production are versioned (modèles autonomes).
+# .env (racine, activé par scripts/use-env.sh) et ses symlinks front/.env, search_api_solr/.env restent ignorés.
 .env
-.env.local
-.env.*.local
 *.env
-# But allow .env.example
-!.env.example
 
 # Logs
 *.log

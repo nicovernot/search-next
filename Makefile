@@ -5,13 +5,11 @@ DOCKER_COMPOSE := $(shell docker compose version > /dev/null 2>&1 && echo "docke
 
 # Variables pour la gestion des environnements
 ENV ?= development
-FRONTEND_ENV ?= development
 POSTGRES_PORT ?= 5435
 REDIS_PORT ?= 6376
 API_PORT ?= 8003
 FRONTEND_PORT ?= 3003
 DEV_COMPOSE = $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
-STAGING_COMPOSE = $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.staging.yml
 PROD_COMPOSE = $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.prod.yml
 
 # Exposer les variables pour docker-compose
@@ -20,58 +18,37 @@ export REDIS_PORT
 export API_PORT
 export FRONTEND_PORT
 
-.PHONY: help sync-env check-env configure-env dev dev-build dev-down staging staging-build staging-down prod prod-build prod-down test test-cov test-local test-ci test-front test-front-ui test-front-ci test-all test-prod run-dev run-prod set-dev set-staging set-prod set-test build up down restart logs logs-api logs-frontend env-check env-sync env-list shell-api shell-frontend clean clean-all ps stats health install install-prod
+.PHONY: help use-env check-env dev dev-build dev-down prod prod-build prod-down test test-cov test-local test-ci test-front test-front-ui test-front-ci test-all test-prod run-dev run-prod set-dev set-prod set-test build up down restart logs logs-api logs-frontend env-check env-list env-verify shell-api shell-frontend clean clean-all ps stats health install install-prod
 
 help: ## Afficher l'aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-# Configuration des environnements avec la nouvelle approche centralisée
-sync-env: ## Synchroniser l'environnement (dev, staging, prod, test)
-	@echo "Synchronizing environment: $(ENV)"
-	@./scripts/sync_env.sh $(ENV)
-	@echo "Environment synchronized successfully!"
-	@echo "Backend: search_api_solr/.env.local"
-	@echo "Frontend: front/.env.local"
+# Activation de l'environnement (3 valeurs possibles : development, test, production)
+use-env: ## Activer un environnement (ENV=development|test|production) — copie .env.$(ENV) vers .env + symlinks
+	@./scripts/use-env.sh $(ENV)
 
 check-env: ## Vérifier la configuration d'environnement
 	@./scripts/check_env_setup.sh
 
-# Configuration des environnements (ancienne méthode - dépréciée)
-configure-env: ## Configurer l'environnement (dev, staging, prod, test) - DEPRECATED
-	@echo "WARNING: This method is deprecated. Use 'make sync-env' instead."
-	@$(MAKE) sync-env ENV=$(ENV)
-
 # Développement
 dev: ## Lancer l'environnement de développement
-	@$(MAKE) sync-env ENV=development
+	@$(MAKE) use-env ENV=development
 	$(DEV_COMPOSE) up
 
 dev-build: ## Build et lancer l'environnement de développement
-	@$(MAKE) sync-env ENV=development
+	@$(MAKE) use-env ENV=development
 	$(DEV_COMPOSE) up --build
 
 dev-down: ## Arrêter l'environnement de développement
 	$(DEV_COMPOSE) down
 
-# Staging
-staging: ## Lancer l'environnement de staging
-	@$(MAKE) sync-env ENV=staging
-	$(STAGING_COMPOSE) up
-
-staging-build: ## Build et lancer l'environnement de staging
-	@$(MAKE) sync-env ENV=staging
-	$(STAGING_COMPOSE) up --build
-
-staging-down: ## Arrêter l'environnement de staging
-	$(STAGING_COMPOSE) down
-
 # Production
 prod: ## Lancer l'environnement de production
-	@$(MAKE) sync-env ENV=production
+	@$(MAKE) use-env ENV=production
 	$(PROD_COMPOSE) up -d
 
 prod-build: ## Build et lancer l'environnement de production
-	@$(MAKE) sync-env ENV=production
+	@$(MAKE) use-env ENV=production
 	$(PROD_COMPOSE) up -d --build
 
 prod-down: ## Arrêter l'environnement de production
@@ -79,41 +56,39 @@ prod-down: ## Arrêter l'environnement de production
 
 # Tests backend
 test: ## Lancer les tests backend dans le container (recommandé)
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	$(DEV_COMPOSE) run --rm api sh -c "pip install -r requirements.txt -r requirements-dev.txt > /dev/null 2>&1 && pytest -v"
 
 test-cov: ## Lancer les tests avec couverture dans le container
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	$(DEV_COMPOSE) run --rm api sh -c "pip install -r requirements.txt -r requirements-dev.txt > /dev/null 2>&1 && pytest --cov=app --cov-report=html --cov-report=term -v"
 
 test-local: ## Lancer les tests en local (nécessite les dépendances installées)
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	cd search_api_solr && python -m pytest -v
 
 test-ci: ## Lancer les tests pour CI/CD (dans container, sortie XML)
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	$(DEV_COMPOSE) run --rm api sh -c "pip install -r requirements.txt -r requirements-dev.txt > /dev/null 2>&1 && pytest --junitxml=test-results.xml -v"
 
 # Tests Frontend
 test-front: ## Lancer les tests E2E Playwright (headless)
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	$(DOCKER_COMPOSE) up -d api frontend
 	@sleep 5
 	cd front && pnpm exec playwright test --reporter=list
 	$(DOCKER_COMPOSE) down
 
 test-front-ui: ## Lancer les tests E2E Playwright avec UI
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 	$(DOCKER_COMPOSE) up -d api frontend
 	@sleep 5
 	cd front && pnpm exec playwright test --ui
 	$(DOCKER_COMPOSE) down
 
-
-
 test-front-ci: ## Tests E2E dans container Playwright (CI/CD) - 100% containerisé
-	@$(MAKE) sync-env ENV=test
-	CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://localhost:$(FRONTEND_PORT),http://127.0.0.1:3000,http://127.0.0.1:$(FRONTEND_PORT),http://0.0.0.0:3000,http://0.0.0.0:$(FRONTEND_PORT),http://localhost:$(API_PORT) NEXT_PUBLIC_API_URL=http://localhost:$(API_PORT) INTERNAL_API_URL=http://api:8007 $(DOCKER_COMPOSE) up -d --build --force-recreate api frontend
+	@$(MAKE) use-env ENV=test
+	$(DOCKER_COMPOSE) up -d --build --force-recreate api frontend
 	@echo "Waiting for services to be ready..."
 	@sleep 15
 	docker run --rm --network host \
@@ -133,30 +108,27 @@ test-all: ## Lancer tous les tests (backend + frontend)
 	@$(MAKE) test-front
 
 test-prod: ## Lancer les tests en environnement de production (simulé)
-	@$(MAKE) sync-env ENV=production
+	@$(MAKE) use-env ENV=production
 	$(PROD_COMPOSE) run --rm api sh -c "pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt && pytest"
 
-# Commandes avec environnement personnalisé
-run-dev: ## Lancer avec environnement personnalisé (ex: make run-dev ENV=staging)
-	@$(MAKE) sync-env ENV=$(ENV)
+# Commandes avec environnement personnalisé (ENV doit être development, test ou production)
+run-dev: ## Lancer avec environnement personnalisé (ex: make run-dev ENV=test)
+	@$(MAKE) use-env ENV=$(ENV)
 	$(DEV_COMPOSE) up
 
 run-prod: ## Lancer production avec environnement personnalisé
-	@$(MAKE) sync-env ENV=$(ENV)
+	@$(MAKE) use-env ENV=$(ENV)
 	$(PROD_COMPOSE) up -d
 
 # Configuration rapide
 set-dev: ## Configurer pour le développement sans lancer
-	@$(MAKE) sync-env ENV=development
-
-set-staging: ## Configurer pour le staging sans lancer
-	@$(MAKE) sync-env ENV=staging
+	@$(MAKE) use-env ENV=development
 
 set-prod: ## Configurer pour la production sans lancer
-	@$(MAKE) sync-env ENV=production
+	@$(MAKE) use-env ENV=production
 
 set-test: ## Configurer pour les tests sans lancer
-	@$(MAKE) sync-env ENV=test
+	@$(MAKE) use-env ENV=test
 
 # Commandes générales
 build: ## Build les images Docker
@@ -180,18 +152,17 @@ logs-api: ## Voir les logs de l'API
 logs-frontend: ## Voir les logs du frontend
 	$(DOCKER_COMPOSE) logs -f frontend
 
-# Gestion des environnements (nouvelle approche)
+# Gestion des environnements
 
 env-check: ## Vérifier la configuration d'environnement
 	@$(MAKE) check-env
 
-env-sync: ## Synchroniser l'environnement courant
-	@$(MAKE) sync-env ENV=$(ENV)
-
 env-list: ## Lister les environnements disponibles
 	@echo "Available environment files:"
-	@ls -1 .env.* 2>/dev/null | grep -E '\.env\.(development|staging|production|test)$$' | sed 's/^\.env\./  /'
+	@ls -1 .env.* 2>/dev/null | grep -E '\.env\.(development|production|test)$$' | sed 's/^\.env\./  /'
 
+env-verify: ## Vérifier que la config appliquée dans les conteneurs Docker correspond au .env actif
+	@./scripts/verify_env_docker.sh
 
 # Shell
 shell-api: ## Accéder au shell de l'API
@@ -228,7 +199,7 @@ health: ## Vérifier la santé des services
 install: ## Installation initiale (build + up)
 	@echo "Installation de l'environnement OpenEdition Search..."
 	@echo "Note: Utilise Solr distant (https://solrslave-sec.labocleo.org/solr/documents)"
-	@$(MAKE) sync-env ENV=development
+	@$(MAKE) use-env ENV=development
 	$(DEV_COMPOSE) build
 	$(DEV_COMPOSE) up -d
 	@echo "✓ Installation terminée"
@@ -237,7 +208,7 @@ install: ## Installation initiale (build + up)
 
 install-prod: ## Installation en production
 	@echo "Installation de l'environnement OpenEdition Search en production..."
-	@$(MAKE) sync-env ENV=production
+	@$(MAKE) use-env ENV=production
 	$(PROD_COMPOSE) build
 	$(PROD_COMPOSE) up -d
 	@echo "✓ Installation production terminée"

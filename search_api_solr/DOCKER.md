@@ -38,7 +38,7 @@ make dev
 make prod
 ```
 
-Ces commandes appellent `make sync-env` en premier, ce qui génère automatiquement `front/.env` et `front/.env.local`.
+Ces commandes appellent `make use-env` en premier, ce qui active `.env.$ENVIRONMENT` (copie vers `.env` racine + symlinks `front/.env` et `search_api_solr/.env`).
 
 ### Sans Make
 
@@ -87,7 +87,7 @@ make clean-all        # Conteneurs + volumes + images
 Les variables d'environnement sont gérées de façon centralisée depuis la racine du projet :
 
 ```bash
-make sync-env ENV=development   # ou staging / production / test
+make use-env ENV=development   # ou test / production
 ```
 
 Cela génère `front/.env`, `front/.env.local` et `search_api_solr/.env.local`.
@@ -155,7 +155,7 @@ curl http://localhost:8003/docs
 ### Le frontend ne peut pas contacter l'API
 
 Vérifier que `front/.env` contient `NEXT_PUBLIC_API_URL=http://localhost:8003`.
-Ce fichier est généré par `make sync-env` / `make dev`. En cas d'absence, relancer `make dev`.
+Ce fichier est un symlink vers le `.env` racine, créé par `make dev` (via `scripts/use-env.sh`). En cas d'absence, relancer `make dev`.
 
 ### L'API retourne une erreur 503
 

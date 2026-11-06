@@ -1,6 +1,22 @@
 # Changelog
 
-**Dernière vérification** : 2026-09-03 — historique technique/opérationnel (correctifs, configuration infra) par commit. Pour l'historique des livraisons de specs par feature, voir [`specs/CHANGELOG.md`](../specs/CHANGELOG.md).
+**Dernière vérification** : 2026-09-04 — historique technique/opérationnel (correctifs, configuration infra) par commit. Pour l'historique des livraisons de specs par feature, voir [`specs/CHANGELOG.md`](../specs/CHANGELOG.md).
+
+## [2026-09-04] - Simplification de la configuration d'environnement (spec `018-simplify-env-config`)
+
+### Configuration
+
+- **3 environnements au lieu de 4** : `staging` est retiré (fichier `.env.staging`, `docker-compose.staging.yml`, cibles Make `staging*`, et toutes les branches conditionnelles associées dans `app/settings.py`). Seuls `development`, `test`, `production` restent valides pour `ENVIRONMENT` — toute autre valeur bloque le démarrage du backend.
+- **Un fichier actif par machine** : `.env.shared`, `.env.example` et les fichiers générés (`front/.env.local`, `search_api_solr/.env.local`) sont supprimés. Trois fichiers modèles versionnés et autonomes (`.env.development`, `.env.test`, `.env.production`) les remplacent ; `scripts/use-env.sh <environment>` active l'un d'eux en le copiant vers `.env` (racine, non versionné) et en exposant ce même fichier à `front/` et `search_api_solr/` via des symlinks. `scripts/sync_env.sh` et `scripts/configure_env.sh` sont supprimés au profit de ce script unique.
+- **`search_api_solr/.env.development` / `.env.test` / `.env.production` / `.env.staging` / `.env.example`** (fichiers historiques, non lus par aucun code — `Settings.model_config.env_file` ne charge que `.env`) : supprimés, c'était une source de confusion documentée mais jamais opérationnelle.
+- **Secrets de production** : `.env.production` versionné ne contient que des placeholders (`change-me-in-production`) ; `app/settings.py` et `app/core/env_validation.py` bloquent désormais le démarrage si un secret placeholder est encore actif alors que `ENVIRONMENT=production`.
+- **Docker Compose** : `docker-compose.yml`/`.dev.yml`/`.prod.yml` lisent directement le `.env` actif (`env_file:`) au lieu de dupliquer les valeurs dans des blocs `environment:` séparés.
+- **Nouveau** : `scripts/verify_env_docker.sh` (et `make env-verify`) compare la configuration attendue (`.env` actif) à celle réellement appliquée dans chaque conteneur Docker.
+- **Documentation** : `docs/ENVIRONMENTS.md` réécrit comme référence unique (structure, CORS, précédence, dépannage) ; `search_api_solr/ENVIRONMENTS.md` (doublon obsolète) supprimé.
+- **Contexte** : ce chantier fait suite à un incident de configuration en session de debug (variable de shell résiduelle et fichiers dispersés ayant provoqué une régression de connectivité front/API silencieuse et longue à diagnostiquer).
+- **Correctif post-implémentation** : `.dockerignore` n'excluait `.env` qu'à la racine (syntaxe Docker, contrairement à `.gitignore`, non récursive sans `**/`) — le symlink `front/.env` (cassé dans le contexte de build, sa cible `../.env` n'existant pas dans l'image) était donc copié et faisait planter `next build` (`ENOENT: no such file or directory, stat '/app/.env'`). Ajout de `**/.env` dans `.dockerignore`.
+
+---
 
 ## [2026-04-17] - Correctifs recherche avancée + cohérence multi-environnements
 

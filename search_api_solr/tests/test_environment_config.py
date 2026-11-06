@@ -267,11 +267,9 @@ class TestSecuritySettings:
     def test_trusted_hosts_settings(self):
         """Test la configuration des hôtes de confiance"""
         prod_settings = Settings(environment="production", secret_key=TEST_PRODUCTION_SECRET_KEY)
-        staging_settings = Settings(environment="staging")
         dev_settings = Settings(environment="development")
 
         assert len(prod_settings.trusted_hosts) > 0
-        assert len(staging_settings.trusted_hosts) > 0
         assert len(dev_settings.trusted_hosts) == 0  # Pas de hôtes de confiance par défaut en dev
 
     def test_dev_mode_settings(self):

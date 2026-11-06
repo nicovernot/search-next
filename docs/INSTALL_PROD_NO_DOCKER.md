@@ -44,8 +44,8 @@ ENVIRONMENT=production RUN_MIGRATIONS=true ./scripts/install_no_docker.sh
 
 Le script:
 
-- génère `search_api_solr/.env.local`
-- génère `front/.env.local`
+- active `.env.production` via `scripts/use-env.sh` (crée `.env` à la racine + les symlinks `search_api_solr/.env` et `front/.env`)
+- ajoute les overrides propres à un hôte sans Docker (`DATABASE_URL`/`REDIS_URL` sur `127.0.0.1`, secrets, etc.) directement dans ce `.env`
 - installe les dépendances backend
 - applique les migrations si `RUN_MIGRATIONS=true`
 - installe les dépendances frontend avec pnpm

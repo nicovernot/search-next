@@ -56,21 +56,21 @@ Champs métier optionnels : dans `extra={"context": {...}}`.
 
 ### Niveaux par environnement
 
-| Niveau | dev | staging | prod |
-|--------|-----|---------|------|
-| `DEBUG` | ✅ affiché | ❌ silencé | ❌ silencé |
+| Niveau | dev | test | prod |
+|--------|-----|------|------|
+| `DEBUG` | ✅ affiché | ✅ affiché | ❌ silencé |
 | `INFO` | ✅ | ✅ | ✅ |
 | `WARNING` | ✅ | ✅ | ✅ |
 | `ERROR` | ✅ | ✅ | ✅ |
 | `CRITICAL` | ✅ | ✅ | ✅ |
 
-Le niveau est fixé via `LOG_LEVEL` dans les fichiers Docker Compose :
+Le niveau est fixé via `LOG_LEVEL` dans le fichier de configuration actif (voir [ENVIRONMENTS.md](./ENVIRONMENTS.md)) :
 
 | Fichier | Valeur |
 |---------|--------|
-| `docker-compose.dev.yml` | `LOG_LEVEL=DEBUG` |
-| `docker-compose.staging.yml` | `LOG_LEVEL=INFO` |
-| `docker-compose.prod.yml` | `LOG_LEVEL=INFO` |
+| `.env.development` | `LOG_LEVEL=DEBUG` |
+| `.env.test` | `LOG_LEVEL=DEBUG` |
+| `.env.production` | `LOG_LEVEL=INFO` |
 
 Valeur par défaut si absent : `DEBUG` hors prod, `INFO` en prod (via `Settings.set_default_log_level()`).
 
@@ -83,7 +83,7 @@ logger.info("Search completed", extra={"context": {"result_count": 42, "duration
 # Erreur avec stack trace
 logger.error("Solr HTTP error", extra={"context": {"status_code": 503}}, exc_info=True)
 
-# Debug technique (ne sera pas visible en staging/prod)
+# Debug technique (ne sera pas visible en prod)
 logger.debug("Cache HIT for key: %s", cache_key)
 ```
 
@@ -160,7 +160,7 @@ docker logs search-next_api 2>&1 | grep '"severity":"ERROR"'
 docker logs search-next_api 2>&1 | grep '^{' | jq '{t: .timestamp, sev: .severity, name: .name, msg: .message}'
 ```
 
-### En staging / production
+### En production
 
 Les logs JSON sont émis sur stdout. L'aggregateur de logs (ELK, Loki, CloudWatch, etc.) les indexe directement.
 
